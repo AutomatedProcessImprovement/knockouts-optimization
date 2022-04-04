@@ -302,7 +302,7 @@ class KnockoutAnalyzer:
                 )
                 print(f"rule discovery params: {params}")
 
-    def build_report(self, algorithm="IREP"):
+    def build_report(self, algorithm="IREP", omit=False):
 
         if algorithm == "RIPPER":
             rulesets = self.RIPPER_rulesets
@@ -326,7 +326,11 @@ class KnockoutAnalyzer:
                             })
 
         df = pd.DataFrame(entries)
-        print(tabulate(df, headers='keys', tablefmt='psql'))
+
+        if not omit:
+            print(tabulate(df, headers='keys', tablefmt='psql'))
+
+        return df
 
 
 if __name__ == "__main__":
@@ -334,7 +338,7 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=False)
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
