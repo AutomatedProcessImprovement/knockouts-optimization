@@ -237,7 +237,7 @@ class KnockoutAnalyzer:
             print("\nDiscovering rulesets of each K.O. activity with IREP")
 
         if grid_search & (param_grid is None):
-            param_grid = {"prune_size": [0.2, 0.33], "n_discretize_bins": [4, 8, 12]}
+            param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [4, 8, 12]}
 
         self.IREP_rulesets = find_ko_rulesets(self.discoverer.log_df,
                                               self.discoverer.ko_activities,
@@ -337,10 +337,18 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    analyzer.get_ko_rules_IREP()
+    analyzer.get_ko_rules_IREP(grid_search=True)
 
     analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
     analyzer.build_report(algorithm="IREP")
 
 # TODO: work on different pending parts (clean up)
-# TODO: meeting to-dos
+
+# TODOs - related to KO Rule stage
+# TODO: area under curve metric for grid search?
+# TODO: fix support calculation: tomar en cuenta no todo N, sino solo los casos que recibe el KO check
+# TODO: Manejar nulos, no el valor “N/A”
+# TODO: Ver como calcular supp & conf por cada regla del ruleset, limpar segun threshold
+
+# TODOs - related to time waste metrics
+# TODO: implement time waste metrics & add columns to report (and test) - first 2, hardest to the last
