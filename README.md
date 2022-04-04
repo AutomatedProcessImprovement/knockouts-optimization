@@ -23,7 +23,9 @@ The flag `-n auto` is used by pytest-xdist to run tests in parallel.
 ## Notes:
 
 ### About wittgenstein
-Excessive warnings are printed due to 
+Excessive warnings are printed due to `frame.append` deprecation warnings.
+
+Currently, they can just be suppressed by passing the `-Wignore` flag.
 
 ### About pm4py
 A pull request has been submitted to pm4py about an inappropriate type-checking technique used in the `pm4py/filtering.py` module.
