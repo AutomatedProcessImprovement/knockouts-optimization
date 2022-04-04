@@ -30,5 +30,5 @@ def test_report_creation():
     # assert that there are no rows with negative values
     assert df.loc[df['Effort per rejection'] < 0].shape[0] == 0
 
-    # assert that there are no rows where 'Rejection rule' is equal to "[]"
+    # assert that there are no rows where 'Rejection rule' is empty
     assert df.loc[df['Rejection rule'] == "[]", 'Rejection rule'].shape[0] == 0

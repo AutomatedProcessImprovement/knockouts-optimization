@@ -15,7 +15,7 @@ from knockout_ios.utils.constants import *
 from knockout_ios.utils.explainer import find_ko_rulesets
 
 # TODO: remove this later
-OVERRIDE_FORCE_RECOMPUTE = False
+OVERRIDE_FORCE_RECOMPUTE = True
 
 
 class KnockoutAnalyzer:
@@ -242,7 +242,7 @@ class KnockoutAnalyzer:
             print("\nDiscovering rulesets of each K.O. activity with IREP")
 
         if grid_search & (param_grid is None):
-            param_grid = {"prune_size": [0.33, 0.5, 0.7], "n_discretize_bins": [3, 6, 9]}
+            param_grid = {"prune_size": [0.2, 0.33], "n_discretize_bins": [4, 8, 12]}
 
         self.IREP_rulesets = find_ko_rulesets(self.discoverer.log_df,
                                               self.discoverer.ko_activities,
@@ -338,13 +338,16 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=False,
-                                quiet=False)
+                                always_force_recompute=True,
+                                quiet=True)
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    analyzer.get_ko_rules_IREP(grid_search=False, bucketing_approach="B")
+    analyzer.get_ko_rules_IREP(grid_search=True, bucketing_approach="B")
 
     analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
     analyzer.build_report(algorithm="IREP")
 
+
+# TODO: work on different pending parts (clean up)
+# TODO: meeting to-dos

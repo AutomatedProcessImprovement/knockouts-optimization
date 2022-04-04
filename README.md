@@ -30,6 +30,10 @@ Excessive warnings are printed due to `frame.append` deprecation warnings.
 
 Currently, they can just be suppressed by passing the `-Wignore` flag.
 
+Another situation where excessive warnings are printed, is during the parameter grid search, as some combinations may yield too small training sets or sets with no positive examples. 
+
+This can be safely ignored as long as the grid contains at least one parameter combination that results in a valid dataset, and the rule discovery module is able to return meaningful rules.
+
 ### About pm4py
 A pull request has been submitted to pm4py about an inappropriate type-checking technique used in the `pm4py/filtering.py` module.
 
