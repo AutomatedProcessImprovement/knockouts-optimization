@@ -7,8 +7,9 @@ from sys import stdout
 import numpy as np
 import pandas as pd
 import wittgenstein as lw
-from sklearn.metrics import precision_score, recall_score, classification_report, log_loss, f1_score, accuracy_score
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
+from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
 from knockout_ios.utils.constants import *
 
@@ -70,6 +71,39 @@ def dump_rule_discovery_result(clfs, config_file_name, cache_dir):
     binary_file.close()
 
 
+def calc_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame, dummies=False):
+    predicted_ko = ruleset_model.predict(log)
+    log['predicted_ko'] = predicted_ko
+
+    if dummies:
+        freq_x_and_y = \
+            log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
+    else:
+        freq_x_and_y = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+
+    N = log.shape[0]
+
+    support = freq_x_and_y / N
+
+    return support
+
+
+def calc_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame, dummies=False):
+    predicted_ko = ruleset_model.predict(log)
+    log['predicted_ko'] = predicted_ko
+
+    if dummies:
+        freq_x_and_y = \
+            log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
+    else:
+        freq_x_and_y = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+    freq_x = sum(predicted_ko)
+
+    confidence = freq_x_and_y / freq_x
+
+    return confidence
+
+
 def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                      force_recompute=True,
                      columns_to_ignore=None,
@@ -82,7 +116,8 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                      dl_allowance=64,
                      prune_size=0.33,
                      grid_search=True,
-                     param_grid=None
+                     param_grid=None,
+                     bucketing_approach="A"
                      ):
     if columns_to_ignore is None:
         columns_to_ignore = []
@@ -99,16 +134,22 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
 
         for activity in ko_activities:
             try:
-                # Bucketing approach A: Keep only cases knocked out by current activity and non-knocked out ones
-                # _by_case = log_df[log_df['knockout_activity'].isin([activity, False])]
+                if bucketing_approach == "A":
+                    # Bucketing approach A: Keep only cases knocked out by current activity and non-knocked out ones
+                    _by_case = log_df[log_df['knockout_activity'].isin([activity, False])]
+                elif bucketing_approach == "B":
+                    # Bucketing approach B: Keep all cases, apply mask to those not knocked out by current activity
+                    _by_case = deepcopy(log_df)
+                    _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
+                    _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
 
-                # Bucketing approach B: Keep all cases, apply mask to those not knocked out by current activity
-                _by_case = deepcopy(log_df)
-                _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
-                _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
+                # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
+                # (attributes remain the same throughout the case)
+                _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
+                _by_case = _by_case.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
 
-                train, test = train_test_split(_by_case.drop(columns=columns_to_ignore,
-                                                             errors='ignore'), test_size=.33)
+                train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
+                                               test_size=.33)
 
                 if algorithm == "RIPPER":
                     ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
@@ -135,12 +176,20 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                 y_test = test['knocked_out_case']
 
                 if grid_search:
+                    # Pre-process to conform to sklearn required format
                     x_test = pd.get_dummies(x_test, columns=x_test.select_dtypes('object').columns)
                     y_test = y_test.map(lambda x: 1 if x else 0)
 
-                # TODO: implement, method Ruleset::num_covered() from wittgenstein, or research how to derive form sklearn metrics
-                support = 0  # calc_support(ruleset_model.ruleset_, x_test)
-                confidence = 0  # calc_confidence(ruleset_model.ruleset_, x_test)
+                    _by_case = _by_case.drop(
+                        columns=[PM4PY_CASE_ID_COLUMN_NAME, SIMOD_LOG_READER_CASE_ID_COLUMN_NAME],
+                        errors='ignore')
+                    _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
+
+                    support = calc_support(activity, ruleset_model, _by_case, dummies=True)
+                    confidence = calc_confidence(activity, ruleset_model, _by_case, dummies=True)
+                else:
+                    support = calc_support(activity, ruleset_model, _by_case)
+                    confidence = calc_confidence(activity, ruleset_model, _by_case)
 
                 rulesets[activity] = (
                     ruleset_model,
@@ -202,7 +251,6 @@ def RIPPER_wrapper(train, activity, max_rules=None,
             param_grid = {"prune_size": [0.33, 0.5, 0.7], "k": [1, 2, 5, 10],
                           "n_discretize_bins": [3, 5, 8]}
         ruleset_model, optimized_params = do_grid_search(ruleset_model, train, activity, algorithm="RIPPER",
-                                                         quiet=False,
                                                          param_grid=param_grid)
         params.update(optimized_params)
 
@@ -217,14 +265,6 @@ def IREP_wrapper(train, activity, max_rules=None,
                  grid_search=True,
                  param_grid=None
                  ):
-    ruleset_model = lw.IREP(max_rules=max_rules,
-                            max_rule_conds=max_rule_conds,
-                            max_total_conds=max_total_conds,
-                            n_discretize_bins=n_discretize_bins,
-                            prune_size=prune_size,
-                            )
-
-    ruleset_model.fit(train, class_feat='knocked_out_case')
     params = {"max_rules": max_rules,
               "max_rule_conds": max_rule_conds,
               "max_total_conds": max_total_conds,
@@ -235,14 +275,24 @@ def IREP_wrapper(train, activity, max_rules=None,
         if param_grid is None:
             param_grid = {"prune_size": [0.33, 0.5, 0.7], "n_discretize_bins": [3, 5, 8]}
 
-        ruleset_model, optimized_params = do_grid_search(ruleset_model, train, activity, algorithm="IREP", quiet=False,
+        ruleset_model, optimized_params = do_grid_search(lw.IREP(), train, activity, algorithm="IREP",
                                                          param_grid=param_grid)
         params.update(optimized_params)
+
+    else:
+        ruleset_model = lw.IREP(max_rules=max_rules,
+                                max_rule_conds=max_rule_conds,
+                                max_total_conds=max_total_conds,
+                                n_discretize_bins=n_discretize_bins,
+                                prune_size=prune_size,
+                                )
+
+        ruleset_model.fit(train, class_feat='knocked_out_case')
 
     return ruleset_model, params
 
 
-def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=False, param_grid=None):
+def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=True, param_grid=None):
     train = deepcopy(train)
 
     if not quiet:
@@ -263,7 +313,8 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Fal
     # Source: https://scikit-learn.org/stable/modules/grid_search.html#tips-for-parameter-search
 
     # TODO: decide if using balanced_accuracy alongside f1_score is better
-    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring=["balanced_accuracy", "f1"],
+
+    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring=["f1", "balanced_accuracy"],
                         refit="f1", n_jobs=-1)
     grid.fit(x_train, y_train)
 

@@ -4,6 +4,8 @@ import os
 import pprint
 from copy import deepcopy
 
+from tabulate import tabulate
+
 import pandas as pd
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
@@ -13,7 +15,7 @@ from knockout_ios.utils.constants import *
 from knockout_ios.utils.explainer import find_ko_rulesets
 
 # TODO: remove this later
-OVERRIDE_FORCE_RECOMPUTE = True
+OVERRIDE_FORCE_RECOMPUTE = False
 
 
 class KnockoutAnalyzer:
@@ -67,14 +69,13 @@ class KnockoutAnalyzer:
 
         # Populate dict with rejection rates and efforts (avg. KO activity durations)
         self.calc_rejection_rates()
-        self.calc_ko_efforts()
+        # self.calc_ko_efforts()
 
         if not self.quiet:
             print("\nK.O. rejection rates & efforts:\n")
             pprint.pprint(self.ko_stats)
 
     def calc_rejection_rates(self, omit_print=True):
-        rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
         rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
 
         # Update rejection rates
@@ -85,7 +86,14 @@ class KnockoutAnalyzer:
             print("\nK.O. rejection rates:\n")
             pprint.pprint(rejection_rates)
 
-    def calc_ko_efforts(self, omit_print=True):
+    def calc_ko_efforts(self, omit_print=True, support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP"):
+
+        # TODO: add support for different algorithms (separate ko stats dicts?)
+        if algorithm == "RIPPER":
+            rulesets = self.RIPPER_rulesets
+        else:
+            rulesets = self.IREP_rulesets
+
         # average processing time of the knock-out check activity
         soj_time = soj_time_get.apply(self.discoverer.pm4py_df,
                                       parameters={
@@ -94,17 +102,26 @@ class KnockoutAnalyzer:
                                               PM4PY_START_TIMESTAMP_COLUMN_NAME}
                                       )
 
-        soj_time = {k: v for k, v in soj_time.items() if k in self.ko_stats}
+        soj_time = {k: v for k, v in soj_time.items() if k in self.discoverer.ko_activities}
 
         if not (self.quiet or omit_print):
             print("\nK.O. activity efforts (avg. time spent in each activity):\n")
             pprint.pprint(soj_time)
 
         # Update KO rejection rates
-        for k, v in soj_time.items():
-            self.ko_stats[k]['effort'] = round(v, ndigits=3)
+        for key in rulesets.keys():
+            entry = rulesets[key]
+            metrics = entry[2]
 
-        pass
+            # Effort per rejection = Average PT / Rejection rate
+            effort = round(soj_time[key], ndigits=3) / (100 * self.ko_stats[key]['rejection_rate'])
+
+            if (metrics['confidence'] >= confidence_threshold):  # or (metrics['support'] >= support_threshold):
+                # Effort per rejection = (Average PT / Rejection rate) * Confidence
+                effort = effort * metrics['confidence']
+
+            self.ko_stats[key]['effort'] = effort
+            self.ko_stats[key]['mean_pt'] = round(soj_time[key], ndigits=3)
 
     def calc_ko_discovery_metrics(self, expected_kos):
         self.ko_discovery_metrics = self.discoverer.get_discovery_metrics(expected_kos)
@@ -156,8 +173,9 @@ class KnockoutAnalyzer:
                             n_discretize_bins=5,
                             dl_allowance=16,
                             prune_size=0.33,
-                            grid_search=True,
+                            grid_search=False,
                             param_grid=None,
+                            bucketing_approach="A"
                             ):
 
         if self.discoverer.log_df is None:
@@ -192,13 +210,14 @@ class KnockoutAnalyzer:
                                                 dl_allowance=dl_allowance,
                                                 prune_size=prune_size,
                                                 grid_search=grid_search,
-                                                param_grid=param_grid
+                                                param_grid=param_grid,
+                                                bucketing_approach=bucketing_approach,
                                                 )
 
         if not self.quiet:
             self.print_ko_rulesets(algorithm="RIPPER")
 
-        return deepcopy(self.RIPPER_rulesets)
+        return self
 
     def get_ko_rules_IREP(self, max_rules=None,
                           max_rule_conds=None,
@@ -206,7 +225,8 @@ class KnockoutAnalyzer:
                           n_discretize_bins=9,
                           prune_size=0.33,
                           grid_search=True,
-                          param_grid=None
+                          param_grid=None,
+                          bucketing_approach="A"
                           ):
 
         if self.discoverer.log_df is None:
@@ -236,13 +256,14 @@ class KnockoutAnalyzer:
                                               n_discretize_bins=n_discretize_bins,
                                               prune_size=prune_size,
                                               grid_search=grid_search,
-                                              param_grid=param_grid
+                                              param_grid=param_grid,
+                                              bucketing_approach=bucketing_approach,
                                               )
 
         if not self.quiet:
             self.print_ko_rulesets(algorithm="IREP")
 
-        return deepcopy(self.IREP_rulesets)
+        return self
 
     def print_ko_rulesets(self, algorithm="RIPPER", compact=False):
 
@@ -255,6 +276,8 @@ class KnockoutAnalyzer:
         if rulesets is None:
             return
 
+        print(f"\n{algorithm}")
+
         for key in rulesets.keys():
             entry = rulesets[key]
             model = entry[0]
@@ -262,75 +285,50 @@ class KnockoutAnalyzer:
             metrics = entry[2]
 
             if compact:
-                print(f"\n\"{key}\" ({algorithm}):")
+                print(f"\n\"{key}\"")
+                print(f'# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
                 print(
-                    f"f1 score: {metrics['f1_score']:.2f}, # conditions: {metrics['condition_count']}, # rules: {metrics['rule_count']}"
+                    f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
+                    f"\nf1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
                 )
             else:
-                print(f"\n{algorithm} Ruleset for\n\"{key}\":\n")
+                print(f"\n\"{key}\":")
                 model.out_model()
                 print(f'\n# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
-                # TODO: uncomment to print supp and conf
                 print(
-                    # f"\nsupport: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
+                    f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
                     f"\nf1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
                 )
                 print(f"rule discovery params: {params}")
 
+    def build_report(self, algorithm="IREP"):
 
-def compare_approach():
-    test_data = ("synthetic_example.json", "cache/synthetic_example_A",
-                 ['Check Liability', 'Check Risk', 'Check Monthly Income'])
+        if algorithm == "RIPPER":
+            rulesets = self.RIPPER_rulesets
+        else:
+            rulesets = self.IREP_rulesets
 
-    analyzerA = KnockoutAnalyzer(config_file_name=test_data[0],
-                                 cache_dir=test_data[1],
-                                 always_force_recompute=False,
-                                 quiet=True)
+        _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
 
-    analyzerA.discover_knockouts(expected_kos=test_data[2])
+        entries = []
+        for ko in self.discoverer.ko_activities:
+            freq = _by_case[_by_case["knockout_activity"] == ko].shape[0]
+            entries.append({"Knock-out check": ko,
+                            "Total frequency":
+                                freq,
+                            "Case frequency":
+                                f"{freq / _by_case.shape[0]} %",
+                            "Mean PT": self.ko_stats[ko]["mean_pt"],
+                            "Rejection rate": self.ko_stats[ko]["rejection_rate"],
+                            "Rejection rule": rulesets[ko][0].ruleset_,
+                            "Effort per rejection": self.ko_stats[ko]["effort"]
+                            })
 
-    analyzerA.get_ko_rules_RIPPER(max_rules=5,
-                                  grid_search=True
-                                  )
-
-    analyzerA.get_ko_rules_IREP(max_rules=5,
-                                grid_search=True
-                                )
-
-    test_data = ("synthetic_example.json", "cache/synthetic_example_B",
-                 ['Check Liability', 'Check Risk', 'Check Monthly Income'])
-
-    analyzerB = KnockoutAnalyzer(config_file_name=test_data[0],
-                                 cache_dir=test_data[1],
-                                 always_force_recompute=False,
-                                 quiet=True)
-
-    analyzerB.discover_knockouts(expected_kos=test_data[2])
-
-    analyzerB.get_ko_rules_RIPPER(max_rules=5,
-                                  grid_search=True
-                                  )
-
-    analyzerB.get_ko_rules_IREP(max_rules=5,
-                                grid_search=True
-                                )
-
-    print("\nWith approach A:")
-    analyzerA.print_ko_rulesets(algorithm="RIPPER", compact=True)
-    print("\n\nWith approach B:")
-    analyzerB.print_ko_rulesets(algorithm="RIPPER", compact=True)
-
-    print("\nWith approach A:")
-    analyzerA.print_ko_rulesets(algorithm="IREP", compact=True)
-    print("\n\nWith approach B:")
-    analyzerB.print_ko_rulesets(algorithm="IREP", compact=True)
+        df = pd.DataFrame(entries)
+        print(tabulate(df, headers='keys', tablefmt='psql'))
 
 
 if __name__ == "__main__":
-    # OVERRIDE_FORCE_RECOMPUTE = False
-    # compare_approach()
-    # exit(0)
-
     # from log_generation.LogWithKnockoutsGenerator import LogWithKnockoutsGenerator
     # gen = LogWithKnockoutsGenerator("../log_generation/outputs/synthetic_example_raw.xes")
     # gen.generate_log(1000)
@@ -339,7 +337,7 @@ if __name__ == "__main__":
                  ['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
     # Known rules
-    # 'Check Liability':        'Total Debt'     > 5000
+    # 'Check Liability':        'Total Debt'     > 5000 ||  'Vehicle Owned' = "N/A"
     # 'Check Risk':             'Loan Ammount'   > 10000
     # 'Check Monthly Income':   'Monthly Income' < 1000
 
@@ -350,17 +348,13 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts(expected_kos=test_data[2])
 
-    # analyzer.get_ko_rules_RIPPER(max_rules=5,
-    #                             grid_search=True
-    #                             )
+    # analyzer.get_ko_rules_RIPPER(grid_search=True, bucketing_approach="B").print_ko_rulesets(algorithm="RIPPER",
+    #                                                                                          compact=True)
 
-    # analyzer.print_ko_rulesets(algorithm="RIPPER")
+    analyzer.get_ko_rules_IREP(grid_search=False, bucketing_approach="B")
 
-    analyzer.get_ko_rules_IREP(max_rules=5,
-                               grid_search=True
-                               )
+    analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
+    analyzer.build_report(algorithm="IREP")
 
-    analyzer.print_ko_rulesets(algorithm="IREP")
-
-    # TODO: add KO rule discovery support & confidence metrics
-    # TODO: multi-class classification?
+# TODO: work on different pending parts (clean up)
+# TODO: meeting to-dos
