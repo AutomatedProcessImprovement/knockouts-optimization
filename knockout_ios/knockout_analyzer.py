@@ -2,7 +2,6 @@ import glob
 import itertools
 import os
 import pprint
-import sys
 from copy import deepcopy
 
 from tabulate import tabulate
@@ -332,15 +331,13 @@ class KnockoutAnalyzer:
 
 if __name__ == "__main__":
 
-    test_data = ("synthetic_example.json", "cache/synthetic_example",
-                 ['Check Liability', 'Check Risk', 'Check Monthly Income'])
-
-    analyzer = KnockoutAnalyzer(config_file_name=test_data[0],
-                                cache_dir=test_data[1],
+    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
+                                config_dir="config",
+                                cache_dir="cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=False)
 
-    analyzer.discover_knockouts(expected_kos=test_data[2])
+    analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
     analyzer.get_ko_rules_IREP(grid_search=False, bucketing_approach="B")
 
