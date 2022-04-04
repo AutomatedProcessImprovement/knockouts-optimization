@@ -1,4 +1,4 @@
-<qbp:processSimulationInfo xmlns:qbp="http://www.qbp-simulator.com/Schema201212" id="qbp_b839c63a-534d-4d47-bde5-95b990af076d" processInstances="" startDateTime="" currency="EUR">
+<qbp:processSimulationInfo xmlns:qbp="http://www.qbp-simulator.com/Schema201212" id="qbp_186aa8da-bacb-45ae-ad7a-659a59421647" processInstances="" startDateTime="" currency="EUR">
   <qbp:timetables>
     <qbp:timetable id="Discovered_CASES_ARRIVAL_CALENDAR" default="true" name="Discovered_CASES_ARRIVAL_CALENDAR">
       <qbp:rules>
@@ -152,16 +152,16 @@
   </qbp:timetables>
   <qbp:resources>
     <qbp:resource id="QBP_DEFAULT_RESOURCE" name="SYSTEM" totalAmount="20" costPerHour="20" timetableId="Discovered_CASES_ARRIVAL_CALENDAR"/>
-    <qbp:resource id="qbp_9e7c30b9-4fd8-4d06-b934-84f5ba7e7ee4" name="Role 1" totalAmount="445" costPerHour="20" timetableId="QBP_RES_ROLE_1_TIMETABLE"/>
-    <qbp:resource id="qbp_2be13d57-c374-4790-8cb7-0edda72a6c7e" name="Role 10" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_10_TIMETABLE"/>
-    <qbp:resource id="qbp_348ab39b-5985-4acf-9f48-c14ad065bba8" name="Role 11" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_11_TIMETABLE"/>
-    <qbp:resource id="qbp_983b0b35-0348-48eb-b2bb-69173bbb3a67" name="Role 2" totalAmount="64" costPerHour="20" timetableId="QBP_RES_ROLE_2_TIMETABLE"/>
-    <qbp:resource id="qbp_a5e71fb4-9a8f-49ab-9bc6-2cae1cd9c115" name="Role 3" totalAmount="39" costPerHour="20" timetableId="QBP_RES_ROLE_3_TIMETABLE"/>
-    <qbp:resource id="qbp_2e49e3f0-814f-4a64-a1db-3ac3899d3668" name="Role 4" totalAmount="3" costPerHour="20" timetableId="QBP_RES_ROLE_4_TIMETABLE"/>
-    <qbp:resource id="qbp_119c3c08-6e7a-48de-a655-c8c45c4aa9c9" name="Role 5" totalAmount="2" costPerHour="20" timetableId="QBP_RES_ROLE_5_TIMETABLE"/>
-    <qbp:resource id="qbp_416625b7-062e-4832-a59b-99f9f989eede" name="Role 6" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_6_TIMETABLE"/>
-    <qbp:resource id="qbp_838d9a20-4bfa-44da-b436-7a3312e66d64" name="Role 7" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_7_TIMETABLE"/>
-    <qbp:resource id="qbp_fa89513a-39b1-43f0-bcf5-926905ae7594" name="Role 8" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_8_TIMETABLE"/>
-    <qbp:resource id="qbp_6f0f8b5e-6b0d-41d1-8af1-058743c34d8c" name="Role 9" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_9_TIMETABLE"/>
+    <qbp:resource id="qbp_190b18ca-6536-46b4-9957-c61cdc4e80e4" name="Role 1" totalAmount="445" costPerHour="20" timetableId="QBP_RES_ROLE_1_TIMETABLE"/>
+    <qbp:resource id="qbp_ecd28dd4-3e68-4b67-a6bf-83925e37f688" name="Role 10" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_10_TIMETABLE"/>
+    <qbp:resource id="qbp_e57833cc-9ff4-4ff5-8894-36d6e03ee5b3" name="Role 11" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_11_TIMETABLE"/>
+    <qbp:resource id="qbp_bd1a4426-48f4-4631-8e2b-7665237331eb" name="Role 2" totalAmount="64" costPerHour="20" timetableId="QBP_RES_ROLE_2_TIMETABLE"/>
+    <qbp:resource id="qbp_4cea3873-646b-4e44-ac45-bbaa487d833b" name="Role 3" totalAmount="39" costPerHour="20" timetableId="QBP_RES_ROLE_3_TIMETABLE"/>
+    <qbp:resource id="qbp_796ee453-6a4f-404e-882b-492cb704d1eb" name="Role 4" totalAmount="3" costPerHour="20" timetableId="QBP_RES_ROLE_4_TIMETABLE"/>
+    <qbp:resource id="qbp_c9d07454-b1c3-4ab4-ae18-0bd938a106f0" name="Role 5" totalAmount="2" costPerHour="20" timetableId="QBP_RES_ROLE_5_TIMETABLE"/>
+    <qbp:resource id="qbp_9741880b-532d-44c6-b06c-0e74ec41df80" name="Role 6" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_6_TIMETABLE"/>
+    <qbp:resource id="qbp_2f6c9fbb-1851-4662-ae12-7f4fa3c0572e" name="Role 7" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_7_TIMETABLE"/>
+    <qbp:resource id="qbp_848b8a6c-666e-4c55-835f-2f44ec3c4247" name="Role 8" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_8_TIMETABLE"/>
+    <qbp:resource id="qbp_091d192f-7e16-4cb7-8118-81d5f7c33533" name="Role 9" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_9_TIMETABLE"/>
   </qbp:resources>
 </qbp:processSimulationInfo>
