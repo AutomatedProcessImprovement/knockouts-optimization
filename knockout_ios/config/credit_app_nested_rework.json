@@ -1,0 +1,13 @@
+{
+  "log_path": "./inputs/credit_app_nested_rework.xes",
+  "output": "./outputs",
+  "start_activity": "Start",
+  "negative_outcomes": [
+    "Reject application"
+  ],
+  "positive_outcomes": [
+    "Make credit offer"
+  ],
+  "known_ko_activities": [],
+  "ko_count_threshold": 6
+}

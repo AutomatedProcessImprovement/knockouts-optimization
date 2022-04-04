@@ -1,0 +1,12 @@
+log_path: ./preprocessing/pt_cleaning/inputs/purchase_example_for_test.xes
+output: ./preprocessing/pt_cleaning/outputs
+arr_confidence: 9.2
+arr_support: 0.098
+epsilon: 0.27747592754346484
+eta: 0.3475132024591636
+res_confidence: 10
+res_support: 0.07334543198001255
+res_cal_met: pool
+res_dtype: 247
+arr_dtype: 247
+rp_similarity: 0.8

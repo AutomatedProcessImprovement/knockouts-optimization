@@ -1,0 +1,6 @@
+log_path: ./inputs/credit_app_simplified.xes
+output: ./outputs
+start_activity: Start
+negative_outcomes: Notify rejection
+ko_count_threshold: 5
+#known_ko_activities: Assess eligibility

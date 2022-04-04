@@ -1,0 +1,12 @@
+{
+  "log_path": "./inputs/credit_app_multiple_negative.xes",
+  "output": "./outputs",
+  "start_activity": "Start",
+  "negative_outcomes": [
+    "Reject application",
+    "Ban client forever"
+  ],
+  "positive_outcomes": [],
+  "known_ko_activities": [],
+  "ko_count_threshold": 7
+}

@@ -1,0 +1,13 @@
+{
+  "log_path": "./inputs/credit_app_simplified.xes",
+  "output": "./outputs",
+  "start_activity": "Start",
+  "negative_outcomes": [
+    "Notify rejection"
+  ],
+  "positive_outcomes": [],
+  "known_ko_activities": [
+    "Assess application"
+  ],
+  "ko_count_threshold": 5
+}

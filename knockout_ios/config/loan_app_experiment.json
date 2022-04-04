@@ -1,0 +1,14 @@
+{
+  "log_path": "./inputs/LoanApplicationDemo.xes",
+  "output": "./outputs",
+  "start_activity": "Start",
+  "negative_outcomes": ["Estimate application risk"],
+  "positive_outcomes": [
+    "Loan application approved",
+    "Loan__application_approved",
+    "Loan application canceled"
+  ],
+  "known_ko_activities": [],
+  "ko_count_threshold": 25
+}
+
