@@ -66,28 +66,23 @@ class KnockoutAnalyzer:
 
         # Initialize ko stats dictionary
         for activity in self.discoverer.ko_activities:
-            self.ko_stats[activity] = {"rejection_rate": 0, "effort": 0}
+            self.ko_stats[activity] = {"rejection_rate": 0}
 
         # Populate dict with rejection rates and efforts (avg. KO activity durations)
         self.calc_rejection_rates()
-        # self.calc_ko_efforts()
 
-        if not self.quiet:
-            print("\nK.O. rejection rates & efforts:\n")
-            pprint.pprint(self.ko_stats)
-
-    def calc_rejection_rates(self, omit_print=True):
+    def calc_rejection_rates(self):
         rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
 
         # Update rejection rates
         for k, v in rejection_rates.items():
             self.ko_stats[k]['rejection_rate'] = v
 
-        if not (self.quiet or omit_print):
+        if not self.quiet:
             print("\nK.O. rejection rates:\n")
             pprint.pprint(rejection_rates)
 
-    def calc_ko_efforts(self, omit_print=True, support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP"):
+    def calc_ko_efforts(self, support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP"):
 
         # TODO: add support for different algorithms (separate ko stats dicts?)
         if algorithm == "RIPPER":
@@ -105,8 +100,8 @@ class KnockoutAnalyzer:
 
         soj_time = {k: v for k, v in soj_time.items() if k in self.discoverer.ko_activities}
 
-        if not (self.quiet or omit_print):
-            print("\nK.O. activity efforts (avg. time spent in each activity):\n")
+        if not self.quiet:
+            print("\navg. time spent in each K.O. activity:\n")
             pprint.pprint(soj_time)
 
         # Update KO rejection rates
@@ -171,7 +166,7 @@ class KnockoutAnalyzer:
                             max_rule_conds=None,
                             max_total_conds=None,
                             k=2,
-                            n_discretize_bins=5,
+                            n_discretize_bins=9,
                             dl_allowance=16,
                             prune_size=0.33,
                             grid_search=False,
@@ -334,20 +329,18 @@ class KnockoutAnalyzer:
 
 
 if __name__ == "__main__":
-
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=False,
+                                always_force_recompute=True,
                                 quiet=True)
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    analyzer.get_ko_rules_IREP(grid_search=True, bucketing_approach="B")
+    analyzer.get_ko_rules_IREP()
 
     analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
     analyzer.build_report(algorithm="IREP")
-
 
 # TODO: work on different pending parts (clean up)
 # TODO: meeting to-dos

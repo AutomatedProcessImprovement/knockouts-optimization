@@ -14,7 +14,8 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts()
 
-    analyzer.get_ko_rules_IREP(grid_search=True, bucketing_approach="B")
+    analyzer.get_ko_rules_IREP()
 
     analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
+
     analyzer.build_report(algorithm="IREP")
