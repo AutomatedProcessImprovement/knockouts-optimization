@@ -225,7 +225,7 @@ class KnockoutDiscoverer:
 if __name__ == "__main__":
     test_data = ("credit_app_simple.json", ['Assess application', 'Check credit history', 'Check income sources'])
     analyzer = KnockoutDiscoverer(config_file_name=test_data[0], cache_dir="cache/credit_app",
-                                  always_force_recompute=False)
+                                  always_force_recompute=True)
 
     analyzer.find_ko_activities()
     analyzer.print_basic_stats()

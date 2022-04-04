@@ -2,6 +2,7 @@ import glob
 import itertools
 import os
 import pprint
+import sys
 from copy import deepcopy
 
 from tabulate import tabulate
@@ -24,6 +25,7 @@ class KnockoutAnalyzer:
                  quiet=False):
 
         self.quiet = quiet
+        self.config_dir = config_dir
         self.cache_dir = cache_dir
         self.ko_discovery_metrics = None
         self.RIPPER_rulesets = None
@@ -34,14 +36,14 @@ class KnockoutAnalyzer:
         self.always_force_recompute = always_force_recompute
 
         if self.always_force_recompute:
-            self.clear_cache(cache_dir, config_file_name)
+            self.clear_cache(self.cache_dir, config_file_name)
 
         if not self.quiet:
             print(f"Starting Knockout Analyzer with config file \"{config_file_name}\"\n")
 
         self.discoverer = KnockoutDiscoverer(config_file_name=config_file_name,
-                                             config_dir=config_dir,
-                                             cache_dir=cache_dir,
+                                             config_dir=self.config_dir,
+                                             cache_dir=self.cache_dir,
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
 
@@ -329,32 +331,19 @@ class KnockoutAnalyzer:
 
 
 if __name__ == "__main__":
-    # from log_generation.LogWithKnockoutsGenerator import LogWithKnockoutsGenerator
-    # gen = LogWithKnockoutsGenerator("../log_generation/outputs/synthetic_example_raw.xes")
-    # gen.generate_log(1000)
 
     test_data = ("synthetic_example.json", "cache/synthetic_example",
                  ['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    # Known rules
-    # 'Check Liability':        'Total Debt'     > 5000 ||  'Vehicle Owned' = "N/A"
-    # 'Check Risk':             'Loan Ammount'   > 10000
-    # 'Check Monthly Income':   'Monthly Income' < 1000
-
     analyzer = KnockoutAnalyzer(config_file_name=test_data[0],
                                 cache_dir=test_data[1],
-                                always_force_recompute=False,
-                                quiet=True)
+                                always_force_recompute=True,
+                                quiet=False)
 
     analyzer.discover_knockouts(expected_kos=test_data[2])
-
-    # analyzer.get_ko_rules_RIPPER(grid_search=True, bucketing_approach="B").print_ko_rulesets(algorithm="RIPPER",
-    #                                                                                          compact=True)
 
     analyzer.get_ko_rules_IREP(grid_search=False, bucketing_approach="B")
 
     analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
     analyzer.build_report(algorithm="IREP")
 
-# TODO: work on different pending parts (clean up)
-# TODO: meeting to-dos

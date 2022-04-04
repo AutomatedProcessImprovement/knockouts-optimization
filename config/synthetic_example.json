@@ -1,0 +1,11 @@
+{
+  "log_path": "log_generation/outputs/synthetic_example_raw.xes",
+  "output": "./outputs",
+  "start_activity": "Start",
+  "negative_outcomes": [
+    "Notify Rejection"
+  ],
+  "positive_outcomes": [],
+  "known_ko_activities": [],
+  "ko_count_threshold": 5
+}

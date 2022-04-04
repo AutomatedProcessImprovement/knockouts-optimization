@@ -13,6 +13,9 @@ pip install -r requirements.txt
 Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`:
 [graphviz downloads page](https://graphviz.org/download/#windows).
 
+## Usage
+Check out [`main.py`](./main.py) for an end-to-end usage example.
+
 ## Running tests
 A shell script is provided, which runs pytest in the relevant modules.
 
