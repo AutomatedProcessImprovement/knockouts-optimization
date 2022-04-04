@@ -9,8 +9,8 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="knockout_ios/cache/synthetic_example",
-                                always_force_recompute=False,
-                                quiet=True)
+                                always_force_recompute=True,
+                                quiet=False)
 
     analyzer.discover_knockouts()
 
