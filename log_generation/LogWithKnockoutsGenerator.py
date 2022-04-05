@@ -22,8 +22,6 @@ class LogWithKnockoutsGenerator:
 
     def generate_log(self, events=5000):
 
-        # TODO: improve this - at the moment attributes & ko checks are hard-coded...
-
         demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
         vehicle_values = ['vehicle_type_1', 'vehicle_type_2', 'vehicle_type_3', 'vehicle_type_4']
         resources = ['Resource 1', 'Resource 2', 'Resource 3']
@@ -60,6 +58,7 @@ class LogWithKnockoutsGenerator:
                     if random.random() < 0.5:
                         attributes['Total Debt'] = str(randint(5000, 30_000))
                     else:
+                        # Only possible way to encode "Non existent vehicle", because None cannot be serialized
                         attributes['Vehicle Owned'] = ''
 
                     trace = [
@@ -184,7 +183,6 @@ class LogWithKnockoutsGenerator:
 
             for event in trace:
                 e = xes.Event()
-                # TODO: do programatically
                 e.attributes = [
                     xes.Attribute(type="string", key="concept:name", value=event["concept:name"]),
                     xes.Attribute(type="string", key="org:resource", value=event["org:resource"]),

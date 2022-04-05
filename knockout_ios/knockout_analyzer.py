@@ -28,6 +28,7 @@ class KnockoutAnalyzer:
         self.config_dir = config_dir
         self.cache_dir = cache_dir
         self.ko_discovery_metrics = None
+        self.rule_discovery_log_df = None
         self.RIPPER_rulesets = None
         self.IREP_rulesets = None
         self.aggregated_by_case_df = None
@@ -85,7 +86,6 @@ class KnockoutAnalyzer:
 
     def calc_ko_efforts(self, support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP"):
 
-        # TODO: add support for different algorithms (separate ko stats dicts?)
         if algorithm == "RIPPER":
             rulesets = self.RIPPER_rulesets
         else:
@@ -105,10 +105,13 @@ class KnockoutAnalyzer:
             print("\navg. time spent in each K.O. activity:\n")
             pprint.pprint(soj_time)
 
-        # Update KO rejection rates
+        # Compute KO rejection rates and efforts
         for key in rulesets.keys():
             entry = rulesets[key]
             metrics = entry[2]
+
+            # Mean Processing Time does not depend on rejection rule confidence or support
+            self.ko_stats[key]['mean_pt'] = round(soj_time[key], ndigits=3)
 
             # Effort per rejection = Average PT / Rejection rate
             effort = round(soj_time[key], ndigits=3) / (100 * self.ko_stats[key]['rejection_rate'])
@@ -117,8 +120,9 @@ class KnockoutAnalyzer:
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
                 effort = effort * metrics['confidence']
 
-            self.ko_stats[key]['effort'] = effort
-            self.ko_stats[key]['mean_pt'] = round(soj_time[key], ndigits=3)
+            # confidence and support are dependent on the rule discovery algorithm used
+            self.ko_stats[key][algorithm] = {'effort': 0}
+            self.ko_stats[key][algorithm]['effort'] = effort
 
     def calc_ko_discovery_metrics(self, expected_kos):
         self.ko_discovery_metrics = self.discoverer.get_discovery_metrics(expected_kos)
@@ -128,9 +132,10 @@ class KnockoutAnalyzer:
 
         return deepcopy(self.ko_discovery_metrics)
 
-    def preprocess_for_rule_discovery(self):
+    @staticmethod
+    def preprocess_for_rule_discovery(log, compute_columns_only=False):
 
-        if self.discoverer.log_df is None:
+        if log is None:
             raise Exception("log not yet loaded")
 
         # Pre-processing
@@ -148,29 +153,30 @@ class KnockoutAnalyzer:
         columns_to_ignore = list(itertools.chain(columns_to_ignore, list(filter(
             lambda c: ('@' in c) | ('id' in c.lower()) | ('daytime' in c) | ('weekday' in c) | ('month' in c) | (
                     'activity' in c.lower()),
-            self.discoverer.log_df.columns))))
+            log.columns))))
 
         # skip the rest of pre-proc in case it has been already done
-        if (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None):
-            return columns_to_ignore
+        if compute_columns_only:
+            return None, columns_to_ignore
 
         # Necessary in case the log contains numerical values as strings
-        for attr in self.discoverer.log_df.columns:
-            self.discoverer.log_df[attr] = \
-                pd.to_numeric(self.discoverer.log_df[attr], errors='ignore')
+        for attr in log.columns:
+            log[attr] = \
+                pd.to_numeric(log[attr], errors='ignore')
 
         # Fill Nan values of non-numerical columns, but drop rows with Nan values in numerical columns
-        non_numerical = self.discoverer.log_df.select_dtypes([np.object]).columns
-        self.discoverer.log_df = self.discoverer.log_df.fillna(
+        non_numerical = log.select_dtypes([np.object]).columns
+        log = log.fillna(
             value={c: EMPTY_NON_NUMERICAL_VALUE for c in non_numerical})
 
-        # numerical = self.discoverer.log_df.select_dtypes([np.number]).columns
-        # self.discoverer.log_df = self.discoverer.log_df.fillna(
-        #    value={c: 0 for c in numerical})
+        numerical = log.select_dtypes([np.number]).columns
+        log = log.fillna(value={c: 0 for c in numerical})
 
-        self.discoverer.log_df = self.discoverer.log_df.dropna()
+        # group by case id and aggregate grouped_df selecting the most frequent value of each column
+        grouped_df = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
+        log = grouped_df.agg(lambda x: x.value_counts().index[0])
 
-        return columns_to_ignore
+        return log, columns_to_ignore
 
     def get_ko_rules_RIPPER(self,
                             max_rules=None,
@@ -193,7 +199,12 @@ class KnockoutAnalyzer:
 
         # Discover rules in knockout activities with RIPPER algorithm
 
-        columns_to_ignore = self.preprocess_for_rule_discovery()
+        compute_columns_only = (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None)
+        preprocessed_df, columns_to_ignore = \
+            self.preprocess_for_rule_discovery(self.discoverer.log_df,
+                                               compute_columns_only=compute_columns_only)
+        if preprocessed_df is not None:
+            self.rule_discovery_log_df = preprocessed_df
 
         if not self.quiet:
             print("\nDiscovering rulesets of each K.O. activity with RIPPER")
@@ -202,7 +213,7 @@ class KnockoutAnalyzer:
             param_grid = {"prune_size": [0.33, 0.5, 0.7], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
                           "n_discretize_bins": [3, 6, 9]}
 
-        self.RIPPER_rulesets = find_ko_rulesets(self.discoverer.log_df,
+        self.RIPPER_rulesets = find_ko_rulesets(self.rule_discovery_log_df,
                                                 self.discoverer.ko_activities,
                                                 self.discoverer.config_file_name,
                                                 self.cache_dir,
@@ -242,7 +253,14 @@ class KnockoutAnalyzer:
         if self.discoverer.ko_activities is None:
             raise Exception("ko activities not yet discovered")
 
-        columns_to_ignore = self.preprocess_for_rule_discovery()
+        # Discover rules in knockout activities with IREP algorithm
+
+        compute_columns_only = (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None)
+        preprocessed_df, columns_to_ignore = \
+            self.preprocess_for_rule_discovery(self.discoverer.log_df,
+                                               compute_columns_only=compute_columns_only)
+        if preprocessed_df is not None:
+            self.rule_discovery_log_df = preprocessed_df
 
         if not self.quiet:
             print("\nDiscovering rulesets of each K.O. activity with IREP")
@@ -250,7 +268,7 @@ class KnockoutAnalyzer:
         if grid_search & (param_grid is None):
             param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [4, 8, 12]}
 
-        self.IREP_rulesets = find_ko_rulesets(self.discoverer.log_df,
+        self.IREP_rulesets = find_ko_rulesets(self.rule_discovery_log_df,
                                               self.discoverer.ko_activities,
                                               self.discoverer.config_file_name,
                                               self.cache_dir,
@@ -327,8 +345,8 @@ class KnockoutAnalyzer:
                                 f"{freq / _by_case.shape[0]} %",
                             "Mean PT": self.ko_stats[ko]["mean_pt"],
                             "Rejection rate": self.ko_stats[ko]["rejection_rate"],
-                            "Rejection rule": rulesets[ko][0].ruleset_,
-                            "Effort per rejection": self.ko_stats[ko]["effort"]
+                            f"Rejection rule ({algorithm})": rulesets[ko][0].ruleset_,
+                            "Effort per rejection": self.ko_stats[ko][algorithm]["effort"]
                             })
 
         df = pd.DataFrame(entries)
@@ -353,11 +371,7 @@ if __name__ == "__main__":
     analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
     analyzer.build_report(algorithm="IREP")
 
-# TODO: work on different pending parts (clean up)
-
 # TODOs - related to KO Rule stage
-# TODO: Manejar nulos, no el valor “N/A”
-
 # TODO: area under curve metric for grid search?
 # TODO: fix support calculation: tomar en cuenta no todo N, sino solo los casos que recibe el KO check
 # TODO: Ver como calcular supp & conf por cada regla del ruleset, limpar segun threshold

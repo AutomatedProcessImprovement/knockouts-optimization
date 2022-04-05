@@ -83,6 +83,9 @@ def calc_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: p
 
     N = log.shape[0]
 
+    if N == 0:
+        return 0
+
     support = freq_x_and_y / N
 
     return support
@@ -98,6 +101,9 @@ def calc_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log
     else:
         freq_x_and_y = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
     freq_x = sum(predicted_ko)
+
+    if freq_x == 0:
+        return 0
 
     confidence = freq_x_and_y / freq_x
 
@@ -133,85 +139,78 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
         rulesets = {}
 
         for activity in ko_activities:
-            try:
-                if bucketing_approach == "A":
-                    # Bucketing approach A: Keep only cases knocked out by current activity and non-knocked out ones
-                    _by_case = log_df[log_df['knockout_activity'].isin([activity, False])]
-                elif bucketing_approach == "B":
-                    # Bucketing approach B: Keep all cases, apply mask to those not knocked out by current activity
-                    _by_case = deepcopy(log_df)
-                    _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
-                    _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
+            if bucketing_approach == "A":
+                # Bucketing approach A: Keep only cases knocked out by current activity and non-knocked out ones
+                _by_case = log_df[log_df['knockout_activity'].isin([activity, False])]
+            elif bucketing_approach == "B":
+                # Bucketing approach B: Keep all cases, apply mask to those not knocked out by current activity
+                _by_case = deepcopy(log_df)
+                _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
+                _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
 
-                # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
-                # (attributes remain the same throughout the case)
-                _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
-                _by_case = _by_case.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
+            # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
+            # (attributes remain the same throughout the case)
+            _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
 
-                train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
-                                               test_size=.33)
+            train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
+                                           test_size=.33)
 
-                if algorithm == "RIPPER":
-                    ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
-                                                                   max_rule_conds=max_rule_conds,
-                                                                   max_total_conds=max_total_conds,
-                                                                   k=k,
-                                                                   n_discretize_bins=n_discretize_bins,
-                                                                   dl_allowance=dl_allowance,
-                                                                   prune_size=prune_size,
-                                                                   grid_search=grid_search,
-                                                                   param_grid=param_grid)
-                # default to "IREP"
-                else:
-                    ruleset_model, ruleset_params = IREP_wrapper(train, activity, max_rules=max_rules,
-                                                                 max_rule_conds=max_rule_conds,
-                                                                 max_total_conds=max_total_conds,
-                                                                 n_discretize_bins=n_discretize_bins,
-                                                                 prune_size=prune_size,
-                                                                 grid_search=grid_search,
-                                                                 param_grid=param_grid)
+            if algorithm == "RIPPER":
+                ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
+                                                               max_rule_conds=max_rule_conds,
+                                                               max_total_conds=max_total_conds,
+                                                               k=k,
+                                                               n_discretize_bins=n_discretize_bins,
+                                                               dl_allowance=dl_allowance,
+                                                               prune_size=prune_size,
+                                                               grid_search=grid_search,
+                                                               param_grid=param_grid)
+            # default to "IREP"
+            else:
+                ruleset_model, ruleset_params = IREP_wrapper(train, activity, max_rules=max_rules,
+                                                             max_rule_conds=max_rule_conds,
+                                                             max_total_conds=max_total_conds,
+                                                             n_discretize_bins=n_discretize_bins,
+                                                             prune_size=prune_size,
+                                                             grid_search=grid_search,
+                                                             param_grid=param_grid)
 
-                # Performance metrics
-                x_test = test.drop(['knocked_out_case'], axis=1)
-                y_test = test['knocked_out_case']
+            # Performance metrics
+            x_test = test.drop(['knocked_out_case'], axis=1)
+            y_test = test['knocked_out_case']
 
-                if grid_search:
-                    # Pre-process to conform to sklearn required format
-                    x_test = pd.get_dummies(x_test, columns=x_test.select_dtypes('object').columns)
-                    y_test = y_test.map(lambda x: 1 if x else 0)
+            if grid_search:
+                # Pre-process to conform to sklearn required format
+                x_test = pd.get_dummies(x_test, columns=x_test.select_dtypes('object').columns)
+                y_test = y_test.map(lambda x: 1 if x else 0)
 
-                    _by_case = _by_case.drop(
-                        columns=[PM4PY_CASE_ID_COLUMN_NAME, SIMOD_LOG_READER_CASE_ID_COLUMN_NAME],
-                        errors='ignore')
-                    _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
+                _by_case = _by_case.drop(
+                    columns=[PM4PY_CASE_ID_COLUMN_NAME, SIMOD_LOG_READER_CASE_ID_COLUMN_NAME],
+                    errors='ignore')
+                _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
 
-                    support = calc_support(activity, ruleset_model, _by_case, dummies=True)
-                    confidence = calc_confidence(activity, ruleset_model, _by_case, dummies=True)
-                else:
-                    support = calc_support(activity, ruleset_model, _by_case)
-                    confidence = calc_confidence(activity, ruleset_model, _by_case)
+                support = calc_support(activity, ruleset_model, _by_case, dummies=True)
+                confidence = calc_confidence(activity, ruleset_model, _by_case, dummies=True)
+            else:
+                support = calc_support(activity, ruleset_model, _by_case)
+                confidence = calc_confidence(activity, ruleset_model, _by_case)
 
-                rulesets[activity] = (
-                    ruleset_model,
-                    ruleset_params,
-                    {
-                        'support': support,
-                        'confidence': confidence,
-                        'condition_count': ruleset_model.ruleset_.count_conds(),
-                        'rule_count': ruleset_model.ruleset_.count_rules(),
-                        'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
-                        'precision': ruleset_model.score(x_test, y_test, precision_score),
-                        'recall': ruleset_model.score(x_test, y_test, recall_score),
-                        'f1_score': ruleset_model.score(x_test, y_test, f1_score),
-                    }
-                )
+            rulesets[activity] = (
+                ruleset_model,
+                ruleset_params,
+                {
+                    'support': support,
+                    'confidence': confidence,
+                    'condition_count': ruleset_model.ruleset_.count_conds(),
+                    'rule_count': ruleset_model.ruleset_.count_rules(),
+                    'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
+                    'precision': ruleset_model.score(x_test, y_test, precision_score),
+                    'recall': ruleset_model.score(x_test, y_test, recall_score),
+                    'f1_score': ruleset_model.score(x_test, y_test, f1_score),
+                }
+            )
 
-            except Exception as e:
-                print(e)
-                continue
-
-            finally:
-                stdout.flush()
+            stdout.flush()
 
         dump_rule_discovery_result(rulesets, f"{config_file_name}_{algorithm}", cache_dir=cache_dir)
 
