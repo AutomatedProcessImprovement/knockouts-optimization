@@ -13,13 +13,8 @@ def test_report_creation(algorithm):
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    if algorithm == "RIPPER":
-        analyzer.get_ko_rules_RIPPER(grid_search=False)
-    elif algorithm == "IREP":
-        analyzer.get_ko_rules_IREP(grid_search=False)
-
-    analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm=algorithm)
-    df = analyzer.build_report(algorithm=algorithm, omit=True)
+    df, _ = analyzer.get_ko_rules(grid_search=False, algorithm=algorithm, omit_report=True, confidence_threshold=0.5,
+                                  support_threshold=0.5)
 
     # assert all 3 knockouts are in the report
     assert df.shape[0] == 3

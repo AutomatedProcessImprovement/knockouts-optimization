@@ -2,6 +2,7 @@ import glob
 import itertools
 import os
 import pprint
+
 from copy import deepcopy
 
 import numpy as np
@@ -20,10 +21,19 @@ from knockout_ios.utils.explainer import find_ko_rulesets
 OVERRIDE_FORCE_RECOMPUTE = True
 
 
+def clear_cache(cachedir, config_file_name):
+    file_list = glob.glob(f'{cachedir}/{config_file_name}*')
+    for filePath in file_list:
+        try:
+            os.remove(filePath)
+        except:
+            print("Error while deleting file : ", filePath)
+
+
 class KnockoutAnalyzer:
 
     def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=False,
-                 quiet=False):
+                 quiet=True):
 
         self.quiet = quiet
         self.config_dir = config_dir
@@ -38,7 +48,7 @@ class KnockoutAnalyzer:
         self.always_force_recompute = always_force_recompute
 
         if self.always_force_recompute:
-            self.clear_cache(self.cache_dir, config_file_name)
+            clear_cache(self.cache_dir, config_file_name)
 
         if not self.quiet:
             print(f"Starting Knockout Analyzer with config file \"{config_file_name}\"\n")
@@ -48,14 +58,6 @@ class KnockoutAnalyzer:
                                              cache_dir=self.cache_dir,
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
-
-    def clear_cache(self, cachedir, config_file_name):
-        file_list = glob.glob(f'{cachedir}/{config_file_name}*')
-        for filePath in file_list:
-            try:
-                os.remove(filePath)
-            except:
-                print("Error while deleting file : ", filePath)
 
     def discover_knockouts(self, expected_kos=None):
         self.discoverer.find_ko_activities()
@@ -117,7 +119,7 @@ class KnockoutAnalyzer:
             # Effort per rejection = Average PT / Rejection rate
             effort = round(soj_time[key], ndigits=3) / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if (metrics['confidence'] >= confidence_threshold):  # or (metrics['support'] >= support_threshold):
+            if metrics['confidence'] >= confidence_threshold:
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
                 effort = effort * metrics['confidence']
 
@@ -179,17 +181,20 @@ class KnockoutAnalyzer:
 
         return log, columns_to_ignore
 
-    def get_ko_rules_RIPPER(self,
-                            max_rules=None,
-                            max_rule_conds=None,
-                            max_total_conds=None,
-                            k=2,
-                            n_discretize_bins=4,
-                            dl_allowance=16,
-                            prune_size=0.2,
-                            grid_search=False,
-                            param_grid=None
-                            ):
+    def get_ko_rules(self,
+                     algorithm="IREP",
+                     max_rules=None,
+                     max_rule_conds=None,
+                     max_total_conds=None,
+                     k=2,
+                     n_discretize_bins=4,
+                     dl_allowance=16,
+                     prune_size=0.2,
+                     grid_search=False,
+                     param_grid=None,
+                     confidence_threshold=0.5,
+                     support_threshold=0.5,
+                     omit_report=False):
 
         if self.discoverer.log_df is None:
             raise Exception("log not yet loaded")
@@ -197,7 +202,7 @@ class KnockoutAnalyzer:
         if self.discoverer.ko_activities is None:
             raise Exception("ko activities not yet discovered")
 
-        # Discover rules in knockout activities with RIPPER algorithm
+        # Discover rules in knockout activities with chosen algorithm
 
         compute_columns_only = (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None)
         preprocessed_df, columns_to_ignore = \
@@ -207,87 +212,49 @@ class KnockoutAnalyzer:
             self.rule_discovery_log_df = preprocessed_df
 
         if not self.quiet:
-            print("\nDiscovering rulesets of each K.O. activity with RIPPER")
+            print(f"\nDiscovering rulesets of each K.O. activity with {algorithm}")
 
         if grid_search & (param_grid is None):
-            param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
-                          "n_discretize_bins": [4, 8, 12]}
+            if algorithm == "RIPPER":
+                param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
+                              "n_discretize_bins": [4, 8, 12]}
+            elif algorithm == "IREP":
+                param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [4, 8, 12]}
 
-        self.RIPPER_rulesets = find_ko_rulesets(self.rule_discovery_log_df,
-                                                self.discoverer.ko_activities,
-                                                self.discoverer.config_file_name,
-                                                self.cache_dir,
-                                                force_recompute=OVERRIDE_FORCE_RECOMPUTE,
-                                                columns_to_ignore=columns_to_ignore,
-                                                algorithm="RIPPER",
-                                                max_rules=max_rules,
-                                                max_rule_conds=max_rule_conds,
-                                                max_total_conds=max_total_conds,
-                                                k=k,
-                                                n_discretize_bins=n_discretize_bins,
-                                                dl_allowance=dl_allowance,
-                                                prune_size=prune_size,
-                                                grid_search=grid_search,
-                                                param_grid=param_grid
-                                                )
+        rulesets = find_ko_rulesets(self.rule_discovery_log_df,
+                                    self.discoverer.ko_activities,
+                                    self.discoverer.config_file_name,
+                                    self.cache_dir,
+                                    force_recompute=OVERRIDE_FORCE_RECOMPUTE,
+                                    columns_to_ignore=columns_to_ignore,
+                                    algorithm=algorithm,
+                                    max_rules=max_rules,
+                                    max_rule_conds=max_rule_conds,
+                                    max_total_conds=max_total_conds,
+                                    k=k,
+                                    n_discretize_bins=n_discretize_bins,
+                                    dl_allowance=dl_allowance,
+                                    prune_size=prune_size,
+                                    grid_search=grid_search,
+                                    param_grid=param_grid
+                                    )
 
-        if not self.quiet:
-            self.print_ko_rulesets(algorithm="RIPPER")
-
-        return self
-
-    def get_ko_rules_IREP(self, max_rules=None,
-                          max_rule_conds=None,
-                          max_total_conds=None,
-                          n_discretize_bins=4,
-                          prune_size=0.2,
-                          grid_search=True,
-                          param_grid=None
-                          ):
-
-        if self.discoverer.log_df is None:
-            raise Exception("log not yet loaded")
-
-        if self.discoverer.ko_activities is None:
-            raise Exception("ko activities not yet discovered")
-
-        # Discover rules in knockout activities with IREP algorithm
-
-        compute_columns_only = (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None)
-        preprocessed_df, columns_to_ignore = \
-            self.preprocess_for_rule_discovery(self.discoverer.log_df,
-                                               compute_columns_only=compute_columns_only)
-        if preprocessed_df is not None:
-            self.rule_discovery_log_df = preprocessed_df
+        if algorithm == "RIPPER":
+            self.RIPPER_rulesets = rulesets
+        elif algorithm == "IREP":
+            self.IREP_rulesets = rulesets
 
         if not self.quiet:
-            print("\nDiscovering rulesets of each K.O. activity with IREP")
+            self.print_ko_rulesets(algorithm=algorithm)
 
-        if grid_search & (param_grid is None):
-            param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [4, 8, 12]}
+        self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
+                             algorithm=algorithm)
 
-        self.IREP_rulesets = find_ko_rulesets(self.rule_discovery_log_df,
-                                              self.discoverer.ko_activities,
-                                              self.discoverer.config_file_name,
-                                              self.cache_dir,
-                                              force_recompute=OVERRIDE_FORCE_RECOMPUTE,
-                                              algorithm="IREP",
-                                              columns_to_ignore=columns_to_ignore,
-                                              max_rules=max_rules,
-                                              max_rule_conds=max_rule_conds,
-                                              max_total_conds=max_total_conds,
-                                              n_discretize_bins=n_discretize_bins,
-                                              prune_size=prune_size,
-                                              grid_search=grid_search,
-                                              param_grid=param_grid
-                                              )
+        report_df = self.build_report(algorithm=algorithm, omit=omit_report)
 
-        if not self.quiet:
-            self.print_ko_rulesets(algorithm="IREP")
+        return report_df, self
 
-        return self
-
-    def print_ko_rulesets(self, algorithm="RIPPER", compact=False):
+    def print_ko_rulesets(self, algorithm, compact=False):
 
         rulesets = None
         if algorithm == "RIPPER":
@@ -311,7 +278,7 @@ class KnockoutAnalyzer:
                 print(f'# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
                 print(
                     f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
-                    f"\nf1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
+                    f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
                 )
             else:
                 print(f"\n\"{key}\":")
@@ -319,7 +286,7 @@ class KnockoutAnalyzer:
                 print(f'\n# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
                 print(
                     f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
-                    f"\nf1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
+                    f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
                 )
                 print(f"rule discovery params: {params}")
 
@@ -359,14 +326,11 @@ if __name__ == "__main__":
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
-                                quiet=False)
+                                quiet=True)
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    analyzer.get_ko_rules_IREP(grid_search=True)
-
-    analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
-    analyzer.build_report(algorithm="IREP")
+    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5)
 
 # TODOs - related to KO Rule stage
 # TODO: fix support calculation: tomar en cuenta no todo N, sino solo los casos que recibe el KO check

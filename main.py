@@ -9,13 +9,8 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="knockout_ios/cache/synthetic_example",
-                                always_force_recompute=True,
-                                quiet=True)
+                                always_force_recompute=True)
 
     analyzer.discover_knockouts()
 
-    analyzer.get_ko_rules_IREP()
-
-    analyzer.calc_ko_efforts(support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP")
-
-    analyzer.build_report(algorithm="IREP")
+    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5)
