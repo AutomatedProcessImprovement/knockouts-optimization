@@ -10,7 +10,7 @@ if __name__ == "__main__":
                                 config_dir="config",
                                 cache_dir="knockout_ios/cache/synthetic_example",
                                 always_force_recompute=True,
-                                quiet=False)
+                                quiet=True)
 
     analyzer.discover_knockouts()
 

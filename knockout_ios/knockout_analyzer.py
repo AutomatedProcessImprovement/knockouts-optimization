@@ -13,6 +13,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.analysis import find_rejection_rates
 from knockout_ios.utils.constants import *
+
 from knockout_ios.utils.explainer import find_ko_rulesets
 
 # TODO: remove this later
@@ -183,12 +184,11 @@ class KnockoutAnalyzer:
                             max_rule_conds=None,
                             max_total_conds=None,
                             k=2,
-                            n_discretize_bins=9,
+                            n_discretize_bins=4,
                             dl_allowance=16,
-                            prune_size=0.33,
+                            prune_size=0.2,
                             grid_search=False,
-                            param_grid=None,
-                            bucketing_approach="A"
+                            param_grid=None
                             ):
 
         if self.discoverer.log_df is None:
@@ -210,8 +210,8 @@ class KnockoutAnalyzer:
             print("\nDiscovering rulesets of each K.O. activity with RIPPER")
 
         if grid_search & (param_grid is None):
-            param_grid = {"prune_size": [0.33, 0.5, 0.7], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
-                          "n_discretize_bins": [3, 6, 9]}
+            param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
+                          "n_discretize_bins": [4, 8, 12]}
 
         self.RIPPER_rulesets = find_ko_rulesets(self.rule_discovery_log_df,
                                                 self.discoverer.ko_activities,
@@ -228,8 +228,7 @@ class KnockoutAnalyzer:
                                                 dl_allowance=dl_allowance,
                                                 prune_size=prune_size,
                                                 grid_search=grid_search,
-                                                param_grid=param_grid,
-                                                bucketing_approach=bucketing_approach,
+                                                param_grid=param_grid
                                                 )
 
         if not self.quiet:
@@ -240,11 +239,10 @@ class KnockoutAnalyzer:
     def get_ko_rules_IREP(self, max_rules=None,
                           max_rule_conds=None,
                           max_total_conds=None,
-                          n_discretize_bins=9,
-                          prune_size=0.33,
+                          n_discretize_bins=4,
+                          prune_size=0.2,
                           grid_search=True,
-                          param_grid=None,
-                          bucketing_approach="A"
+                          param_grid=None
                           ):
 
         if self.discoverer.log_df is None:
@@ -281,8 +279,7 @@ class KnockoutAnalyzer:
                                               n_discretize_bins=n_discretize_bins,
                                               prune_size=prune_size,
                                               grid_search=grid_search,
-                                              param_grid=param_grid,
-                                              bucketing_approach=bucketing_approach,
+                                              param_grid=param_grid
                                               )
 
         if not self.quiet:
@@ -361,8 +358,8 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=True,
-                                quiet=True)
+                                always_force_recompute=False,
+                                quiet=False)
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
@@ -372,9 +369,9 @@ if __name__ == "__main__":
     analyzer.build_report(algorithm="IREP")
 
 # TODOs - related to KO Rule stage
-# TODO: area under curve metric for grid search?
 # TODO: fix support calculation: tomar en cuenta no todo N, sino solo los casos que recibe el KO check
-# TODO: Ver como calcular supp & conf por cada regla del ruleset, limpar segun threshold
+# TODO: suppress excessive warnings when using area under curve metric for grid search (gives better results).
+# TODO: Ver como calcular supp & conf por cada regla del ruleset, limpiar segun threshold
 
 # TODOs - related to time waste metrics
 # TODO: implement time waste metrics & add columns to report (and test) - first 2, hardest to the last

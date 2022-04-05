@@ -1,12 +1,18 @@
+import os
 import pickle
+import sys
+
 from copy import deepcopy
 from sys import stdout
 
 # TODO: Excessive wittgenstein frame.append deprecation warnings
 #  currently suppresed just with -Wignore
+
 import numpy as np
 import pandas as pd
+
 import wittgenstein as lw
+
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from sklearn.model_selection import train_test_split, GridSearchCV
 from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
@@ -122,8 +128,7 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                      dl_allowance=64,
                      prune_size=0.33,
                      grid_search=True,
-                     param_grid=None,
-                     bucketing_approach="A"
+                     param_grid=None
                      ):
     if columns_to_ignore is None:
         columns_to_ignore = []
@@ -139,14 +144,10 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
         rulesets = {}
 
         for activity in ko_activities:
-            if bucketing_approach == "A":
-                # Bucketing approach A: Keep only cases knocked out by current activity and non-knocked out ones
-                _by_case = log_df[log_df['knockout_activity'].isin([activity, False])]
-            elif bucketing_approach == "B":
-                # Bucketing approach B: Keep all cases, apply mask to those not knocked out by current activity
-                _by_case = deepcopy(log_df)
-                _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
-                _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
+            # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
+            _by_case = deepcopy(log_df)
+            _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
+            _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
 
             # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
             # (attributes remain the same throughout the case)
@@ -311,10 +312,11 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Tru
     # By default it uses the model's score() function (for classification this is sklearn.metrics.accuracy_score)
     # Source: https://scikit-learn.org/stable/modules/grid_search.html#tips-for-parameter-search
 
-    # TODO: decide if using balanced_accuracy alongside f1_score is better
+    # grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring=["f1", "balanced_accuracy"],
+    #                    refit="f1", n_jobs=-1)
 
-    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring=["f1", "balanced_accuracy"],
-                        refit="f1", n_jobs=-1)
+    # TODO: understand better the concept of this scoring function, it works much better than the previous but why
+    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="roc_auc", n_jobs=-1)
     grid.fit(x_train, y_train)
 
     if not quiet:
