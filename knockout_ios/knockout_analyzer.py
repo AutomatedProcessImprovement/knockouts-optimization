@@ -333,8 +333,8 @@ if __name__ == "__main__":
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5)
 
 # TODOs - related to KO Rule stage
-# TODO: fix support calculation: tomar en cuenta no todo N, sino solo los casos que recibe el KO check
-# TODO: suppress excessive warnings when using area under curve metric for grid search (gives better results).
+# TODO: fix support calculation - tomar en cuenta no todo N, sino solo los casos que recibe el KO check
+# TODO: suppress excessive warnings when using area under curve metric for grid search (worth it bc it gives better results).
 # TODO: Ver como calcular supp & conf por cada regla del ruleset, limpiar segun threshold
 
 # TODOs - related to time waste metrics
