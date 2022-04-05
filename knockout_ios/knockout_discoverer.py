@@ -61,6 +61,11 @@ class KnockoutDiscoverer:
                                               add_intercase_and_context=False,
                                               clean_processing_times=False, add_only_context=False)
 
+        # TODO: document why this is needed - for the moment, it's just to workaround the fact that None cannot be
+        #  serialized, so the best the Log Generation module can do is write an empty string...
+        # replace empty strings in log_df with NaN
+        self.log_df = self.log_df.replace("", np.nan)
+
         # TODO: find root cause for needing this workaround...
         if not (DURATION_COLUMN_NAME in self.log_df.columns):
             self.log_df[DURATION_COLUMN_NAME] = (self.log_df[SIMOD_END_TIMESTAMP_COLUMN_NAME] -

@@ -6,7 +6,6 @@ from random import randint
 import numpy as np
 from dateutil.relativedelta import relativedelta
 
-
 import uuid
 
 from log_generation import xes
@@ -45,9 +44,9 @@ class LogWithKnockoutsGenerator:
             events = max(0, events - number_of_kos)  # update "population"
 
             for _ in range(0, number_of_kos):
-                attributes = {'Total Debt': str(randint(0, 4000)),
-                              'Monthly Income': str(1000 + randint(500, 2000)),
-                              'Loan Ammount': str(randint(1000, 9000)),
+                attributes = {'Total Debt': str(randint(0, 4999)),
+                              'Monthly Income': str(randint(1000, 5000)),
+                              'Loan Ammount': str(randint(100, 9999)),
                               'Demographic': np.random.choice(demographic_values),
                               'Vehicle Owned': np.random.choice(vehicle_values),
                               }
@@ -61,7 +60,7 @@ class LogWithKnockoutsGenerator:
                     if random.random() < 0.5:
                         attributes['Total Debt'] = str(randint(5000, 30_000))
                     else:
-                        attributes['Vehicle Owned'] = "N/A"
+                        attributes['Vehicle Owned'] = ''
 
                     trace = [
                         {"concept:name": "Credit application received", "org:resource": np.random.choice(resources),
@@ -69,15 +68,15 @@ class LogWithKnockoutsGenerator:
                          "time:timestamp": (event_start + relativedelta(minutes=duration)).isoformat(), **attributes},
                         {"concept:name": "Check Liability", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration)).isoformat(),
-                         "time:timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
-                         **attributes},
-                        {"concept:name": "Notify Rejection", "org:resource": np.random.choice(resources),
-                         "start_timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                          **attributes},
-                        {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
+                        {"concept:name": "Notify Rejection", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
+                         **attributes},
+                        {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
+                         "start_timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
+                         "time:timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
                          **attributes}
                     ]
 
@@ -90,19 +89,19 @@ class LogWithKnockoutsGenerator:
                          "time:timestamp": (event_start + relativedelta(minutes=duration)).isoformat(), **attributes},
                         {"concept:name": "Check Liability", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration)).isoformat(),
-                         "time:timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
-                         **attributes},
-                        {"concept:name": "Check Risk", "org:resource": np.random.choice(resources),
-                         "start_timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                          **attributes},
-                        {"concept:name": "Notify Rejection", "org:resource": np.random.choice(resources),
+                        {"concept:name": "Check Risk", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
                          **attributes},
-                        {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
+                        {"concept:name": "Notify Rejection", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
+                         **attributes},
+                        {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
+                         "start_timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
+                         "time:timestamp": (event_start + relativedelta(minutes=duration * 6)).isoformat(),
                          **attributes}
                     ]
                 elif activity_name == 'Check Monthly Income':
@@ -114,23 +113,23 @@ class LogWithKnockoutsGenerator:
                          "time:timestamp": (event_start + relativedelta(minutes=duration)).isoformat(), **attributes},
                         {"concept:name": "Check Liability", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration)).isoformat(),
-                         "time:timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
-                         **attributes},
-                        {"concept:name": "Check Risk", "org:resource": np.random.choice(resources),
-                         "start_timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                          **attributes},
-                        {"concept:name": "Check Monthly Income", "org:resource": np.random.choice(resources),
+                        {"concept:name": "Check Risk", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
                          **attributes},
-                        {"concept:name": "Notify Rejection", "org:resource": np.random.choice(resources),
+                        {"concept:name": "Check Monthly Income", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
                          **attributes},
-                        {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
+                        {"concept:name": "Notify Rejection", "org:resource": np.random.choice(resources),
                          "start_timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
                          "time:timestamp": (event_start + relativedelta(minutes=duration * 6)).isoformat(),
+                         **attributes},
+                        {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
+                         "start_timestamp": (event_start + relativedelta(minutes=duration * 6)).isoformat(),
+                         "time:timestamp": (event_start + relativedelta(minutes=duration * 7)).isoformat(),
                          **attributes}
                     ]
 
@@ -154,23 +153,23 @@ class LogWithKnockoutsGenerator:
                   "time:timestamp": (event_start + relativedelta(minutes=duration)).isoformat(), **attributes},
                  {"concept:name": "Check Liability", "org:resource": np.random.choice(resources),
                   "start_timestamp": (event_start + relativedelta(minutes=duration)).isoformat(),
-                  "time:timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
-                  **attributes},
-                 {"concept:name": "Check Risk", "org:resource": np.random.choice(resources),
-                  "start_timestamp": (event_start + relativedelta(minutes=duration * 2)).isoformat(),
                   "time:timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                   **attributes},
-                 {"concept:name": "Check Monthly Income", "org:resource": np.random.choice(resources),
+                 {"concept:name": "Check Risk", "org:resource": np.random.choice(resources),
                   "start_timestamp": (event_start + relativedelta(minutes=duration * 3)).isoformat(),
                   "time:timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
                   **attributes},
-                 {"concept:name": "Make credit offer", "org:resource": np.random.choice(resources),
+                 {"concept:name": "Check Monthly Income", "org:resource": np.random.choice(resources),
                   "start_timestamp": (event_start + relativedelta(minutes=duration * 4)).isoformat(),
-                  "time:timestamp": (event_start + relativedelta(minutes=duration * 6)).isoformat(),
+                  "time:timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
+                  **attributes},
+                 {"concept:name": "Make credit offer", "org:resource": np.random.choice(resources),
+                  "start_timestamp": (event_start + relativedelta(minutes=duration * 5)).isoformat(),
+                  "time:timestamp": (event_start + relativedelta(minutes=duration * 7)).isoformat(),
                   **attributes},
                  {"concept:name": "Credit application processed", "org:resource": np.random.choice(resources),
-                  "start_timestamp": (event_start + relativedelta(minutes=duration * 6)).isoformat(),
-                  "time:timestamp": (event_start + relativedelta(minutes=duration * 7)).isoformat(),
+                  "start_timestamp": (event_start + relativedelta(minutes=duration * 7)).isoformat(),
+                  "time:timestamp": (event_start + relativedelta(minutes=duration * 8)).isoformat(),
                   **attributes}
                  ]
             )

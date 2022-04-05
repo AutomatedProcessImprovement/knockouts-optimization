@@ -4,6 +4,7 @@ import os
 import pprint
 from copy import deepcopy
 
+import numpy as np
 from tabulate import tabulate
 
 import pandas as pd
@@ -153,11 +154,21 @@ class KnockoutAnalyzer:
         if (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None):
             return columns_to_ignore
 
-        self.discoverer.log_df = self.discoverer.log_df.dropna()
-
+        # Necessary in case the log contains numerical values as strings
         for attr in self.discoverer.log_df.columns:
             self.discoverer.log_df[attr] = \
                 pd.to_numeric(self.discoverer.log_df[attr], errors='ignore')
+
+        # Fill Nan values of non-numerical columns, but drop rows with Nan values in numerical columns
+        non_numerical = self.discoverer.log_df.select_dtypes([np.object]).columns
+        self.discoverer.log_df = self.discoverer.log_df.fillna(
+            value={c: EMPTY_NON_NUMERICAL_VALUE for c in non_numerical})
+
+        # numerical = self.discoverer.log_df.select_dtypes([np.number]).columns
+        # self.discoverer.log_df = self.discoverer.log_df.fillna(
+        #    value={c: 0 for c in numerical})
+
+        self.discoverer.log_df = self.discoverer.log_df.dropna()
 
         return columns_to_ignore
 
@@ -345,9 +356,10 @@ if __name__ == "__main__":
 # TODO: work on different pending parts (clean up)
 
 # TODOs - related to KO Rule stage
+# TODO: Manejar nulos, no el valor “N/A”
+
 # TODO: area under curve metric for grid search?
 # TODO: fix support calculation: tomar en cuenta no todo N, sino solo los casos que recibe el KO check
-# TODO: Manejar nulos, no el valor “N/A”
 # TODO: Ver como calcular supp & conf por cada regla del ruleset, limpar segun threshold
 
 # TODOs - related to time waste metrics
