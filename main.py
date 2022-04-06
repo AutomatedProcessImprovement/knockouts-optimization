@@ -1,7 +1,9 @@
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
 if __name__ == "__main__":
-    # Known rules
+    #  Synthetic Example Ground Truth
+    #  (K.O. checks and their rejection rules):
+    #
     # 'Check Liability':        'Total Debt'     > 5000 ||  'Vehicle Owned' = "N/A"
     # 'Check Risk':             'Loan Ammount'   > 10000
     # 'Check Monthly Income':   'Monthly Income' < 1000
