@@ -23,7 +23,7 @@ from tqdm import tqdm
 from knockout_ios.utils.discovery import *
 
 from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache
-from knockout_ios.utils.metrics import get_categorical_evaluation_metrics
+from knockout_ios.utils.metrics import get_ko_discovery_metrics
 from knockout_ios.utils.post_proc import format_for_post_proc, plot_cycle_times_per_ko_activity, \
     plot_ko_activities_count
 from knockout_ios.utils.pre_proc import preprocess
@@ -227,7 +227,7 @@ class KnockoutDiscoverer:
         if self.ko_activities is None:
             raise Exception("ko activities not yet computed")
 
-        return get_categorical_evaluation_metrics(self.get_activities(), expected_kos, self.ko_activities)
+        return get_ko_discovery_metrics(self.get_activities(), expected_kos, self.ko_activities)
 
 
 if __name__ == "__main__":
