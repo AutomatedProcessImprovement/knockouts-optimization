@@ -12,7 +12,7 @@ import pandas as pd
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
-from knockout_ios.utils.metrics import find_rejection_rates
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
@@ -189,14 +189,15 @@ class KnockoutAnalyzer:
                      max_rule_conds=None,
                      max_total_conds=None,
                      k=2,
-                     n_discretize_bins=4,
+                     n_discretize_bins=7,
                      dl_allowance=16,
-                     prune_size=0.2,
+                     prune_size=0.33,
                      grid_search=False,
                      param_grid=None,
                      confidence_threshold=0.5,
                      support_threshold=0.5,
-                     omit_report=False):
+                     omit_report=False,
+                     print_rule_discovery_stats=False):
 
         if self.discoverer.log_df is None:
             raise Exception("log not yet loaded")
@@ -205,6 +206,9 @@ class KnockoutAnalyzer:
             raise Exception("ko activities not yet discovered")
 
         # Discover rules in knockout activities with chosen algorithm
+
+        self.available_cases_before_ko = calc_available_cases_before_ko(self.discoverer.ko_activities,
+                                                                        self.discoverer.log_df)
 
         compute_columns_only = (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None)
         preprocessed_df, columns_to_ignore = \
@@ -227,6 +231,7 @@ class KnockoutAnalyzer:
                                     self.discoverer.ko_activities,
                                     self.discoverer.config_file_name,
                                     self.cache_dir,
+                                    available_cases_before_ko=self.available_cases_before_ko,
                                     force_recompute=OVERRIDE_FORCE_RECOMPUTE,
                                     columns_to_ignore=columns_to_ignore,
                                     algorithm=algorithm,
@@ -247,16 +252,19 @@ class KnockoutAnalyzer:
             self.IREP_rulesets = rulesets
 
         if not self.quiet:
-            self.print_ko_rulesets(algorithm=algorithm)
+            self.print_ko_rulesets_stats(algorithm=algorithm)
 
         self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
                              algorithm=algorithm)
 
         report_df = self.build_report(algorithm=algorithm, omit=omit_report)
 
+        if print_rule_discovery_stats:
+            self.print_ko_rulesets_stats(algorithm=algorithm, compact=True)
+
         return report_df, self
 
-    def print_ko_rulesets(self, algorithm, compact=False):
+    def print_ko_rulesets_stats(self, algorithm, compact=False):
 
         rulesets = None
         if algorithm == "RIPPER":
@@ -332,7 +340,8 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5)
+    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
+                          print_rule_discovery_stats=True)
 
 # TODOs - related to KO Rule stage
 # TODO: fix support calculation - tomar en cuenta no todo N, sino solo los casos que recibe el KO check

@@ -30,6 +30,7 @@ def dump_rule_discovery_result(clfs, config_file_name, cache_dir):
 
 
 def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
+                     available_cases_before_ko,
                      force_recompute=True,
                      columns_to_ignore=None,
                      algorithm='IREP',
@@ -37,7 +38,7 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                      max_rule_conds=None,
                      max_total_conds=None,
                      k=2,
-                     n_discretize_bins=5,
+                     n_discretize_bins=7,
                      dl_allowance=64,
                      prune_size=0.33,
                      grid_search=True,
@@ -103,10 +104,14 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                     errors='ignore')
                 _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
 
-                support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case, dummies=True)
-                confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case, dummies=True)
+                support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
+                                                        N=available_cases_before_ko[activity],
+                                                        processed_with_pandas_dummies=True)
+                confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case,
+                                                              processed_with_pandas_dummies=True)
             else:
-                support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case)
+                support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
+                                                        N=available_cases_before_ko[activity])
                 confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
 
             rulesets[activity] = (
@@ -134,9 +139,9 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
 
 def RIPPER_wrapper(train, activity, max_rules=None,
                    max_rule_conds=None,
-                   max_total_conds=10,
+                   max_total_conds=None,
                    k=2,
-                   n_discretize_bins=5,
+                   n_discretize_bins=7,
                    dl_allowance=64,
                    prune_size=0.33,
                    grid_search=True,
@@ -173,8 +178,8 @@ def RIPPER_wrapper(train, activity, max_rules=None,
 
 def IREP_wrapper(train, activity, max_rules=None,
                  max_rule_conds=None,
-                 max_total_conds=10,
-                 n_discretize_bins=5,
+                 max_total_conds=None,
+                 n_discretize_bins=7,
                  prune_size=0.33,
                  grid_search=True,
                  param_grid=None

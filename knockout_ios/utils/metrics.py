@@ -82,18 +82,18 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
             }}
 
 
-def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
-                                  dummies=False):
+def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame, N: int,
+                                  processed_with_pandas_dummies=False):
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
-    if dummies:
+    if processed_with_pandas_dummies:
         freq_x_and_y = \
             log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
     else:
         freq_x_and_y = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
 
-    N = log.shape[0]
+    # N = log.shape[0]
 
     if N == 0:
         return 0
@@ -104,11 +104,11 @@ def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetC
 
 
 def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
-                                     dummies=False):
+                                     processed_with_pandas_dummies=False):
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
-    if dummies:
+    if processed_with_pandas_dummies:
         freq_x_and_y = \
             log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
     else:
@@ -121,3 +121,13 @@ def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRules
     confidence = freq_x_and_y / freq_x
 
     return confidence
+
+
+def calc_available_cases_before_ko(ko_activities, log_df):
+    d = {f"{activity}": 1000 for activity in ko_activities}
+
+    # d["Check Liability"] = 1000
+    # d["Check Risk"] = 500
+    # d["Check Monthly Income"] = 350
+
+    return d
