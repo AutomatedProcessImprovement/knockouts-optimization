@@ -35,6 +35,8 @@ class KnockoutAnalyzer:
     def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=False,
                  quiet=True):
 
+        os.makedirs(cache_dir, exist_ok=True)
+
         self.quiet = quiet
         self.config_dir = config_dir
         self.cache_dir = cache_dir

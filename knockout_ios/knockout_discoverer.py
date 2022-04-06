@@ -13,6 +13,7 @@
 # - user gives negative outcome; program finds activity where they diverge & rules for that -> suggestion for ko check?
 # - bring back dtreeviz: make a DT for every knockout activity; if there is a condition that allows to decide faster,
 #   implement it as a separate KO check before!
+import os
 import pprint
 
 import numpy as np
@@ -32,6 +33,8 @@ class KnockoutDiscoverer:
 
     def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=True,
                  quiet=False):
+
+        os.makedirs(cache_dir, exist_ok=True)
 
         self.config_dir = config_dir
         self.cache_dir = cache_dir
