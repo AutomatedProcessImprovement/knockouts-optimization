@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 
 import uuid
 
-from log_generation import xes
+from knockout_ios.utils.log_generation import xes
 
 
 def get_random_minutes():
@@ -208,5 +208,5 @@ class LogWithKnockoutsGenerator:
 
 
 if __name__ == "__main__":
-    gen = LogWithKnockoutsGenerator("outputs/synthetic_example_raw.xes")
+    gen = LogWithKnockoutsGenerator("../../inputs/synthetic_example_raw.xes")
     gen.generate_log(1000)
