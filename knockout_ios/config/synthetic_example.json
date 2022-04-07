@@ -1,5 +1,5 @@
 {
-  "log_path": "../log_generation/outputs/synthetic_example_raw.xes",
+  "log_path": "inputs/synthetic_example_raw.xes",
   "output": "./outputs",
   "start_activity": "Start",
   "negative_outcomes": [
