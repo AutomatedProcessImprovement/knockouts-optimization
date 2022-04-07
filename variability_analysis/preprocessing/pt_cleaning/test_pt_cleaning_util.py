@@ -496,9 +496,6 @@ def test_offtimetable_mixed():
     assert ended_offtimetable
 
 
-# TODO: test error cases in test evt. logs where processing_time>duration, is it bc of raw duration 1 min error?
-
-
 def test_instant_activity():
     """Test an activity starting and ending in same timestamp"""
 
@@ -598,6 +595,3 @@ def test_instant_activity_off_timetable():
     )
     assert processing_time == 0
     assert started_offtimetable
-
-
-# TODO: inicio fin mismo fds

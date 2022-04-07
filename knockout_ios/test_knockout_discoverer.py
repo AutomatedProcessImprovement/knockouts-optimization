@@ -12,8 +12,6 @@ credit_app_scenarios = [
     ("credit_app_multiple_negative.json", ["Reject application", "Ban client forever"], credit_app_kos),
     ("credit_app_nested_rework.json", ['Reject application'], ['Check income sources', 'Assess application']),
     ("credit_app_nested_rework_2.json", ['Reject application'], credit_app_kos),
-    # TODO: determine if it's ill-posed and bring back this test
-    # ("credit_app_nested_rework_3.json", ['Reject application'], ['Assess application', 'Check credit history'])
 ]
 
 

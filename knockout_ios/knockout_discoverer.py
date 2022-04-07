@@ -13,6 +13,7 @@
 # - user gives negative outcome; program finds activity where they diverge & rules for that -> suggestion for ko check?
 # - bring back dtreeviz: make a DT for every knockout activity; if there is a condition that allows to decide faster,
 #   implement it as a separate KO check before!
+import os
 import pprint
 
 import numpy as np
@@ -22,7 +23,7 @@ from tqdm import tqdm
 from knockout_ios.utils.discovery import *
 
 from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache
-from knockout_ios.utils.metrics import get_categorical_evaluation_metrics
+from knockout_ios.utils.metrics import get_ko_discovery_metrics
 from knockout_ios.utils.post_proc import format_for_post_proc, plot_cycle_times_per_ko_activity, \
     plot_ko_activities_count
 from knockout_ios.utils.pre_proc import preprocess
@@ -32,6 +33,8 @@ class KnockoutDiscoverer:
 
     def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=True,
                  quiet=False):
+
+        os.makedirs(cache_dir, exist_ok=True)
 
         self.config_dir = config_dir
         self.cache_dir = cache_dir
@@ -60,6 +63,11 @@ class KnockoutDiscoverer:
                                               cache_dir=self.cache_dir,
                                               add_intercase_and_context=False,
                                               clean_processing_times=False, add_only_context=False)
+
+        # TODO: document why this is needed - for the moment, it's just to workaround the fact that None cannot be
+        #  serialized, so the best the Log Generation module can do is write an empty string...
+        # replace empty strings in log_df with NaN
+        self.log_df = self.log_df.replace("", np.nan)
 
         # TODO: find root cause for needing this workaround...
         if not (DURATION_COLUMN_NAME in self.log_df.columns):
@@ -219,13 +227,13 @@ class KnockoutDiscoverer:
         if self.ko_activities is None:
             raise Exception("ko activities not yet computed")
 
-        return get_categorical_evaluation_metrics(self.get_activities(), expected_kos, self.ko_activities)
+        return get_ko_discovery_metrics(self.get_activities(), expected_kos, self.ko_activities)
 
 
 if __name__ == "__main__":
     test_data = ("credit_app_simple.json", ['Assess application', 'Check credit history', 'Check income sources'])
     analyzer = KnockoutDiscoverer(config_file_name=test_data[0], cache_dir="cache/credit_app",
-                                  always_force_recompute=False)
+                                  always_force_recompute=True)
 
     analyzer.find_ko_activities()
     analyzer.print_basic_stats()
