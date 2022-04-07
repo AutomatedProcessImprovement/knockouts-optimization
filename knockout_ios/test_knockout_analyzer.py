@@ -1,6 +1,7 @@
 import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.constants import *
 
 
 @pytest.mark.parametrize("algorithm", ["RIPPER", "IREP"])
@@ -22,9 +23,17 @@ def test_report_creation(algorithm):
         ['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
     # assert all columns are in the report
-    assert sorted(['Knock-out check', 'Total frequency', 'Case frequency', 'Mean PT',
-                   'Rejection rate', f'Rejection rule ({algorithm})', 'Effort per rejection']) == sorted(
-        df.columns.tolist())
+    assert sorted([REPORT_COLUMN_MEAN_WT_WASTE,
+                   REPORT_COLUMN_TOTAL_PT_WASTE,
+                   REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE,
+                   REPORT_COLUMN_EFFORT_PER_KO,
+                   REPORT_COLUMN_REJECTION_RATE,
+                   REPORT_COLUMN_MEAN_PT,
+                   REPORT_COLUMN_CASE_FREQ,
+                   REPORT_COLUMN_TOTAL_FREQ,
+                   REPORT_COLUMN_KNOCKOUT_CHECK,
+                   f'{REPORT_COLUMN_REJECTION_RULE} ({algorithm})']) \
+           == sorted(df.columns.tolist())
 
     # assert that there are no rows with NaN values
     assert df.isnull().sum().sum() == 0

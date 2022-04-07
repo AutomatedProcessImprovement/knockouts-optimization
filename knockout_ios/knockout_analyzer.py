@@ -309,15 +309,18 @@ class KnockoutAnalyzer:
         entries = []
         for ko in self.discoverer.ko_activities:
             freq = _by_case[_by_case["knockout_activity"] == ko].shape[0]
-            entries.append({"Knock-out check": ko,
-                            "Total frequency":
+            entries.append({("%s" % REPORT_COLUMN_KNOCKOUT_CHECK): ko,
+                            REPORT_COLUMN_TOTAL_FREQ:
                                 freq,
-                            "Case frequency":
+                            REPORT_COLUMN_CASE_FREQ:
                                 f"{freq / _by_case.shape[0]} %",
-                            "Mean PT": self.ko_stats[ko]["mean_pt"],
-                            "Rejection rate": self.ko_stats[ko]["rejection_rate"],
-                            f"Rejection rule ({algorithm})": rulesets[ko][0].ruleset_,
-                            "Effort per rejection": self.ko_stats[ko][algorithm]["effort"]
+                            REPORT_COLUMN_MEAN_PT: self.ko_stats[ko]["mean_pt"],
+                            REPORT_COLUMN_REJECTION_RATE: self.ko_stats[ko]["rejection_rate"],
+                            f"{REPORT_COLUMN_REJECTION_RULE} ({algorithm})": rulesets[ko][0].ruleset_,
+                            REPORT_COLUMN_EFFORT_PER_KO: self.ko_stats[ko][algorithm]["effort"],
+                            REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: 0,
+                            REPORT_COLUMN_TOTAL_PT_WASTE: 0,
+                            REPORT_COLUMN_MEAN_WT_WASTE: 0
                             })
 
         df = pd.DataFrame(entries)
@@ -338,7 +341,7 @@ if __name__ == "__main__":
     analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
 
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
-                          print_rule_discovery_stats=True)
+                          print_rule_discovery_stats=False)
 
 # TODOs - related to time waste metrics
-# TODO: implement time waste metrics & add columns to report (and test) - first 2, hardest to the last
+# TODO: implement time waste metrics - first 2, leave hardest at last
