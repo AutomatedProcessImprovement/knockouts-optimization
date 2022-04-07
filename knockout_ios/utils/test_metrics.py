@@ -103,7 +103,7 @@ def test_partially_correct_kos():
 
 
 def test_available_cases_before_ko_calculation():
-    log_df = pd.read_pickle('../test_fixtures/log_df.pkl')
+    log_df = pd.read_pickle('test_fixtures/log_df.pkl')
 
     activities = ["Check Liability", "Check Risk", "Check Monthly Income"]
 

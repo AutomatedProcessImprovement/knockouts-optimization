@@ -17,9 +17,6 @@ from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
 
-# TODO: remove this later
-OVERRIDE_FORCE_RECOMPUTE = True
-
 
 def clear_cache(cachedir, config_file_name):
     file_list = glob.glob(f'{cachedir}/{config_file_name}*')
@@ -232,7 +229,7 @@ class KnockoutAnalyzer:
                                     self.discoverer.config_file_name,
                                     self.cache_dir,
                                     available_cases_before_ko=self.available_cases_before_ko,
-                                    force_recompute=OVERRIDE_FORCE_RECOMPUTE,
+                                    force_recompute=self.always_force_recompute,
                                     columns_to_ignore=columns_to_ignore,
                                     algorithm=algorithm,
                                     max_rules=max_rules,
@@ -342,11 +339,6 @@ if __name__ == "__main__":
 
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
                           print_rule_discovery_stats=True)
-
-# TODOs - related to KO Rule stage
-# TODO: fix support calculation - tomar en cuenta no todo N, sino solo los casos que recibe el KO check
-# TODO: suppress excessive warnings when using area under curve metric for grid search (worth it bc it gives better results).
-# TODO: Ver como calcular supp & conf por cada regla del ruleset, limpiar segun threshold
 
 # TODOs - related to time waste metrics
 # TODO: implement time waste metrics & add columns to report (and test) - first 2, hardest to the last

@@ -124,10 +124,11 @@ def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRules
 
 
 def calc_available_cases_before_ko(ko_activities, log_df):
-    d = {f"{activity}": 1000 for activity in ko_activities}
+    counts = {}
 
-    # d["Check Liability"] = 1000
-    # d["Check Risk"] = 500
-    # d["Check Monthly Income"] = 350
+    # group log_df by caseid and for each activity count how many groups (i.e. cases) contain that activity
+    for activity in ko_activities:
+        counts[activity] = log_df[log_df[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity].groupby(
+            SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
 
-    return d
+    return counts
