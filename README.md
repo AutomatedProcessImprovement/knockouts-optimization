@@ -42,7 +42,7 @@ analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0
 
 A shell script is provided, which runs pytest in the relevant modules.
 
-On Mac/Linux or Windows with git bash, it can be launched with `./run tests.sh`.
+On Mac/Linux or Windows with git bash, it can be launched with `bash ./test.sh`.
 
 The flag `-n auto` is used by pytest-xdist to run tests in parallel.
 

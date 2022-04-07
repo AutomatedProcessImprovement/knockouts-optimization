@@ -18,6 +18,9 @@ from .pt_cleaning_util import (
 )
 
 
+# TODO: this code is really low; it's from when I was starting to even familiarize with the project.
+#  May be worth to revisit if it will be used again
+
 def clean_processing_times_with_calendar(log, config, _res_analyzer=None):
     # # Processing Times Pre-Processing w.r.t Resource Calendar
     #
@@ -75,6 +78,19 @@ def clean_processing_times_with_calendar(log, config, _res_analyzer=None):
         datestr = f"2021-01-01 {hourstr.split('+')[0]}"
         return np.datetime64(datestr)
 
+    def extract_processing_time(activity):
+        if pd.isna(activity["timetable_id"]):
+            return activity["@@duration"], activity["@@duration"], False, False
+
+        role_timetable = tt_dict.get(activity["timetable_id"])
+        net, idle, start_offtimetable, end_offtimetable = get_processing_time(
+            np.datetime64(activity["start_timestamp"]),
+            np.datetime64(activity["end_timestamp"]),
+            role_timetable,
+            activity["@@duration"],
+        )
+        return net, idle, start_offtimetable, end_offtimetable
+
     log_df["Role"] = log_df.apply(lambda row: getRole(row.user), axis=1)
 
     # - for each activity, lookup associated resource's timetable
@@ -97,19 +113,6 @@ def clean_processing_times_with_calendar(log, config, _res_analyzer=None):
         tt_dict[e.get("id")] = list(rules)
 
     log_df["timetable_id"] = log_df.apply(lambda row: getTimetableId(row.Role), axis=1)
-
-    def extract_processing_time(activity):
-        if pd.isna(activity["timetable_id"]):
-            return activity["@@duration"], activity["@@duration"], False, False
-
-        role_timetable = tt_dict.get(activity["timetable_id"])
-        net, idle, start_offtimetable, end_offtimetable = get_processing_time(
-            np.datetime64(activity["start_timestamp"]),
-            np.datetime64(activity["end_timestamp"]),
-            role_timetable,
-            activity["@@duration"],
-        )
-        return net, idle, start_offtimetable, end_offtimetable
 
     log_df[
         [
