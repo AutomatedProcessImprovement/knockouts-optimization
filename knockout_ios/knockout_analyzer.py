@@ -13,7 +13,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.format import seconds_to_hms
-from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_over_processing_waste, \
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
     calc_processing_waste
 
 from knockout_ios.utils.constants import *
@@ -330,7 +330,7 @@ class KnockoutAnalyzer:
         _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
         freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
 
-        overprocessing_waste = calc_over_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_df)
+        overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_df)
         processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_df)
 
         entries = []
@@ -371,5 +371,4 @@ if __name__ == "__main__":
                           print_rule_discovery_stats=True)
 
 # TODOs - related to time waste metrics
-# TODO: fix calendar discovery problem, to subtract waiting time and get "total processing time waste"
 # TODO: implement "mean waiting time waste"

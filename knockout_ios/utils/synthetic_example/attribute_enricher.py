@@ -16,20 +16,19 @@ def enrich_log_df(log_df):
     log_df = deepcopy(log_df)
 
     demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
-    vehicle_values = ['vehicle_type_1', 'vehicle_type_2', 'vehicle_type_3', 'vehicle_type_4']
 
     # First populate df with values that don't fall under any of the knock outs' rules
     log_df['Monthly Income'] = np.random.randint(1000, 4999, size=len(log_df))
     log_df['Total Debt'] = np.random.randint(0, 4999, size=len(log_df))
     log_df['Loan Ammount'] = np.random.randint(0, 9999, size=len(log_df))
-    log_df['Vehicle Owned'] = np.random.choice(vehicle_values, size=len(log_df))
+    log_df['Owns Vehicle'] = True
     log_df['Demographic'] = np.random.choice(demographic_values, size=len(log_df))
     log_df['External Risk Score'] = np.random.uniform(0, 0.3, size=len(log_df))
 
     #  Synthetic Example Ground Truth
     #  (K.O. checks and their rejection rules):
     #
-    # 'Check Liability':        'Total Debt'     > 5000 ||  'Vehicle Owned' = "N/A"
+    # 'Check Liability':        'Total Debt'     > 5000 ||  'Owns Vehicle' = False
     # 'Check Risk':             'Loan Ammount'   > 10000
     # 'Check Monthly Income':   'Monthly Income' < 1000
     # 'Assess application':     'External Risk Score' < 0.3
@@ -42,7 +41,7 @@ def enrich_log_df(log_df):
             if random() < 0.5:
                 log_df.loc[i, 'Total Debt'] = randint(5000, 30_000)
             else:
-                log_df.loc[i, 'Vehicle Owned'] = np.nan
+                log_df.loc[i, 'Owns Vehicle'] = False
         elif ko_activity == 'Check Risk':
             log_df.loc[i, 'Loan Ammount'] = randint(10_000, 30_000)
         elif ko_activity == 'Check Monthly Income':
