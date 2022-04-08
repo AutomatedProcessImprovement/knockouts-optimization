@@ -371,5 +371,5 @@ if __name__ == "__main__":
                           print_rule_discovery_stats=True)
 
 # TODOs - related to time waste metrics
-# TODO: fix calendar discovery problem, to substract waiting time and get "total processing time waste"
+# TODO: fix calendar discovery problem, to subtract waiting time and get "total processing time waste"
 # TODO: implement "mean waiting time waste"
