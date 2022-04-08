@@ -134,13 +134,27 @@ def calc_available_cases_before_ko(ko_activities, log_df):
     return counts
 
 
-def calc_over_processing_waste(ko_activities, log_df):
+def calc_processing_waste(ko_activities, log_df):
     counts = {}
+
+    # TODO: should drop activities that started after the end timestamp of the knockout activity?
 
     for activity in ko_activities:
         filtered_df = log_df[log_df['knockout_activity'] == activity]
-        knocked_out_cases = filtered_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg({DURATION_COLUMN_NAME: 'sum'})
-        total_duration = knocked_out_cases[DURATION_COLUMN_NAME].sum()
+        total_duration = filtered_df[DURATION_COLUMN_NAME].sum()
+        counts[activity] = total_duration
+
+    return counts
+
+
+def calc_over_processing_waste(ko_activities, log_df):
+    counts = {}
+
+    # TODO: should drop activities that started after the end timestamp of the knockout activity?
+
+    for activity in ko_activities:
+        filtered_df = log_df[log_df['knockout_activity'] == activity]
+        total_duration = filtered_df[DURATION_COLUMN_NAME].sum()
         counts[activity] = total_duration
 
     return counts
