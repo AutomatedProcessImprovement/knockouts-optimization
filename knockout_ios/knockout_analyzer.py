@@ -368,7 +368,8 @@ if __name__ == "__main__":
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
 
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
-                          print_rule_discovery_stats=False)
+                          print_rule_discovery_stats=True)
 
 # TODOs - related to time waste metrics
-# TODO: implement time waste metrics - first 2, leave hardest at last
+# TODO: fix calendar discovery problem, to substract waiting time and get "total processing time waste"
+# TODO: implement "mean waiting time waste"
