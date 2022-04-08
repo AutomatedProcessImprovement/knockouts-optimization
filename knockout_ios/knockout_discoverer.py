@@ -1,6 +1,6 @@
 # Knockout activities source:
 #
-# - automatically discovered: program considers characteristic activities of top N shortest variants as
+# - automatically discovered: program considers characteristic activities of top available_cases_before_ko shortest variants as
 #                             knock-out-check activities
 #
 # - semi-automatically discovered: user provides activity name(s) associated to negative case outcome(s),

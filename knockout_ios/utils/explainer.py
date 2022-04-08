@@ -104,15 +104,11 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                     errors='ignore')
                 _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
 
-                support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
-                                                        N=available_cases_before_ko[activity],
-                                                        processed_with_pandas_dummies=True)
-                confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case,
-                                                              processed_with_pandas_dummies=True)
-            else:
-                support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
-                                                        N=available_cases_before_ko[activity])
-                confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
+            support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
+                                                    available_cases_before_ko=available_cases_before_ko[activity],
+                                                    processed_with_pandas_dummies=grid_search)
+            confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case,
+                                                          processed_with_pandas_dummies=grid_search)
 
             rulesets[activity] = (
                 ruleset_model,

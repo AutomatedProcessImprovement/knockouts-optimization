@@ -6,7 +6,7 @@ from knockout_ios.utils.constants import *
 
 def format_null_activity(activity):
     if activity is False:
-        return "N/A"
+        return "available_cases_before_ko/A"
     return activity
 
 
