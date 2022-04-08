@@ -21,12 +21,13 @@ Depending on your platform, install graphviz (v 3.0.0+) separately, and make sur
 ```python
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
-#  Synthetic Example Ground Truth 
+#  Synthetic Example Ground Truth
 #  (K.O. checks and their rejection rules):
-# 
+#
 # 'Check Liability':        'Total Debt'     > 5000 ||  'Vehicle Owned' = "available_cases_before_ko/A"
 # 'Check Risk':             'Loan Ammount'   > 10000
 # 'Check Monthly Income':   'Monthly Income' < 1000
+# 'Assess application':     'External Risk Score' < 0.3
 
 analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                             config_dir="config",
