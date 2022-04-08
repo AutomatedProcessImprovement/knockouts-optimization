@@ -132,3 +132,15 @@ def calc_available_cases_before_ko(ko_activities, log_df):
             SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
 
     return counts
+
+
+def calc_over_processing_waste(ko_activities, log_df):
+    counts = {}
+
+    for activity in ko_activities:
+        filtered_df = log_df[log_df['knockout_activity'] == activity]
+        knocked_out_cases = filtered_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg({DURATION_COLUMN_NAME: 'sum'})
+        total_duration = knocked_out_cases[DURATION_COLUMN_NAME].sum()
+        counts[activity] = total_duration
+
+    return counts

@@ -12,15 +12,16 @@ def test_report_creation(algorithm):
                                 always_force_recompute=True,
                                 quiet=True)
 
-    analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
+    analyzer.discover_knockouts()
 
     df, _ = analyzer.get_ko_rules(grid_search=False, algorithm=algorithm, omit_report=True, confidence_threshold=0.5,
                                   support_threshold=0.5)
 
-    # assert all 3 knockouts are in the report
-    assert df.shape[0] == 3
-    assert sorted(analyzer.discoverer.ko_activities) == sorted(
-        ['Check Liability', 'Check Risk', 'Check Monthly Income'])
+    expected_kos = ['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application']
+
+    # assert all 4 knockouts are in the report
+    assert df.shape[0] == len(expected_kos)
+    assert sorted(analyzer.discoverer.ko_activities) == sorted(expected_kos)
 
     # assert all columns are in the report
     assert sorted([REPORT_COLUMN_MEAN_WT_WASTE,

@@ -69,12 +69,6 @@ class KnockoutDiscoverer:
         # replace empty strings in log_df with NaN
         self.log_df = self.log_df.replace("", np.nan)
 
-        # TODO: find root cause for needing this workaround...
-        if not (DURATION_COLUMN_NAME in self.log_df.columns):
-            self.log_df[DURATION_COLUMN_NAME] = (self.log_df[SIMOD_END_TIMESTAMP_COLUMN_NAME] -
-                                                 self.log_df[SIMOD_START_TIMESTAMP_COLUMN_NAME]) / np.timedelta64(1,
-                                                                                                                  's')
-
         self.pm4py_df = pm4py.format_dataframe(self.log_df, case_id='caseid', activity_key='task',
                                                timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
                                                start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
@@ -138,7 +132,6 @@ class KnockoutDiscoverer:
 
         except FileNotFoundError:
 
-            # Eventually/Directly-follows experiments
             if len(self.config.negative_outcomes) > 0:
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
                 rejected = pm4py.filter_eventually_follows_relation(self.pm4py_df, relations)
@@ -176,7 +169,7 @@ class KnockoutDiscoverer:
 
             if not self.quiet:
                 print("\nMarking knocked-out cases in log")
-            for group in tqdm(gr.groups.keys(), desc="Cases"):
+            for group in tqdm(gr.groups.keys(), desc="Knocked-out cases"):
                 case_df = gr.get_group(group)
                 sorted_case = case_df.sort_values("start_timestamp")
                 knockout_activity = find_ko_activity(self.ko_activities, sorted_case)
