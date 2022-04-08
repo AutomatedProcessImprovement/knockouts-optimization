@@ -12,7 +12,10 @@ import pandas as pd
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
-from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_over_processing_waste
+from knockout_ios.utils.format import seconds_to_hms
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_over_processing_waste, \
+    calc_processing_waste
+
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
@@ -133,10 +136,10 @@ class KnockoutAnalyzer:
             metrics = entry[2]
 
             # Mean Processing Time does not depend on rejection rule confidence or support
-            self.ko_stats[key]['mean_pt'] = round(soj_time[key], ndigits=3)
+            self.ko_stats[key]['mean_pt'] = soj_time[key]
 
             # Effort per rejection = Average PT / Rejection rate
-            effort = round(soj_time[key], ndigits=3) / (100 * self.ko_stats[key]['rejection_rate'])
+            effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
             if metrics['confidence'] >= confidence_threshold:
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
@@ -325,24 +328,25 @@ class KnockoutAnalyzer:
             rulesets = self.IREP_rulesets
 
         _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
+        freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
 
         overprocessing_waste = calc_over_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_df)
+        processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_df)
 
         entries = []
         for ko in self.discoverer.ko_activities:
-            freq = _by_case[_by_case["knockout_activity"] == ko].shape[0]
             entries.append({("%s" % REPORT_COLUMN_KNOCKOUT_CHECK): ko,
                             REPORT_COLUMN_TOTAL_FREQ:
-                                freq,
+                                freqs[ko],
                             REPORT_COLUMN_CASE_FREQ:
-                                f"{freq / _by_case.shape[0]} %",
-                            REPORT_COLUMN_MEAN_PT: self.ko_stats[ko]["mean_pt"],
-                            REPORT_COLUMN_REJECTION_RATE: self.ko_stats[ko]["rejection_rate"],
+                                f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
+                            REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
+                            REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
                             f"{REPORT_COLUMN_REJECTION_RULE} ({algorithm})": rulesets[ko][0].ruleset_,
-                            REPORT_COLUMN_EFFORT_PER_KO: self.ko_stats[ko][algorithm]["effort"],
-                            REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: overprocessing_waste[ko],
-                            REPORT_COLUMN_TOTAL_PT_WASTE: 0,
-                            REPORT_COLUMN_MEAN_WT_WASTE: 0
+                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][algorithm]["effort"], ndigits=2),
+                            REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
+                            REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
+                            REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(0)
                             })
 
         df = pd.DataFrame(entries)
@@ -358,7 +362,7 @@ if __name__ == "__main__":
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
-                                quiet=False)
+                                quiet=True)
 
     analyzer.discover_knockouts(
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])

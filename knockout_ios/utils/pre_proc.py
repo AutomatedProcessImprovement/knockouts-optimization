@@ -19,7 +19,6 @@ def config_data_from_json(config_path: Path) -> dict:
 
 
 def read_config_file(config_file):
-
     ext = config_file.split(".")
 
     if len(ext) < 2:
@@ -42,7 +41,6 @@ def read_config_file(config_file):
 
 def preprocess(config_file, config_dir="config", cache_dir="./cache/", add_intercase_and_context=True,
                add_only_context=False, clean_processing_times=True):
-
     config, options = read_config_file(config_file)
 
     # Try to load cache
@@ -72,8 +70,11 @@ def preprocess(config_file, config_dir="config", cache_dir="./cache/", add_inter
             enriched_log_df = intercase_and_context.extract_only_contextual(log)
             enriched_log_df.to_pickle(cache_filename)
             return enriched_log_df, config
+        elif clean_processing_times:
+            log_df = pt_cleaning.clean_processing_times_with_calendar(log_df, config)
+            log_df.to_pickle(cache_filename)
+            return log_df, config
         else:
             log_df = pd.DataFrame(log.data)
             log_df.to_pickle(cache_filename)
             return log_df, config
-

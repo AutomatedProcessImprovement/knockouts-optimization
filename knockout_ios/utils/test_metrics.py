@@ -184,5 +184,5 @@ def test_overprocessing_waste_calculation():
 
     counts = calc_over_processing_waste(activities, pd.DataFrame(log_data))
 
-    assert counts["check_A"] == 0  # knocked out 1 case / no activities performed before ko check
-    assert counts["check_B"] == 10  # knocked out 1 case / 1 activity performed before ko check
+    assert counts["check_A"] == 15  # knocked out 1 case / no activities performed before ko check
+    assert counts["check_B"] == 25  # knocked out 1 case / 1 activity performed before ko check
