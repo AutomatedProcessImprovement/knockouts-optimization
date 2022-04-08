@@ -1,5 +1,5 @@
 from copy import deepcopy
-from random import random, randint
+from random import random, randint, seed
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,9 @@ from knockout_ios.utils.constants import *
 
 
 def enrich_log_df(log_df):
-    # log_df = pd.read_pickle('../../inputs/synthetic_example_raw_df.pkl')
+    # To keep consistency on every call
+    seed(0)
+    np.random.seed(0)
 
     log_df = deepcopy(log_df)
 
@@ -32,6 +34,7 @@ def enrich_log_df(log_df):
     # 'Check Monthly Income':   'Monthly Income' < 1000
     # 'Assess application':     'External Risk Score' < 0.3
 
+    # TODO: this is slow, consider to_records()
     for i, row in log_df.iterrows():
         ko_activity = row["knockout_activity"]
 
@@ -47,24 +50,13 @@ def enrich_log_df(log_df):
         elif ko_activity == 'Assess application':
             log_df.loc[i, 'External Risk Score'] = random() + 0.3
 
-    # Verify that conditions hold
-    # assert log_df[log_df['knockout_activity'] == "Check Monthly Income"]['Monthly Income'].min() <= 1000
-    # assert log_df[log_df['knockout_activity'] == "Check Risk"]['Loan Ammount'].min() >= 10000
-    # assert log_df[log_df['knockout_activity'] == "Assess application"]['External Risk Score'].min() >= 0.3
-    # assert that the rows where knockout_activity is Check Liability and Total Debt < 5000, have Vehicle Owned = np.nan
-    # assert log_df[(log_df['knockout_activity'] == "Check Liability") & (log_df['Total Debt'] <= 5000)][
-    #    'Vehicle Owned'].isna().all()
-    # assert that the rows where knockout_activity is Check Liability and Vehicle Owned is not np.nan, have Total Debt > 5000
-    # assert log_df[(log_df['knockout_activity'] == "Check Liability") & (log_df['Vehicle Owned'].notna())][
-    #           'Total Debt'].max() > 5000
-
+    # TODO: fix problem with exported .xes; fluxicon disco complains about lack of activity classifier,
+    #  apromore does not even recognize it
     # formatted = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
     #                                    activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
     #                                    timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
     #                                    start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
 
-    # TODO: fix problem with exported .xes; fluxicon disco complains about lack of activity classifier,
-    #  apromore does not even recognize it
     # pm4py.write_xes(formatted, '../../inputs/synthetic_example_enriched.xes')
 
     return log_df
