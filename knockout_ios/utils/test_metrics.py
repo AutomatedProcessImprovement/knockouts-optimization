@@ -1,10 +1,11 @@
 import pandas as pd
 import pytest
+from pandas import Timestamp
 
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
-    calc_overprocessing_waste
+    calc_overprocessing_waste, calc_mean_waiting_time_waste
 
 log = [
     # 1 Knocked out case (contains check_A and did not pass it)
@@ -113,3 +114,73 @@ def test_available_cases_before_ko_calculation():
     assert counts["Check Liability"] == 1000
     assert counts["Check Risk"] == 500
     assert counts["Check Monthly Income"] == 350
+
+
+def test_mean_waiting_time_waste():
+    events = [
+        # Case that will be knocked out
+        {
+            'caseid': 0,
+            'knockout_activity': 'ko_1',
+            'knocked_out_case': True,
+            'activity': 'Start',
+            'resource': 'system',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
+        },
+        {
+            'caseid': 0,
+            'knockout_activity': 'ko_1',
+            'knocked_out_case': True,
+            'activity': 'Work',
+            'resource': 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
+        },
+        {
+            'caseid': 0,
+            'knockout_activity': 'ko_1',
+            'knocked_out_case': True,
+            'activity': 'End',
+            'resource': 'system',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:05:00"),
+        },
+
+        # Non knocked out case that has to wait
+        {
+            'caseid': 1,
+            'knockout_activity': False,
+            'knocked_out_case': False,
+            'activity': 'Start',
+            'resource': 'system',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
+        },
+        {
+            'caseid': 1,
+            'knockout_activity': False,
+            'knocked_out_case': False,
+            'activity': 'Work',
+            'resource': 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
+        },
+        {
+            'caseid': 1,
+            'knockout_activity': False,
+            'knocked_out_case': False,
+            'activity': 'End',
+            'resource': 'system',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:05:00"),
+        }
+
+    ]
+
+    ko_activities = ["check_1", "check_2"]
+
+    waste = calc_mean_waiting_time_waste(ko_activities, pd.DataFrame(events))
+
+    assert waste["check_1"] == pytest.approx(3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
+    assert waste["check_2"] == 0
