@@ -6,7 +6,7 @@ from knockout_ios.utils.constants import *
 
 def format_null_activity(activity):
     if activity is False:
-        return "available_cases_before_ko/A"
+        return "Not Knocked Out"
     return activity
 
 
@@ -16,7 +16,7 @@ def format_for_post_proc(df, id_col_name=PM4PY_CASE_ID_COLUMN_NAME, duration_col
                                            'knocked_out_case': lambda x: x.iloc[0]})
 
     by_case.columns = [a[0] if (a[1] == "<lambda>") else "_".join(a) for a in by_case.columns.to_flat_index()]
-    by_case = by_case.rename(columns={f"{duration_col_name}_sum": 'cycle_time'})
+    by_case = by_case.rename(columns={f"{duration_col_name}_sum": PROCESSING_TIME})
 
     return by_case
 
@@ -24,7 +24,7 @@ def format_for_post_proc(df, id_col_name=PM4PY_CASE_ID_COLUMN_NAME, duration_col
 def plot_cycle_times_per_ko_activity(by_case, ko_activities, show_outliers=False):
     plt.figure()
     by_case.groupby('knockout_activity').boxplot(
-        column='cycle_time',
+        column=PROCESSING_TIME,
         fontsize=12,
         subplots=True,
         layout=(1, len(ko_activities) + 1),
@@ -32,7 +32,7 @@ def plot_cycle_times_per_ko_activity(by_case, ko_activities, show_outliers=False
         showfliers=show_outliers
     )
 
-    plt.suptitle('Cycle Times by KO Activity')
+    plt.suptitle(f'{PROCESSING_TIME} by KO Activity')
 
 
 def plot_ko_activities_count(by_case):

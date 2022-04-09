@@ -159,3 +159,18 @@ def calc_overprocessing_waste(ko_activities, log_df):
         counts[activity] = total_duration.sum().total_seconds()
 
     return counts
+
+
+def calc_mean_waiting_time_waste(ko_activities, log_df):
+    mean_times = {}
+
+    from pm4py.statistics.concurrent_activities.pandas import get as conc_act_get
+
+    # conc_act = conc_act_get.apply(log_df,
+    #                              parameters={conc_act_get.Parameters.TIMESTAMP_KEY: PM4PY_END_TIMESTAMP_COLUMN_NAME,
+    #                                          conc_act_get.Parameters.START_TIMESTAMP_KEY: PM4PY_START_TIMESTAMP_COLUMN_NAME})
+
+    for activity in ko_activities:
+        mean_times[activity] = 0
+
+    return mean_times
