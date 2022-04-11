@@ -4,6 +4,8 @@ from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
 from knockout_ios.utils.constants import *
 
+import swifter
+
 
 def find_rejection_rates(log_df, ko_activities):
     # for every ko_activity,
@@ -164,13 +166,35 @@ def calc_overprocessing_waste(ko_activities, log_df):
 def calc_mean_waiting_time_waste(ko_activities, log_df):
     mean_times = {}
 
-    from pm4py.statistics.concurrent_activities.pandas import get as conc_act_get
-
-    # conc_act = conc_act_get.apply(log_df,
-    #                              parameters={conc_act_get.Parameters.TIMESTAMP_KEY: PM4PY_END_TIMESTAMP_COLUMN_NAME,
-    #                                          conc_act_get.Parameters.START_TIMESTAMP_KEY: PM4PY_START_TIMESTAMP_COLUMN_NAME})
-
     for activity in ko_activities:
         mean_times[activity] = 0
+
+        log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
+            {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
+             'knockout_activity': 'first'})
+
+        # get all rows where start_timestamp is before start_timestamp of any row in aggr_filtered
+        knocked_out_cases = log_df[log_df['knockout_activity'] == activity]
+        non_knocked_out_cases = log_df[log_df['knockout_activity'] == False]
+
+        def fn(non_ko_case):
+            # sum the overlapping time between non_ko_case and every row in kod
+            for knocked_out_case in knocked_out_cases.iterrows():
+
+                ko_starts_before_or_with_non_ko_case = knocked_out_case[1][PM4PY_START_TIMESTAMP_COLUMN_NAME] <= \
+                                                       non_ko_case[PM4PY_START_TIMESTAMP_COLUMN_NAME]
+
+                if ko_starts_before_or_with_non_ko_case:
+                    overlap = (
+                            min(non_ko_case[PM4PY_END_TIMESTAMP_COLUMN_NAME],
+                                knocked_out_case[1][PM4PY_END_TIMESTAMP_COLUMN_NAME])
+                            - max(non_ko_case[PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                                  knocked_out_case[1][PM4PY_START_TIMESTAMP_COLUMN_NAME])
+                    )
+
+                    return max(0, overlap.total_seconds())
+
+        overlaps = non_knocked_out_cases.swifter.apply(fn, axis=1)
+        mean_times[activity] = overlaps.sum()
 
     return mean_times

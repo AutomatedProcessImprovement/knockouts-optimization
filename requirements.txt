@@ -83,3 +83,5 @@ traitlets==5.1.1
 typing_extensions==4.1.1
 wcwidth==0.2.5
 wittgenstein==0.3.2
+swifter~=1.1.2
+setuptools~=60.9.3
