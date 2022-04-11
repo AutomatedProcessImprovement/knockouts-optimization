@@ -170,6 +170,11 @@ def calc_overprocessing_waste(ko_activities, log_df):
 def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
     waiting_time_waste = {}
 
+    # Uncomment to aggregate by case (not completely correct):
+    # log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
+    #     {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
+    #      'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
+
     for activity in ko_activities:
         waiting_time_waste[activity] = 0
 
