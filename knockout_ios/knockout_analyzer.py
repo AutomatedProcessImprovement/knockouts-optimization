@@ -166,6 +166,7 @@ class KnockoutAnalyzer:
         # Pre-processing
         columns_to_ignore = [SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
                              SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
+                             SIMOD_RESOURCE_COLUMN_NAME,
                              PM4PY_ACTIVITY_COLUMN_NAME,
                              PM4PY_CASE_ID_COLUMN_NAME,
                              PM4PY_END_TIMESTAMP_COLUMN_NAME,
@@ -363,7 +364,7 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=False,
+                                always_force_recompute=True,
                                 quiet=True)
 
     analyzer.discover_knockouts(
