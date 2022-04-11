@@ -14,7 +14,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.format import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
-    calc_processing_waste, calc_mean_waiting_time_waste
+    calc_processing_waste, calc_mean_waiting_time_waste_v1
 
 from knockout_ios.utils.constants import *
 
@@ -169,8 +169,7 @@ class KnockoutAnalyzer:
                              PM4PY_ACTIVITY_COLUMN_NAME,
                              PM4PY_CASE_ID_COLUMN_NAME,
                              PM4PY_END_TIMESTAMP_COLUMN_NAME,
-                             DURATION_COLUMN_NAME,
-                             SIMOD_RESOURCE_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                             DURATION_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
                              SIMOD_START_TIMESTAMP_COLUMN_NAME,
                              'knockout_activity',
                              'knockout_prefix']
@@ -333,8 +332,8 @@ class KnockoutAnalyzer:
         overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
                                                          self.discoverer.pm4py_formatted_df)
         processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_formatted_df)
-        mean_waiting_time_waste = calc_mean_waiting_time_waste(self.discoverer.ko_activities,
-                                                               self.discoverer.pm4py_formatted_df)
+        mean_waiting_time_waste = calc_mean_waiting_time_waste_v1(self.discoverer.ko_activities,
+                                                                  self.discoverer.pm4py_formatted_df)
 
         entries = []
         for ko in self.discoverer.ko_activities:
@@ -349,7 +348,7 @@ class KnockoutAnalyzer:
                             REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][algorithm]["effort"], ndigits=2),
                             REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
                             REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
-                            REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko]),
+                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko]),
                             })
 
         df = pd.DataFrame(entries)
@@ -371,7 +370,7 @@ if __name__ == "__main__":
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
 
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
-                          print_rule_discovery_stats=True)
+                          print_rule_discovery_stats=False)
 
 # TODOs - related to time waste metrics
 # TODO: implement "mean waiting time waste"
