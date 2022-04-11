@@ -120,28 +120,28 @@ def test_mean_waiting_time_waste():
     events = [
         # Case that will be knocked out
         {
-            'caseid': 0,
+            PM4PY_CASE_ID_COLUMN_NAME: 0,
             'knockout_activity': 'ko_1',
             'knocked_out_case': True,
-            'activity': 'Start',
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
             'resource': 'system',
             PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:00:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
         },
         {
-            'caseid': 0,
+            PM4PY_CASE_ID_COLUMN_NAME: 0,
             'knockout_activity': 'ko_1',
             'knocked_out_case': True,
-            'activity': 'Work',
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
             'resource': 'R1',
             PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
         },
         {
-            'caseid': 0,
+            PM4PY_CASE_ID_COLUMN_NAME: 0,
             'knockout_activity': 'ko_1',
             'knocked_out_case': True,
-            'activity': 'End',
+            PM4PY_ACTIVITY_COLUMN_NAME: 'End',
             'resource': 'system',
             PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:05:00"),
@@ -149,28 +149,28 @@ def test_mean_waiting_time_waste():
 
         # Non knocked out case that has to wait
         {
-            'caseid': 1,
+            PM4PY_CASE_ID_COLUMN_NAME: 1,
             'knockout_activity': False,
             'knocked_out_case': False,
-            'activity': 'Start',
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
             'resource': 'system',
             PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:00:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
         },
         {
-            'caseid': 1,
+            PM4PY_CASE_ID_COLUMN_NAME: 1,
             'knockout_activity': False,
             'knocked_out_case': False,
-            'activity': 'Work',
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
             'resource': 'R1',
             PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
         },
         {
-            'caseid': 1,
+            PM4PY_CASE_ID_COLUMN_NAME: 1,
             'knockout_activity': False,
             'knocked_out_case': False,
-            'activity': 'End',
+            PM4PY_ACTIVITY_COLUMN_NAME: 'End',
             'resource': 'system',
             PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:05:00"),
@@ -178,9 +178,8 @@ def test_mean_waiting_time_waste():
 
     ]
 
-    ko_activities = ["check_1", "check_2"]
+    ko_activities = ["ko_1"]
 
     waste = calc_mean_waiting_time_waste(ko_activities, pd.DataFrame(events))
 
-    assert waste["check_1"] == pytest.approx(3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
-    assert waste["check_2"] == 0
+    assert waste["ko_1"] == pytest.approx(3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
