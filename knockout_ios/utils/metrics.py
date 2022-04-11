@@ -1,4 +1,5 @@
 import pandas as pd
+from datetimerange import DateTimeRange
 from numpy import nan
 from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
@@ -163,38 +164,48 @@ def calc_overprocessing_waste(ko_activities, log_df):
     return counts
 
 
-def calc_mean_waiting_time_waste(ko_activities, log_df):
-    mean_times = {}
+# TODO: still in v1 - computes overlap between events of ko case and non-ko case,
+#       not yet overlap between ko case and "empty spaces" between non-ko case events
+# TODO: atm very slow, even with swifter - DateTimeRange package comparison slows it down
+def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
+    waiting_time_waste = {}
 
     for activity in ko_activities:
-        mean_times[activity] = 0
-
-        log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
-            {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
-             'knockout_activity': 'first'})
+        waiting_time_waste[activity] = 0
 
         # get all rows where start_timestamp is before start_timestamp of any row in aggr_filtered
-        knocked_out_cases = log_df[log_df['knockout_activity'] == activity]
-        non_knocked_out_cases = log_df[log_df['knockout_activity'] == False]
+        knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
+        non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
 
-        def fn(non_ko_case):
-            # sum the overlapping time between non_ko_case and every row in kod
-            for knocked_out_case in knocked_out_cases.iterrows():
+        def fn(non_ko_case_event):
+            # Get the overlapping time between non_ko_case_event and every knocked_out_case by the current activity
+            # that shares the same resource
 
-                ko_starts_before_or_with_non_ko_case = knocked_out_case[1][PM4PY_START_TIMESTAMP_COLUMN_NAME] <= \
-                                                       non_ko_case[PM4PY_START_TIMESTAMP_COLUMN_NAME]
+            resource = non_ko_case_event[PM4PY_RESOURCE_COLUMN_NAME]
 
-                if ko_starts_before_or_with_non_ko_case:
-                    overlap = (
-                            min(non_ko_case[PM4PY_END_TIMESTAMP_COLUMN_NAME],
-                                knocked_out_case[1][PM4PY_END_TIMESTAMP_COLUMN_NAME])
-                            - max(non_ko_case[PM4PY_START_TIMESTAMP_COLUMN_NAME],
-                                  knocked_out_case[1][PM4PY_START_TIMESTAMP_COLUMN_NAME])
-                    )
+            knocked_out = knocked_out_case_events[
+                (knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME] == resource)]
 
-                    return max(0, overlap.total_seconds())
+            total_overlap = 0
+            time_range1 = DateTimeRange(
+                non_ko_case_event[PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                non_ko_case_event[PM4PY_END_TIMESTAMP_COLUMN_NAME]
+            )
 
-        overlaps = non_knocked_out_cases.swifter.apply(fn, axis=1)
-        mean_times[activity] = overlaps.sum()
+            for knocked_out_case_event in knocked_out.iterrows():
+                time_range2 = DateTimeRange(
+                    knocked_out_case_event[1][PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                    knocked_out_case_event[1][PM4PY_END_TIMESTAMP_COLUMN_NAME]
+                )
 
-    return mean_times
+                try:
+                    total_overlap += time_range1.intersection(time_range2).timedelta.total_seconds()
+                except TypeError:  # like this we save up 1 call to is_intersection()
+                    continue
+
+            return total_overlap
+
+        overlaps = non_knocked_out_case_events.swifter.apply(fn, axis=1)
+        waiting_time_waste[activity] = overlaps.sum()
+
+    return waiting_time_waste
