@@ -235,6 +235,3 @@ if __name__ == "__main__":
     analyzer.find_ko_activities()
     analyzer.print_basic_stats()
     pprint.pprint(analyzer.get_discovery_metrics(test_data[1]))
-
-    # TODO: bug in pm4py/filtering.py?
-    #  Unbound local variable EventLog. Had to use fully qualified names: pm4py.objects.log.obj.EventLog...

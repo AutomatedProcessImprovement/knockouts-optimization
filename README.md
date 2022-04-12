@@ -64,10 +64,11 @@ dataset, and the rule discovery module is able to return meaningful rules.
 
 ### About pm4py
 
-A pull request has been submitted to pm4py about an inappropriate type-checking technique used in
-the `pm4py/filtering.py` module.
+A bug was found in the `pm4py/filtering.py` module and the maintainers were informed.
 
-If you get an error about certain methods expecting an Event Log subclass, or a DataFrame, even though you are passing
-one, refer to this PR:
+At the time of writing, the bugfix is not yet available in the pm4py version published on pypy.
 
-https://github.com/pm4py/pm4py-core/pull/323
+If you get an error along the lines of "`Unbound local variable EventLog...`", refer
+to [this commit](https://github.com/pm4py/pm4py-core/commit/65e1f1b0bbd0747fe81eb049780874608a395d6e) (done by a pm4py
+maintainer).
+
