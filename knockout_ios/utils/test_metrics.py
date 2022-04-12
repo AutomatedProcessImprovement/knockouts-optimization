@@ -182,4 +182,5 @@ def test_mean_waiting_time_waste_v1():
 
     waste = calc_mean_waiting_time_waste_v1(ko_activities, pd.DataFrame(events))
 
-    assert waste["ko_1"] == pytest.approx(3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
+    assert (waste["ko_1"] * len(events)) == pytest.approx(
+        3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)

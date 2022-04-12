@@ -63,6 +63,8 @@ class KnockoutAnalyzer:
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
 
+        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}.csv"
+
     def discover_knockouts(self, expected_kos=None):
         self.discoverer.find_ko_activities()
 
@@ -355,6 +357,7 @@ class KnockoutAnalyzer:
         df = pd.DataFrame(entries)
 
         if not omit:
+            df.to_csv(self.report_file_name, index=False)
             print(tabulate(df, headers='keys', tablefmt='psql'))
 
         return df
@@ -364,7 +367,7 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=True)
 
     analyzer.discover_knockouts(
@@ -374,4 +377,4 @@ if __name__ == "__main__":
                           print_rule_discovery_stats=False)
 
 # TODOs - related to time waste metrics
-# TODO: implement "mean waiting time waste"
+# TODO: implement Mean WT waste v2
