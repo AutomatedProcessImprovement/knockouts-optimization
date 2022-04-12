@@ -85,3 +85,4 @@ wcwidth==0.2.5
 wittgenstein==0.3.2
 swifter~=1.1.2
 setuptools~=60.9.3
+DateTimeRange~=1.2.0
