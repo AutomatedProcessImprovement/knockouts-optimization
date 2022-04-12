@@ -168,15 +168,17 @@ def calc_overprocessing_waste(ko_activities, log_df):
 #       not yet overlap between ko case and "empty spaces" between non-ko case events
 # TODO: atm very slow, even with swifter - DateTimeRange package comparison slows it down
 def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
-    waiting_time_waste = {}
+    waste = {}
 
-    # Uncomment to aggregate by case (not completely correct):
-    # log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
-    #     {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
-    #      'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
+    # Aggregate by case and take into account most frequent resource;
+    # this allows just a rough estimate, because at the event level, resource varies.
+    # Here we just check for resource contention based on the most common resource per case.
+    log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
+        {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
+         'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
 
     for activity in ko_activities:
-        waiting_time_waste[activity] = 0
+        waste[activity] = 0
 
         # get all rows where start_timestamp is before start_timestamp of any row in aggr_filtered
         knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
@@ -211,6 +213,6 @@ def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
             return total_overlap
 
         overlaps = non_knocked_out_case_events.swifter.apply(fn, axis=1)
-        waiting_time_waste[activity] = overlaps.sum()
+        waste[activity] = overlaps.sum() / log_df.shape[0]
 
-    return waiting_time_waste
+    return waste
