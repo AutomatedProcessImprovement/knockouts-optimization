@@ -1,6 +1,7 @@
 import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.constants import *
 
 
 @pytest.mark.parametrize("algorithm", ["RIPPER", "IREP"])
@@ -11,20 +12,29 @@ def test_report_creation(algorithm):
                                 always_force_recompute=True,
                                 quiet=True)
 
-    analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
+    analyzer.discover_knockouts()
 
     df, _ = analyzer.get_ko_rules(grid_search=False, algorithm=algorithm, omit_report=True, confidence_threshold=0.5,
                                   support_threshold=0.5)
 
-    # assert all 3 knockouts are in the report
-    assert df.shape[0] == 3
-    assert sorted(analyzer.discoverer.ko_activities) == sorted(
-        ['Check Liability', 'Check Risk', 'Check Monthly Income'])
+    expected_kos = ['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application']
+
+    # assert all 4 knockouts are in the report
+    assert df.shape[0] == len(expected_kos)
+    assert sorted(analyzer.discoverer.ko_activities) == sorted(expected_kos)
 
     # assert all columns are in the report
-    assert sorted(['Knock-out check', 'Total frequency', 'Case frequency', 'Mean PT',
-                   'Rejection rate', f'Rejection rule ({algorithm})', 'Effort per rejection']) == sorted(
-        df.columns.tolist())
+    assert sorted([REPORT_COLUMN_WT_WASTE,
+                   REPORT_COLUMN_TOTAL_PT_WASTE,
+                   REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE,
+                   REPORT_COLUMN_EFFORT_PER_KO,
+                   REPORT_COLUMN_REJECTION_RATE,
+                   REPORT_COLUMN_MEAN_PT,
+                   REPORT_COLUMN_CASE_FREQ,
+                   REPORT_COLUMN_TOTAL_FREQ,
+                   REPORT_COLUMN_KNOCKOUT_CHECK,
+                   f'{REPORT_COLUMN_REJECTION_RULE} ({algorithm})']) \
+           == sorted(df.columns.tolist())
 
     # assert that there are no rows with NaN values
     assert df.isnull().sum().sum() == 0
