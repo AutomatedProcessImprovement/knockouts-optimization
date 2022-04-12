@@ -143,7 +143,7 @@ class KnockoutAnalyzer:
             # Effort per rejection = Average PT / Rejection rate
             effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if metrics['confidence'] >= confidence_threshold:
+            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold):
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
                 effort = effort * metrics['confidence']
 
@@ -367,14 +367,14 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=False,
+                                always_force_recompute=True,
                                 quiet=True)
 
     analyzer.discover_knockouts(
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
-                          print_rule_discovery_stats=False)
+    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
+                          print_rule_discovery_stats=True)
 
 # TODOs - related to time waste metrics
 # TODO: implement Mean WT waste v2

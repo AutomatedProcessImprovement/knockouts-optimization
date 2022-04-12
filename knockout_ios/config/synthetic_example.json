@@ -1,5 +1,5 @@
 {
-  "log_path": "inputs/synthetic_example_raw.xes",
+  "log_path": "inputs/synthetic_example/synthetic_example_raw.xes",
   "output": "./outputs",
   "start_activity": "Credit application received",
   "negative_outcomes": [
