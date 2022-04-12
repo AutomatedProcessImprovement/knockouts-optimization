@@ -173,9 +173,9 @@ def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
     # Aggregate by case and take into account most frequent resource;
     # this allows just a rough estimate, because at the event level, resource varies.
     # Here we just check for resource contention based on the most common resource per case.
-    log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
-        {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
-         'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
+    # log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
+    #     {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
+    #      'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
 
     for activity in ko_activities:
         waste[activity] = 0
