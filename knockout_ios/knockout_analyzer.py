@@ -12,10 +12,14 @@ import pandas as pd
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
-from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
+from knockout_ios.utils.format import seconds_to_hms
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
+    calc_processing_waste, calc_mean_waiting_time_waste_v1
+
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
+from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_df
 
 
 def clear_cache(cachedir, config_file_name):
@@ -35,6 +39,7 @@ class KnockoutAnalyzer:
         os.makedirs(cache_dir, exist_ok=True)
 
         self.quiet = quiet
+        self.config_file_name = config_file_name
         self.config_dir = config_dir
         self.cache_dir = cache_dir
         self.ko_discovery_metrics = None
@@ -58,6 +63,8 @@ class KnockoutAnalyzer:
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
 
+        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}.csv"
+
     def discover_knockouts(self, expected_kos=None):
         self.discoverer.find_ko_activities()
 
@@ -74,6 +81,26 @@ class KnockoutAnalyzer:
 
         # Populate dict with rejection rates and efforts (avg. KO activity durations)
         self.calc_rejection_rates()
+
+        # TODO: remove this if the .xes exporting problem is ever fixed - not critical anyway.
+        # if config_file_name contains "synthetic" then enrich log with synthetic attributes
+        if "synthetic" in self.config_file_name:
+            enriched_log_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_enriched_.pkl'
+            enriched_pm4py_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_pm4py_format_enriched_.pkl'
+
+            try:
+                if self.always_force_recompute:
+                    raise FileNotFoundError
+
+                self.discoverer.log_df = pd.read_pickle(enriched_log_df_cache_path)
+                self.discoverer.pm4py_formatted_df = pd.read_pickle(enriched_pm4py_df_cache_path)
+
+            except FileNotFoundError:
+                self.discoverer.log_df = enrich_log_df(self.discoverer.log_df)
+                self.discoverer.pm4py_formatted_df = enrich_log_df(self.discoverer.pm4py_formatted_df)
+
+                self.discoverer.log_df.to_pickle(enriched_log_df_cache_path)
+                self.discoverer.pm4py_formatted_df.to_pickle(enriched_pm4py_df_cache_path)
 
     def calc_rejection_rates(self):
         rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
@@ -94,14 +121,12 @@ class KnockoutAnalyzer:
             rulesets = self.IREP_rulesets
 
         # average processing time of the knock-out check activity
-        soj_time = soj_time_get.apply(self.discoverer.pm4py_df,
+        soj_time = soj_time_get.apply(self.discoverer.pm4py_formatted_df,
                                       parameters={
                                           soj_time_get.Parameters.TIMESTAMP_KEY: PM4PY_END_TIMESTAMP_COLUMN_NAME,
                                           soj_time_get.Parameters.START_TIMESTAMP_KEY:
                                               PM4PY_START_TIMESTAMP_COLUMN_NAME}
                                       )
-
-        soj_time = {k: v for k, v in soj_time.items() if k in self.discoverer.ko_activities}
 
         if not self.quiet:
             print("\navg. time spent in each K.O. activity:\n")
@@ -113,10 +138,10 @@ class KnockoutAnalyzer:
             metrics = entry[2]
 
             # Mean Processing Time does not depend on rejection rule confidence or support
-            self.ko_stats[key]['mean_pt'] = round(soj_time[key], ndigits=3)
+            self.ko_stats[key]['mean_pt'] = soj_time[key]
 
             # Effort per rejection = Average PT / Rejection rate
-            effort = round(soj_time[key], ndigits=3) / (100 * self.ko_stats[key]['rejection_rate'])
+            effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
             if metrics['confidence'] >= confidence_threshold:
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
@@ -143,11 +168,11 @@ class KnockoutAnalyzer:
         # Pre-processing
         columns_to_ignore = [SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
                              SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
+                             SIMOD_RESOURCE_COLUMN_NAME,
                              PM4PY_ACTIVITY_COLUMN_NAME,
                              PM4PY_CASE_ID_COLUMN_NAME,
                              PM4PY_END_TIMESTAMP_COLUMN_NAME,
-                             DURATION_COLUMN_NAME,
-                             SIMOD_RESOURCE_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                             DURATION_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
                              SIMOD_START_TIMESTAMP_COLUMN_NAME,
                              'knockout_activity',
                              'knockout_prefix']
@@ -167,7 +192,7 @@ class KnockoutAnalyzer:
                 pd.to_numeric(log[attr], errors='ignore')
 
         # Fill Nan values of non-numerical columns, but drop rows with Nan values in numerical columns
-        non_numerical = log.select_dtypes([np.object]).columns
+        non_numerical = log.select_dtypes([object]).columns
         log = log.fillna(
             value={c: EMPTY_NON_NUMERICAL_VALUE for c in non_numerical})
 
@@ -305,24 +330,34 @@ class KnockoutAnalyzer:
             rulesets = self.IREP_rulesets
 
         _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
+        freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
+
+        overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
+                                                         self.discoverer.pm4py_formatted_df)
+        processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_formatted_df)
+        mean_waiting_time_waste = calc_mean_waiting_time_waste_v1(self.discoverer.ko_activities,
+                                                                  self.discoverer.pm4py_formatted_df)
 
         entries = []
         for ko in self.discoverer.ko_activities:
-            freq = _by_case[_by_case["knockout_activity"] == ko].shape[0]
-            entries.append({"Knock-out check": ko,
-                            "Total frequency":
-                                freq,
-                            "Case frequency":
-                                f"{freq / _by_case.shape[0]} %",
-                            "Mean PT": self.ko_stats[ko]["mean_pt"],
-                            "Rejection rate": self.ko_stats[ko]["rejection_rate"],
-                            f"Rejection rule ({algorithm})": rulesets[ko][0].ruleset_,
-                            "Effort per rejection": self.ko_stats[ko][algorithm]["effort"]
+            entries.append({("%s" % REPORT_COLUMN_KNOCKOUT_CHECK): ko,
+                            REPORT_COLUMN_TOTAL_FREQ:
+                                freqs[ko],
+                            REPORT_COLUMN_CASE_FREQ:
+                                f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
+                            REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
+                            REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
+                            f"{REPORT_COLUMN_REJECTION_RULE} ({algorithm})": rulesets[ko][0].ruleset_,
+                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][algorithm]["effort"], ndigits=2),
+                            REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
+                            REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
+                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko]),
                             })
 
         df = pd.DataFrame(entries)
 
         if not omit:
+            df.to_csv(self.report_file_name, index=False)
             print(tabulate(df, headers='keys', tablefmt='psql'))
 
         return df
@@ -335,10 +370,11 @@ if __name__ == "__main__":
                                 always_force_recompute=False,
                                 quiet=True)
 
-    analyzer.discover_knockouts(expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income'])
+    analyzer.discover_knockouts(
+        expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
 
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
-                          print_rule_discovery_stats=True)
+                          print_rule_discovery_stats=False)
 
 # TODOs - related to time waste metrics
-# TODO: implement time waste metrics & add columns to report (and test) - first 2, hardest to the last
+# TODO: implement Mean WT waste v2
