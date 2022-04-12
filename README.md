@@ -21,12 +21,13 @@ Depending on your platform, install graphviz (v 3.0.0+) separately, and make sur
 ```python
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
-#  Synthetic Example Ground Truth 
+#  Synthetic Example Ground Truth
 #  (K.O. checks and their rejection rules):
-# 
-# 'Check Liability':        'Total Debt'     > 5000 ||  'Vehicle Owned' = "N/A"
+#
+# 'Check Liability':        'Total Debt'     > 5000 ||  'Owns Vehicle' = False
 # 'Check Risk':             'Loan Ammount'   > 10000
 # 'Check Monthly Income':   'Monthly Income' < 1000
+# 'Assess application':     'External Risk Score' < 0.3
 
 analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                             config_dir="config",
@@ -42,7 +43,7 @@ analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0
 
 A shell script is provided, which runs pytest in the relevant modules.
 
-On Mac/Linux or Windows with git bash, it can be launched with `./run tests.sh`.
+On Mac/Linux or Windows with git bash, it can be launched with `bash ./test.sh`.
 
 The flag `-n auto` is used by pytest-xdist to run tests in parallel.
 

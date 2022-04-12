@@ -1,5 +1,7 @@
 import sys
 
+import pytest
+
 sys.path.append('..')
 
 from copy import deepcopy
@@ -21,6 +23,9 @@ from .preprocessing.grouping.explainer import explainer_sklearn_dt
 from .preprocessing.activity_feature_extraction.activity_transformer import ActivityTransformer
 
 
+# TODO: These tests are slow. Skip depending on slow/no-slow flag like Simod.
+
+@pytest.mark.skip()
 def test_intercase_case_level():
     # # Inter-case variability analysis
 
@@ -189,6 +194,7 @@ def test_intercase_case_level():
     assert True  # Simply testing everything runs
 
 
+@pytest.mark.skip()
 def test_intracase_case_level():
     # # Intra-case type variability analysis
     INPUT_DF_NAME = './outputs/consulta_intercase_and_kproto_by_case'
@@ -302,6 +308,7 @@ def test_intracase_case_level():
     assert True  # Simply testing everything runs
 
 
+@pytest.mark.skip()
 def test_intercase_activity_level():
     # # Activity level variability analysis (w/o case type grouping)
 

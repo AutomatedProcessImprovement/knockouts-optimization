@@ -48,6 +48,7 @@ loan_app_scenarios = [
 ]
 
 
+# TODO: This test is slow. Skip depending on slow/no-slow flag like Simod.
 @pytest.mark.skip()
 @pytest.mark.parametrize("config_file, expected_outcomes, expected_kos", loan_app_scenarios)
 def test_loan_app(config_file, expected_outcomes, expected_kos):
