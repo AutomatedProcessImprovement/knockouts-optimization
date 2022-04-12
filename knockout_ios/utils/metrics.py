@@ -1,8 +1,11 @@
 import pandas as pd
+from datetimerange import DateTimeRange
 from numpy import nan
 from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
 from knockout_ios.utils.constants import *
+
+import swifter
 
 
 def find_rejection_rates(log_df, ko_activities):
@@ -82,23 +85,22 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
             }}
 
 
-def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame, N: int,
+def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
+                                  available_cases_before_ko: int,
                                   processed_with_pandas_dummies=False):
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
     if processed_with_pandas_dummies:
-        freq_x_and_y = \
+        correct_predictions = \
             log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
     else:
-        freq_x_and_y = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+        correct_predictions = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
 
-    # N = log.shape[0]
-
-    if N == 0:
+    if available_cases_before_ko == 0:
         return 0
 
-    support = freq_x_and_y / N
+    support = correct_predictions / available_cases_before_ko
 
     return support
 
@@ -109,16 +111,16 @@ def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRules
     log['predicted_ko'] = predicted_ko
 
     if processed_with_pandas_dummies:
-        freq_x_and_y = \
+        correct_predictions = \
             log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
     else:
-        freq_x_and_y = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
-    freq_x = sum(predicted_ko)
+        correct_predictions = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+    total_predictions = sum(predicted_ko)
 
-    if freq_x == 0:
+    if total_predictions == 0:
         return 0
 
-    confidence = freq_x_and_y / freq_x
+    confidence = correct_predictions / total_predictions
 
     return confidence
 
@@ -132,3 +134,85 @@ def calc_available_cases_before_ko(ko_activities, log_df):
             SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
 
     return counts
+
+
+def calc_processing_waste(ko_activities, log_df):
+    counts = {}
+
+    # Approximation, only adding durations of all activities of knocked out cases per ko activity.
+    # does not take into account idle time due to resource timetables
+    for activity in ko_activities:
+        filtered_df = log_df[log_df['knockout_activity'] == activity]
+        total_duration = filtered_df[DURATION_COLUMN_NAME].sum()
+        counts[activity] = total_duration
+
+    return counts
+
+
+def calc_overprocessing_waste(ko_activities, log_df):
+    counts = {}
+
+    # Basic Cycle time calculation: end time of last activity of a case - start time of first activity of a case
+    for activity in ko_activities:
+        filtered_df = log_df[log_df['knockout_activity'] == activity]
+        aggr = filtered_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
+            {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max'})
+        total_duration = aggr[PM4PY_END_TIMESTAMP_COLUMN_NAME] - aggr[PM4PY_START_TIMESTAMP_COLUMN_NAME]
+
+        counts[activity] = total_duration.sum().total_seconds()
+
+    return counts
+
+
+# TODO: still in v1 - computes overlap between events of ko case and non-ko case,
+#       not yet overlap between ko case and "empty spaces" between non-ko case events
+# TODO: atm very slow, even with swifter - DateTimeRange package comparison slows it down
+def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
+    waste = {}
+
+    # Aggregate by case and take into account most frequent resource;
+    # this allows just a rough estimate, because at the event level, resource varies.
+    # Here we just check for resource contention based on the most common resource per case.
+    log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
+        {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
+         'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
+
+    for activity in ko_activities:
+        waste[activity] = 0
+
+        # get all rows where start_timestamp is before start_timestamp of any row in aggr_filtered
+        knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
+        non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
+
+        def fn(non_ko_case_event):
+            # Get the overlapping time between non_ko_case_event and every knocked_out_case by the current activity
+            # that shares the same resource
+
+            resource = non_ko_case_event[PM4PY_RESOURCE_COLUMN_NAME]
+
+            knocked_out = knocked_out_case_events[
+                (knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME] == resource)]
+
+            total_overlap = 0
+            time_range1 = DateTimeRange(
+                non_ko_case_event[PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                non_ko_case_event[PM4PY_END_TIMESTAMP_COLUMN_NAME]
+            )
+
+            for knocked_out_case_event in knocked_out.iterrows():
+                time_range2 = DateTimeRange(
+                    knocked_out_case_event[1][PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                    knocked_out_case_event[1][PM4PY_END_TIMESTAMP_COLUMN_NAME]
+                )
+
+                try:
+                    total_overlap += time_range1.intersection(time_range2).timedelta.total_seconds()
+                except TypeError:  # like this we save up 1 call to is_intersection()
+                    continue
+
+            return total_overlap
+
+        overlaps = non_knocked_out_case_events.swifter.apply(fn, axis=1)
+        waste[activity] = overlaps.sum() / log_df.shape[0]
+
+    return waste

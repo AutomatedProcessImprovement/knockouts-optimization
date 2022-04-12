@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:qbp="http://www.qbp-simulator.com/Schema201212" xmlns:ap="http://apromore.org" xmlns:signavio="http://www.signavio.com" id="sid-5a3dd963-5d50-4127-b0d0-3164a51771d0" targetNamespace="http://www.signavio.com/bpmn20" exporter="Signavio Process Editor, http://www.signavio.com" exporterVersion="6.1.0" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://www.omg.org/spec/BPMN/2.0/20100501/BPMN20.xsd">
+  <process id="sid-e138ad92-53db-4474-a117-cf3a5074182e" isExecutable="false">
+    <extensionElements>
+      
+      <ap:img src=""/>
+      <ap:icon elIconName=""/>
+      <ap:icons/>
+    </extensionElements>
+    <startEvent id="sid-477D1DF3-C5FC-460F-8AD1-03D4B7C26FB6" name="Credit application received">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffff"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <outgoing>Flow_1cf1c58</outgoing>
+    </startEvent>
+    <task id="sid-4B24111F-B305-4608-9E12-744B47C44D0D" name="Check Risk">
+      <documentation id="a7411ebb-eb59-99af-9256-8ae109dbac3a">{"durationDistribution":{"type":"normal","mean":600,"value":3600,"stdev":120,"min":0,"max":0,"timeUnit":"minutes"},"resource":"Clerk","fixedCost":"0","name":"Check credit history"}</documentation>
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffcc"/>
+        <signavio:signavioMetaData metaKey="risklevel" metaValue=""/>
+        <signavio:signavioMetaData metaKey="externaldocuments" metaValue="[]"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_0t4rtov</incoming>
+      <outgoing>Flow_1anto2m</outgoing>
+    </task>
+    <task id="sid-D048D99D-F549-43B8-8ACB-5AE153B12B0F" name="Check Monthly Income">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffcc"/>
+        <signavio:signavioMetaData metaKey="risklevel" metaValue=""/>
+        <signavio:signavioMetaData metaKey="externaldocuments" metaValue="[]"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_0ohbfex</incoming>
+      <outgoing>Flow_04xdaaz</outgoing>
+    </task>
+    <task id="sid-622A1118-4766-43B2-A004-7DADE521982D" name="Notify rejection">
+      <documentation id="ccaf3372-1cf9-00a9-a7ac-93179ce2300b">{"durationDistribution":{"type":"normal","mean":"10","value":"0","stdev":"2","min":"0","max":"0","timeUnit":"seconds"},"resource":"CreditOfficer","fixedCost":"0","name":"Notify rejection"}</documentation>
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffcc"/>
+        <signavio:signavioMetaData metaKey="risklevel" metaValue=""/>
+        <signavio:signavioMetaData metaKey="externaldocuments" metaValue="[]"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>sid-8AE82A7B-75EE-401B-8ABE-279FB05A3946</incoming>
+      <incoming>Flow_1z107ve</incoming>
+      <incoming>Flow_0yz2rfk</incoming>
+      <incoming>Flow_15iefu5</incoming>
+      <outgoing>Flow_0q7xuvd</outgoing>
+    </task>
+    <exclusiveGateway id="sid-64FC5B46-47E5-4940-A0AF-ECE87483967D" name="lending decision?" gatewayDirection="Diverging">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffff"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>sid-FA2D48D3-A316-4C2F-90DB-C2390990D727</incoming>
+      <outgoing>sid-8AE82A7B-75EE-401B-8ABE-279FB05A3946</outgoing>
+      <outgoing>sid-789335C6-205C-4A03-9AD6-9655893C1FFB</outgoing>
+    </exclusiveGateway>
+    <task id="sid-02577CBF-ABA3-4EFD-9480-E1DFCF238B1C" name="Assess application">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffcc"/>
+        <signavio:signavioMetaData metaKey="risklevel" metaValue=""/>
+        <signavio:signavioMetaData metaKey="externaldocuments" metaValue="[]"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_0uv99vk</incoming>
+      <outgoing>sid-FA2D48D3-A316-4C2F-90DB-C2390990D727</outgoing>
+    </task>
+    <task id="sid-503A048D-6344-446A-8D67-172B164CF8FA" name="Make credit offer">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffcc"/>
+        <signavio:signavioMetaData metaKey="risklevel" metaValue=""/>
+        <signavio:signavioMetaData metaKey="externaldocuments" metaValue="[]"/>
+      </extensionElements>
+      <incoming>sid-789335C6-205C-4A03-9AD6-9655893C1FFB</incoming>
+      <outgoing>sid-E27B9A7A-4414-4BFC-83F5-4BC438B77E37</outgoing>
+    </task>
+    <exclusiveGateway id="sid-F9CBAF0E-0679-4E1F-ACE1-E98177DDA3D0" name="" gatewayDirection="Converging">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffff"/>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>sid-E27B9A7A-4414-4BFC-83F5-4BC438B77E37</incoming>
+      <incoming>Flow_0q7xuvd</incoming>
+      <outgoing>sid-287B8ED1-E9CD-44BD-92E8-C9AD7E940100</outgoing>
+    </exclusiveGateway>
+    <endEvent id="sid-08B606A8-2F7C-4DFD-BEA8-A0F4694AA576" name="Credit application processed">
+      <extensionElements>
+        <signavio:signavioMetaData metaKey="bgcolor" metaValue="#ffffff"/>
+      </extensionElements>
+      <incoming>sid-287B8ED1-E9CD-44BD-92E8-C9AD7E940100</incoming>
+    </endEvent>
+    <sequenceFlow id="sid-FA2D48D3-A316-4C2F-90DB-C2390990D727" name="" sourceRef="sid-02577CBF-ABA3-4EFD-9480-E1DFCF238B1C" targetRef="sid-64FC5B46-47E5-4940-A0AF-ECE87483967D"/>
+    <sequenceFlow id="sid-E27B9A7A-4414-4BFC-83F5-4BC438B77E37" name="" sourceRef="sid-503A048D-6344-446A-8D67-172B164CF8FA" targetRef="sid-F9CBAF0E-0679-4E1F-ACE1-E98177DDA3D0"/>
+    <sequenceFlow id="sid-287B8ED1-E9CD-44BD-92E8-C9AD7E940100" name="" sourceRef="sid-F9CBAF0E-0679-4E1F-ACE1-E98177DDA3D0" targetRef="sid-08B606A8-2F7C-4DFD-BEA8-A0F4694AA576"/>
+    <sequenceFlow id="sid-8AE82A7B-75EE-401B-8ABE-279FB05A3946" name="denied" sourceRef="sid-64FC5B46-47E5-4940-A0AF-ECE87483967D" targetRef="sid-622A1118-4766-43B2-A004-7DADE521982D">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression">0.2</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-789335C6-205C-4A03-9AD6-9655893C1FFB" name="granted" sourceRef="sid-64FC5B46-47E5-4940-A0AF-ECE87483967D" targetRef="sid-503A048D-6344-446A-8D67-172B164CF8FA">
+      <conditionExpression xsi:type="tFormalExpression">0.8</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_0q7xuvd" sourceRef="sid-622A1118-4766-43B2-A004-7DADE521982D" targetRef="sid-F9CBAF0E-0679-4E1F-ACE1-E98177DDA3D0"/>
+    <exclusiveGateway id="Gateway_00fvm6u" name="Risk OK?">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_1anto2m</incoming>
+      <outgoing>Flow_0ohbfex</outgoing>
+      <outgoing>Flow_1z107ve</outgoing>
+    </exclusiveGateway>
+    <exclusiveGateway id="Gateway_0hvrf5b" name="Monthly Income OK?">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_04xdaaz</incoming>
+      <outgoing>Flow_0uv99vk</outgoing>
+      <outgoing>Flow_0yz2rfk</outgoing>
+    </exclusiveGateway>
+    <sequenceFlow id="Flow_1anto2m" sourceRef="sid-4B24111F-B305-4608-9E12-744B47C44D0D" targetRef="Gateway_00fvm6u"/>
+    <sequenceFlow id="Flow_0ohbfex" sourceRef="Gateway_00fvm6u" targetRef="sid-D048D99D-F549-43B8-8ACB-5AE153B12B0F"/>
+    <sequenceFlow id="Flow_04xdaaz" sourceRef="sid-D048D99D-F549-43B8-8ACB-5AE153B12B0F" targetRef="Gateway_0hvrf5b"/>
+    <sequenceFlow id="Flow_0uv99vk" sourceRef="Gateway_0hvrf5b" targetRef="sid-02577CBF-ABA3-4EFD-9480-E1DFCF238B1C"/>
+    <sequenceFlow id="Flow_1z107ve" sourceRef="Gateway_00fvm6u" targetRef="sid-622A1118-4766-43B2-A004-7DADE521982D">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_0yz2rfk" sourceRef="Gateway_0hvrf5b" targetRef="sid-622A1118-4766-43B2-A004-7DADE521982D">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+    </sequenceFlow>
+    <task id="Activity_0q9681y" name="Check Liability">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_1cf1c58</incoming>
+      <outgoing>Flow_1nmv8rm</outgoing>
+    </task>
+    <exclusiveGateway id="Gateway_1lqda2b" name="Liability OK?">
+      <extensionElements>
+        <ap:img src=""/>
+        <ap:icon elIconName=""/>
+        <ap:icons/>
+      </extensionElements>
+      <incoming>Flow_1nmv8rm</incoming>
+      <outgoing>Flow_0t4rtov</outgoing>
+      <outgoing>Flow_15iefu5</outgoing>
+    </exclusiveGateway>
+    <sequenceFlow id="Flow_1cf1c58" sourceRef="sid-477D1DF3-C5FC-460F-8AD1-03D4B7C26FB6" targetRef="Activity_0q9681y"/>
+    <sequenceFlow id="Flow_1nmv8rm" sourceRef="Activity_0q9681y" targetRef="Gateway_1lqda2b"/>
+    <sequenceFlow id="Flow_0t4rtov" sourceRef="Gateway_1lqda2b" targetRef="sid-4B24111F-B305-4608-9E12-744B47C44D0D"/>
+    <sequenceFlow id="Flow_15iefu5" sourceRef="Gateway_1lqda2b" targetRef="sid-622A1118-4766-43B2-A004-7DADE521982D"/>
+    <association id="sid-D0D7001B-5E95-4F04-BCBB-FA1B2D82989C" associationDirection="None"/>
+  </process>
+  <bpmndi:BPMNDiagram id="sid-6f314b5a-a54d-41bb-ba1b-5e81fa5e4da5">
+    <bpmndi:BPMNPlane id="sid-fb11e603-7a60-4a11-99f7-58634fc93b63" bpmnElement="sid-e138ad92-53db-4474-a117-cf3a5074182e">
+      <bpmndi:BPMNEdge id="Flow_15iefu5_di" bpmnElement="Flow_15iefu5">
+        <omgdi:waypoint x="220" y="459"/>
+        <omgdi:waypoint x="220" y="680"/>
+        <omgdi:waypoint x="1010" y="680"/>
+        <omgdi:waypoint x="1010" y="640"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0t4rtov_di" bpmnElement="Flow_0t4rtov">
+        <omgdi:waypoint x="245" y="434"/>
+        <omgdi:waypoint x="310" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nmv8rm_di" bpmnElement="Flow_1nmv8rm">
+        <omgdi:waypoint x="130" y="433"/>
+        <omgdi:waypoint x="163" y="433"/>
+        <omgdi:waypoint x="163" y="434"/>
+        <omgdi:waypoint x="195" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1cf1c58_di" bpmnElement="Flow_1cf1c58">
+        <omgdi:waypoint x="-65" y="433"/>
+        <omgdi:waypoint x="30" y="433"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yz2rfk_di" bpmnElement="Flow_0yz2rfk">
+        <omgdi:waypoint x="730" y="459"/>
+        <omgdi:waypoint x="730" y="600"/>
+        <omgdi:waypoint x="990" y="600"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1z107ve_di" bpmnElement="Flow_1z107ve">
+        <omgdi:waypoint x="480" y="459"/>
+        <omgdi:waypoint x="480" y="630"/>
+        <omgdi:waypoint x="990" y="630"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0uv99vk_di" bpmnElement="Flow_0uv99vk">
+        <omgdi:waypoint x="755" y="434"/>
+        <omgdi:waypoint x="795" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04xdaaz_di" bpmnElement="Flow_04xdaaz">
+        <omgdi:waypoint x="670" y="434"/>
+        <omgdi:waypoint x="705" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ohbfex_di" bpmnElement="Flow_0ohbfex">
+        <omgdi:waypoint x="505" y="434"/>
+        <omgdi:waypoint x="570" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1anto2m_di" bpmnElement="Flow_1anto2m">
+        <omgdi:waypoint x="410" y="434"/>
+        <omgdi:waypoint x="455" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0q7xuvd_di" bpmnElement="Flow_0q7xuvd">
+        <omgdi:waypoint x="1090" y="600"/>
+        <omgdi:waypoint x="1166" y="600"/>
+        <omgdi:waypoint x="1166" y="454"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sid-789335C6-205C-4A03-9AD6-9655893C1FFB_gui" bpmnElement="sid-789335C6-205C-4A03-9AD6-9655893C1FFB">
+        <omgdi:waypoint x="951" y="415"/>
+        <omgdi:waypoint x="951" y="370"/>
+        <omgdi:waypoint x="990" y="370"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="932" y="348" width="38" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sid-8AE82A7B-75EE-401B-8ABE-279FB05A3946_gui" bpmnElement="sid-8AE82A7B-75EE-401B-8ABE-279FB05A3946">
+        <omgdi:waypoint x="950" y="454"/>
+        <omgdi:waypoint x="950" y="570"/>
+        <omgdi:waypoint x="990" y="570"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="902.5" y="563" width="33" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sid-287B8ED1-E9CD-44BD-92E8-C9AD7E940100_gui" bpmnElement="sid-287B8ED1-E9CD-44BD-92E8-C9AD7E940100">
+        <omgdi:waypoint x="1186" y="434"/>
+        <omgdi:waypoint x="1236" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sid-E27B9A7A-4414-4BFC-83F5-4BC438B77E37_gui" bpmnElement="sid-E27B9A7A-4414-4BFC-83F5-4BC438B77E37">
+        <omgdi:waypoint x="1090" y="370"/>
+        <omgdi:waypoint x="1166" y="370"/>
+        <omgdi:waypoint x="1166" y="414"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sid-FA2D48D3-A316-4C2F-90DB-C2390990D727_gui" bpmnElement="sid-FA2D48D3-A316-4C2F-90DB-C2390990D727">
+        <omgdi:waypoint x="895" y="434"/>
+        <omgdi:waypoint x="930" y="434"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="sid-477D1DF3-C5FC-460F-8AD1-03D4B7C26FB6_gui" bpmnElement="sid-477D1DF3-C5FC-460F-8AD1-03D4B7C26FB6">
+        <omgdc:Bounds x="-95" y="418" width="30" height="30"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="-121" y="448" width="83" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-4B24111F-B305-4608-9E12-744B47C44D0D_gui" bpmnElement="sid-4B24111F-B305-4608-9E12-744B47C44D0D">
+        <omgdc:Bounds x="310" y="394" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-D048D99D-F549-43B8-8ACB-5AE153B12B0F_gui" bpmnElement="sid-D048D99D-F549-43B8-8ACB-5AE153B12B0F">
+        <omgdc:Bounds x="570" y="394" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-622A1118-4766-43B2-A004-7DADE521982D_gui" bpmnElement="sid-622A1118-4766-43B2-A004-7DADE521982D">
+        <omgdc:Bounds x="990" y="560" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-64FC5B46-47E5-4940-A0AF-ECE87483967D_gui" bpmnElement="sid-64FC5B46-47E5-4940-A0AF-ECE87483967D" isMarkerVisible="true">
+        <omgdc:Bounds x="930" y="414" width="40" height="40"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="978" y="427" width="84" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-02577CBF-ABA3-4EFD-9480-E1DFCF238B1C_gui" bpmnElement="sid-02577CBF-ABA3-4EFD-9480-E1DFCF238B1C">
+        <omgdc:Bounds x="795" y="394" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-503A048D-6344-446A-8D67-172B164CF8FA_gui" bpmnElement="sid-503A048D-6344-446A-8D67-172B164CF8FA">
+        <omgdc:Bounds x="990" y="330" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-F9CBAF0E-0679-4E1F-ACE1-E98177DDA3D0_gui" bpmnElement="sid-F9CBAF0E-0679-4E1F-ACE1-E98177DDA3D0" isMarkerVisible="true">
+        <omgdc:Bounds x="1146" y="414" width="40" height="40"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="sid-08B606A8-2F7C-4DFD-BEA8-A0F4694AA576_gui" bpmnElement="sid-08B606A8-2F7C-4DFD-BEA8-A0F4694AA576">
+        <omgdc:Bounds x="1236" y="420" width="28" height="28"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1209" y="448" width="83" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_00fvm6u_di" bpmnElement="Gateway_00fvm6u" isMarkerVisible="true">
+        <omgdc:Bounds x="455" y="409" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="460" y="379" width="40" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0hvrf5b_di" bpmnElement="Gateway_0hvrf5b" isMarkerVisible="true">
+        <omgdc:Bounds x="705" y="409" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="693" y="379" width="75" height="27"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0q9681y_di" bpmnElement="Activity_0q9681y">
+        <omgdc:Bounds x="30" y="393" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1lqda2b_di" bpmnElement="Gateway_1lqda2b" isMarkerVisible="true">
+        <omgdc:Bounds x="195" y="409" width="50" height="50"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="191" y="385" width="58" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+<qbp:processSimulationInfo id="qbp_de2905de-8358-4d3a-929b-4a6e336c6a4b" processInstances="2000" startDateTime="2022-02-17T08:00:00.000Z" currency="EUR"><qbp:arrivalRateDistribution type="EXPONENTIAL" mean="NaN" arg1="600" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:arrivalRateDistribution><qbp:timetables><qbp:timetable id="DEFAULT_TIMETABLE" default="true" name="Arrival timetable"><qbp:rules><qbp:rule fromTime="09:00:00.000+00:00" toTime="17:00:00.000+00:00" fromWeekDay="MONDAY" toWeekDay="FRIDAY"/></qbp:rules></qbp:timetable><qbp:timetable id="qbp_8f067d38-c126-4aa1-b565-1896729f7540" name="24/7"><qbp:rules><qbp:rule fromTime="00:00:00.000+00:00" toTime="23:59:00.000+00:00" fromWeekDay="MONDAY" toWeekDay="SUNDAY"/></qbp:rules></qbp:timetable><qbp:timetable id="QBP_247_TIMETABLE" default="false" name="24/7"><qbp:rules><qbp:rule fromTime="00:00:00.000+00:00" toTime="23:59:59.999+00:00" fromWeekDay="MONDAY" toWeekDay="SUNDAY"/></qbp:rules></qbp:timetable></qbp:timetables><qbp:resources><qbp:resource id="QBP_DEFAULT_RESOURCE" name="Clerk" totalAmount="4" costPerHour="25" timetableId="DEFAULT_TIMETABLE"/><qbp:resource id="qbp_1ac9c0f4-d0c2-4deb-b3e2-07b278648fb9" name="Credit Officer" totalAmount="4" costPerHour="50" timetableId="DEFAULT_TIMETABLE"/><qbp:resource id="qbp_05bcc64f-e1ca-4f4b-9d11-052f25edce59" name="System" totalAmount="1" timetableId="qbp_8f067d38-c126-4aa1-b565-1896729f7540"/></qbp:resources><qbp:elements><qbp:element elementId="sid-4B24111F-B305-4608-9E12-744B47C44D0D"><qbp:durationDistribution type="NORMAL" mean="600" arg1="300" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:durationDistribution><qbp:resourceIds><qbp:resourceId>QBP_DEFAULT_RESOURCE</qbp:resourceId></qbp:resourceIds></qbp:element><qbp:element elementId="sid-D048D99D-F549-43B8-8ACB-5AE153B12B0F"><qbp:durationDistribution type="NORMAL" mean="600" arg1="300" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:durationDistribution><qbp:resourceIds><qbp:resourceId>QBP_DEFAULT_RESOURCE</qbp:resourceId></qbp:resourceIds></qbp:element><qbp:element elementId="sid-622A1118-4766-43B2-A004-7DADE521982D"><qbp:durationDistribution type="NORMAL" mean="600" arg1="120" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:durationDistribution><qbp:resourceIds><qbp:resourceId>qbp_1ac9c0f4-d0c2-4deb-b3e2-07b278648fb9</qbp:resourceId></qbp:resourceIds></qbp:element><qbp:element elementId="sid-02577CBF-ABA3-4EFD-9480-E1DFCF238B1C"><qbp:durationDistribution type="EXPONENTIAL" mean="NaN" arg1="1200" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:durationDistribution><qbp:resourceIds><qbp:resourceId>QBP_DEFAULT_RESOURCE</qbp:resourceId></qbp:resourceIds></qbp:element><qbp:element elementId="sid-503A048D-6344-446A-8D67-172B164CF8FA"><qbp:durationDistribution type="NORMAL" mean="600" arg1="120" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:durationDistribution><qbp:resourceIds><qbp:resourceId>qbp_1ac9c0f4-d0c2-4deb-b3e2-07b278648fb9</qbp:resourceId></qbp:resourceIds></qbp:element><qbp:element elementId="Activity_0q9681y"><qbp:durationDistribution type="NORMAL" mean="900" arg1="300" arg2="NaN"><qbp:timeUnit>minutes</qbp:timeUnit></qbp:durationDistribution><qbp:resourceIds><qbp:resourceId>QBP_DEFAULT_RESOURCE</qbp:resourceId></qbp:resourceIds></qbp:element></qbp:elements><qbp:sequenceFlows><qbp:sequenceFlow elementId="sid-8AE82A7B-75EE-401B-8ABE-279FB05A3946" executionProbability="0.2"/><qbp:sequenceFlow elementId="sid-789335C6-205C-4A03-9AD6-9655893C1FFB" executionProbability="0.8"/><qbp:sequenceFlow elementId="Flow_0ohbfex" executionProbability="0.7"/><qbp:sequenceFlow elementId="Flow_1z107ve" executionProbability="0.3"/><qbp:sequenceFlow elementId="Flow_0uv99vk" executionProbability="0.8"/><qbp:sequenceFlow elementId="Flow_0yz2rfk" executionProbability="0.2"/><qbp:sequenceFlow elementId="Flow_0t4rtov" executionProbability="0.5"/><qbp:sequenceFlow elementId="Flow_15iefu5" executionProbability="0.5"/></qbp:sequenceFlows><qbp:statsOptions/></qbp:processSimulationInfo></definitions>

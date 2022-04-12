@@ -1,4 +1,4 @@
-<qbp:processSimulationInfo xmlns:qbp="http://www.qbp-simulator.com/Schema201212" id="qbp_0d8c61f9-220b-403e-a31c-16b26818f87a" processInstances="" startDateTime="" currency="EUR">
+<qbp:processSimulationInfo xmlns:qbp="http://www.qbp-simulator.com/Schema201212" id="qbp_f962fcf2-2cc9-475e-8399-23019f5a0faa" processInstances="" startDateTime="" currency="EUR">
   <qbp:timetables>
     <qbp:timetable id="Discovered_CASES_ARRIVAL_CALENDAR" default="true" name="Discovered_CASES_ARRIVAL_CALENDAR">
       <qbp:rules>
@@ -25,7 +25,7 @@
   </qbp:timetables>
   <qbp:resources>
     <qbp:resource id="QBP_DEFAULT_RESOURCE" name="SYSTEM" totalAmount="20" costPerHour="20" timetableId="Discovered_CASES_ARRIVAL_CALENDAR"/>
-    <qbp:resource id="qbp_f04751db-82f1-4958-9e72-2af4817b90cf" name="Role 1" totalAmount="4" costPerHour="20" timetableId="QBP_RES_ROLE_1_TIMETABLE"/>
-    <qbp:resource id="qbp_269e5f65-fad8-4a84-9470-bf9aa2a1f27f" name="Role 2" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_2_TIMETABLE"/>
+    <qbp:resource id="qbp_9eb502d7-edf7-463f-b499-127e2eeb2cc1" name="Role 1" totalAmount="4" costPerHour="20" timetableId="QBP_RES_ROLE_1_TIMETABLE"/>
+    <qbp:resource id="qbp_4e94b017-9675-46d5-a5a8-16c2f5ebad21" name="Role 2" totalAmount="1" costPerHour="20" timetableId="QBP_RES_ROLE_2_TIMETABLE"/>
   </qbp:resources>
 </qbp:processSimulationInfo>
