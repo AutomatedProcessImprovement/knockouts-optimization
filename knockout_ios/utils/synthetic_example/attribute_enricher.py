@@ -31,7 +31,7 @@ def enrich_log_df(log_df):
     # 'Check Liability':        'Total Debt'     > 5000 ||  'Owns Vehicle' = False
     # 'Check Risk':             'Loan Ammount'   > 10000
     # 'Check Monthly Income':   'Monthly Income' < 1000
-    # 'Assess application':     'External Risk Score' < 0.3
+    # 'Assess application':     'External Risk Score' > 0.3
 
     # TODO: this is slow, consider to_records()
     for i, row in log_df.iterrows():

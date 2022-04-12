@@ -36,7 +36,8 @@ analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
 
 analyzer.discover_knockouts()
 
-analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5)
+analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.5,
+                      print_rule_discovery_stats=True)
 ```
 
 ## Running tests

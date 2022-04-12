@@ -1,5 +1,5 @@
 {
-  "log_path": "knockout_ios/inputs/synthetic_example_raw.xes",
+  "log_path": "knockout_ios/inputs/synthetic_example/synthetic_example_raw.xes",
   "output": "./knockout_ios/outputs",
   "start_activity": "Credit application received",
   "negative_outcomes": [
