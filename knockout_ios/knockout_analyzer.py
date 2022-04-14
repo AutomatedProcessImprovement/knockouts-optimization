@@ -378,3 +378,10 @@ if __name__ == "__main__":
 
 # TODOs - related to time waste metrics
 # TODO: implement Mean WT waste v2
+
+# TODO: clean dependencies on variability analysis module, exclude it from repo hereafter
+# TODO: add minimum column names to config file, refactor files & parsers, and document in readme
+
+# TODO: sugerencias de re-design,
+# TODO: mejorar/aclarar parametros de o discovery en el config file
+# TODO: tratar de mejorar el tiempo de ejecución en donde haya bottlenecks
