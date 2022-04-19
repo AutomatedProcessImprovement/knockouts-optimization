@@ -30,18 +30,3 @@ if __name__ == "__main__":
 # TODO: improve/clarify ko discovery parameters in config file
 # TODO: try to improve execution times in bottlenecks
 # TODO: fix exporting attribute-enriched event log to .xes
-
-# TODOs - ko redesign
-
-# 1. Relocate a knock-out
-#    place the knock-out check as early in the process as the attribute value (based on which the knock-out is performed)
-#    is available.
-#
-# 2. Reorder knock-outs
-#    according to the knock-out principle:
-#    checks are ordered according to the principle of “least effort to reject”– checks that require less effort and are more
-#    likely to reject the case come first. In addition, consider the knock-out rule so that the attribute value (based on which
-#    the knock-out is performed) is available at that point in the process.
-#
-# 3. Change the knock-out rule
-#    change the attribute value (or its range) based on which the knock-out is performed;

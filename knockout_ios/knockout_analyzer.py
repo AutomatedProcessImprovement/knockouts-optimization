@@ -63,7 +63,7 @@ class KnockoutAnalyzer:
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
 
-        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}.csv"
+        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}_ko_analysis_report.csv"
 
     def discover_knockouts(self, expected_kos=None):
         self.discoverer.find_ko_activities()
@@ -279,12 +279,12 @@ class KnockoutAnalyzer:
         self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
                              algorithm=algorithm)
 
-        report_df = self.build_report(algorithm=algorithm, omit=omit_report)
+        self.report_df = self.build_report(algorithm=algorithm, omit=omit_report)
 
         if print_rule_discovery_stats:
             self.print_ko_rulesets_stats(algorithm=algorithm, compact=True)
 
-        return report_df, self
+        return self.report_df, self
 
     def print_ko_rulesets_stats(self, algorithm, compact=False):
 
