@@ -6,7 +6,7 @@ from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_d
 def test_attribute_enricher():
     # Verify that conditions hold
 
-    original = pd.read_pickle('test_fixtures/synthetic_example_raw_df.pkl')
+    original = pd.read_pickle('test/test_fixtures/synthetic_example_raw_df.pkl')
 
     log_df = enrich_log_df(original)
 

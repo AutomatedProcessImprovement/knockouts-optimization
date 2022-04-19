@@ -17,7 +17,7 @@ credit_app_scenarios = [
 
 @pytest.mark.parametrize("config_file, expected_outcomes, expected_kos", credit_app_scenarios)
 def test_credit_app(config_file, expected_outcomes, expected_kos):
-    analyzer = KnockoutDiscoverer(config_file_name=config_file, cache_dir="cache/credit_app",
+    analyzer = KnockoutDiscoverer(config_file_name=config_file, cache_dir="./cache/credit_app",
                                   always_force_recompute=True, quiet=True)
     analyzer.find_ko_activities()
 
@@ -52,7 +52,7 @@ loan_app_scenarios = [
 @pytest.mark.skip()
 @pytest.mark.parametrize("config_file, expected_outcomes, expected_kos", loan_app_scenarios)
 def test_loan_app(config_file, expected_outcomes, expected_kos):
-    analyzer = KnockoutDiscoverer(config_file_name=config_file, cache_dir="cache/loan_app",
+    analyzer = KnockoutDiscoverer(config_file_name=config_file, cache_dir="./cache/loan_app",
                                   always_force_recompute=True, quiet=True)
     analyzer.find_ko_activities()
 
