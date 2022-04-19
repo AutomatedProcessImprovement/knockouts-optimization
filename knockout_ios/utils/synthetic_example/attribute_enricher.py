@@ -52,10 +52,10 @@ def enrich_log_df(log_df):
 
     # TODO: fix problem with exported .xes; fluxicon disco complains about lack of activity classifier,
     #  apromore does not even recognize it
-    formatted = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-                                       activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
-                                       timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
-                                       start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
+    # formatted = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
+    #                                    activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
+    #                                    timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
+    #                                    start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
 
     # pm4py.write_xes(formatted, '../../inputs/synthetic_example/synthetic_example_enriched.xes')
 
