@@ -1,6 +1,0 @@
-log_path: ./inputs/LoanApplicationDemo.xes
-output: ./outputs
-start_activity: Start
-#negative_outcomes: Loan application rejected, Loan application canceled
-#known_ko_activities: Assess eligibility
-

@@ -14,7 +14,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.format import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
-    calc_processing_waste, calc_mean_waiting_time_waste_v1
+    calc_processing_waste, calc_mean_waiting_time_waste_v2
 
 from knockout_ios.utils.constants import *
 
@@ -335,7 +335,7 @@ class KnockoutAnalyzer:
         overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
                                                          self.discoverer.pm4py_formatted_df)
         processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_formatted_df)
-        mean_waiting_time_waste = calc_mean_waiting_time_waste_v1(self.discoverer.ko_activities,
+        mean_waiting_time_waste = calc_mean_waiting_time_waste_v2(self.discoverer.ko_activities,
                                                                   self.discoverer.pm4py_formatted_df)
 
         entries = []
@@ -367,7 +367,7 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=True)
 
     analyzer.discover_knockouts(
@@ -375,13 +375,3 @@ if __name__ == "__main__":
 
     analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
                           print_rule_discovery_stats=True)
-
-# TODOs - related to time waste metrics
-# TODO: implement Mean WT waste v2
-
-# TODO: clean dependencies on variability analysis module, exclude it from repo hereafter
-# TODO: add minimum column names to config file, refactor files & parsers, and document in readme
-
-# TODO: sugerencias de re-design,
-# TODO: mejorar/aclarar parametros de o discovery en el config file
-# TODO: tratar de mejorar el tiempo de ejecución en donde haya bottlenecks

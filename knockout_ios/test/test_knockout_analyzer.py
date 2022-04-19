@@ -7,8 +7,8 @@ from knockout_ios.utils.constants import *
 @pytest.mark.parametrize("algorithm", ["RIPPER", "IREP"])
 def test_report_creation(algorithm):
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
-                                config_dir="config",
-                                cache_dir="cache/synthetic_example",
+                                config_dir="./config",
+                                cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True)
 

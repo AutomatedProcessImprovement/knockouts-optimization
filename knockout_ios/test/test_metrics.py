@@ -5,7 +5,7 @@ from pandas import Timestamp
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
-    calc_overprocessing_waste, calc_mean_waiting_time_waste_v1
+    calc_mean_waiting_time_waste_v1
 
 log = [
     # 1 Knocked out case (contains check_A and did not pass it)
@@ -105,7 +105,7 @@ def test_partially_correct_kos():
 
 
 def test_available_cases_before_ko_calculation():
-    log_df = pd.read_pickle('test_fixtures/log_df.pkl')
+    log_df = pd.read_pickle('test/test_fixtures/log_df.pkl')
 
     activities = ["Check Liability", "Check Risk", "Check Monthly Income"]
 
