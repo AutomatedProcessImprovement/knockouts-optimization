@@ -1,3 +1,4 @@
+import pickle
 import pprint
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
@@ -28,8 +29,21 @@ from knockout_ios.utils.redesign import evaluate_knockout_reordering_io, evaluat
 # 5. Add a new knock-out
 
 
+def read_analyzer_cache(cache_dir, cache_name):
+    binary_file = open(f'{cache_dir}/{cache_name}', 'rb')
+    ko_analyzer = pickle.load(binary_file)
+    binary_file.close()
+    return ko_analyzer
+
+
+def dump_analyzer_cache(ko_analyzer, cache_dir, cache_name):
+    binary_file = open(f'{cache_dir}/{cache_name}', 'wb')
+    pickle.dump(ko_analyzer, binary_file)
+    binary_file.close()
+
+
 class KnockoutRedesignAdviser(object):
-    def __init__(self, knockout_analyzer, quiet=True):
+    def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=True):
         self.knockout_analyzer = knockout_analyzer
         self.quiet = quiet
 
@@ -40,22 +54,38 @@ class KnockoutRedesignAdviser(object):
         self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
 
         if not self.quiet:
-            pprint.pprint(self.redesign_options)
+            print(f"\n** Redesign options **\n")
+
+            # TODO: cleaner printing/reporting method...
+            print("- Knock-out Re-ordering:\n")
+            optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
+                             enumerate(self.redesign_options['reordering']['optimal_order_names'])]
+            cases_respecting_order = self.redesign_options['reordering']['cases_respecting_order']
+            total_cases = self.redesign_options['reordering']['total_cases']
+            print(
+                "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} case(s) follow it.")
 
         return self.redesign_options
 
 
 if __name__ == "__main__":
-    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
-                                config_dir="config",
-                                cache_dir="knockout_ios/cache/synthetic_example",
-                                always_force_recompute=False,
-                                quiet=True)
+    try:
+        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io')
 
-    analyzer.discover_knockouts()
+    except FileNotFoundError:
+        analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
+                                    config_dir="config",
+                                    cache_dir="knockout_ios/cache/synthetic_example",
+                                    always_force_recompute=False,
+                                    quiet=True)
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=False, omit_report=False)
+        analyzer.discover_knockouts()
+
+        analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                              print_rule_discovery_stats=False, omit_report=False)
+
+        dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
+                            ko_analyzer=analyzer)
 
     adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
     adviser.get_redesign_options()
