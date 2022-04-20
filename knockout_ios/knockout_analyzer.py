@@ -4,6 +4,7 @@ import os
 import pprint
 
 from copy import deepcopy
+from typing import Callable, Optional
 
 import numpy as np
 from tabulate import tabulate
@@ -19,7 +20,8 @@ from knockout_ios.utils.metrics import find_rejection_rates, calc_available_case
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
-from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_df
+
+from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import *
 
 
 def clear_cache(cachedir, config_file_name):
@@ -34,7 +36,9 @@ def clear_cache(cachedir, config_file_name):
 class KnockoutAnalyzer:
 
     def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=False,
-                 quiet=True):
+                 quiet=True,
+                 custom_log_preprocessing_function: Callable[
+                     ['KnockoutAnalyzer', pd.DataFrame, Optional[str], ...], pd.DataFrame] = None):
 
         os.makedirs(cache_dir, exist_ok=True)
 
@@ -48,6 +52,7 @@ class KnockoutAnalyzer:
         self.IREP_rulesets = None
         self.aggregated_by_case_df = None
         self.ko_stats = {}
+        self.custom_log_preprocessing_function = custom_log_preprocessing_function
 
         self.always_force_recompute = always_force_recompute
 
@@ -82,25 +87,15 @@ class KnockoutAnalyzer:
         # Populate dict with rejection rates and efforts (avg. KO activity durations)
         self.calc_rejection_rates()
 
-        # TODO: remove this if the .xes exporting problem is ever fixed - not critical anyway.
-        # if config_file_name contains "synthetic" then enrich log with synthetic attributes
-        if "synthetic" in self.config_file_name:
+        if self.custom_log_preprocessing_function is not None:
             enriched_log_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_enriched_.pkl'
+            self.discoverer.log_df = self.custom_log_preprocessing_function(self, self.discoverer.log_df,
+                                                                            enriched_log_df_cache_path)
+
             enriched_pm4py_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_pm4py_format_enriched_.pkl'
-
-            try:
-                if self.always_force_recompute:
-                    raise FileNotFoundError
-
-                self.discoverer.log_df = pd.read_pickle(enriched_log_df_cache_path)
-                self.discoverer.pm4py_formatted_df = pd.read_pickle(enriched_pm4py_df_cache_path)
-
-            except FileNotFoundError:
-                self.discoverer.log_df = enrich_log_df(self.discoverer.log_df)
-                self.discoverer.pm4py_formatted_df = enrich_log_df(self.discoverer.pm4py_formatted_df)
-
-                self.discoverer.log_df.to_pickle(enriched_log_df_cache_path)
-                self.discoverer.pm4py_formatted_df.to_pickle(enriched_pm4py_df_cache_path)
+            self.discoverer.pm4py_formatted_df = self.custom_log_preprocessing_function(self,
+                                                                                        self.discoverer.pm4py_formatted_df,
+                                                                                        enriched_pm4py_df_cache_path)
 
     def calc_rejection_rates(self):
         rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
@@ -367,8 +362,9 @@ if __name__ == "__main__":
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=False,
-                                quiet=True)
+                                always_force_recompute=True,
+                                quiet=True,
+                                custom_log_preprocessing_function=enrich_synthetic_example_log_v1)
 
     analyzer.discover_knockouts(
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
