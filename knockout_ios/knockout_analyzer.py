@@ -364,7 +364,7 @@ if __name__ == "__main__":
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,
-                                custom_log_preprocessing_function=enrich_synthetic_example_log_v1)
+                                custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
 
     analyzer.discover_knockouts(
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
