@@ -1,0 +1,13 @@
+{
+  "log_path": "inputs/synthetic_example/Synthetic Example (KO Order IO - advanced).xes",
+  "output": "./outputs",
+  "start_activity": "Credit application received",
+  "negative_outcomes": [
+    "Notify rejection"
+  ],
+  "positive_outcomes": [],
+  "known_ko_activities": [
+    "Assess application"
+  ],
+  "ko_count_threshold": 9
+}

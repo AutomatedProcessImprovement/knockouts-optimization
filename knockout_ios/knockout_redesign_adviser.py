@@ -5,8 +5,6 @@ from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.redesign import evaluate_knockout_reordering_io_v1, evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io
 
-from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import *
-
 '''
 KO redesign strategies
 
@@ -31,7 +29,7 @@ NOT IN CURRENT SCOPE:
 '''
 
 
-def read_analyzer_cache(cache_dir, cache_name):
+def read_analyzer_cache(cache_dir, cache_name) -> KnockoutAnalyzer:
     binary_file = open(f'{cache_dir}/{cache_name}', 'rb')
     ko_analyzer = pickle.load(binary_file)
     binary_file.close()
@@ -68,32 +66,3 @@ class KnockoutRedesignAdviser(object):
                 "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} case(s) follow it.")
 
         return self.redesign_options
-
-
-if __name__ == "__main__":
-    try:
-        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io')
-
-    except FileNotFoundError:
-        analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
-                                    config_dir="config",
-                                    cache_dir="knockout_ios/cache/synthetic_example",
-                                    always_force_recompute=False,
-                                    quiet=True,
-                                    custom_log_preprocessing_function=enrich_synthetic_example_log_v1)
-
-        analyzer.discover_knockouts()
-
-        analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                              print_rule_discovery_stats=False, omit_report=False)
-
-        dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
-                            ko_analyzer=analyzer)
-
-    adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
-    adviser.get_redesign_options()
-
-# TODO: [X] modify synthetic example log/simulation parameters to test ko order io
-# TODO: [ ] modify synthetic example log/simulation parameters to test ko relocation io
-# TODO: [ ] modify synthetic example log/simulation parameters to test ko rule change io
-# TODO: [ ] modify synthetic example log/simulation parameters to test redesign strategies combined
