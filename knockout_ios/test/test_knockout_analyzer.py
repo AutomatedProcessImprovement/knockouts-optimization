@@ -2,6 +2,7 @@ import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.constants import *
+from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import enrich_log_with_fully_known_attributes
 
 
 @pytest.mark.parametrize("algorithm", ["RIPPER", "IREP"])
@@ -10,7 +11,8 @@ def test_report_creation(algorithm):
                                 config_dir="./config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
-                                quiet=True)
+                                quiet=True,
+                                custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
 
     analyzer.discover_knockouts()
 
