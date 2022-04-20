@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from random import random, randint, seed
 
 import numpy as np
@@ -6,7 +7,6 @@ import pandas as pd
 import pm4py
 
 from knockout_ios.utils.constants import *
-from pm4py.objects.conversion.log import converter as log_converter
 
 
 def enrich_log_df(log_df):
@@ -66,3 +66,23 @@ def enrich_log_df(log_df):
     # pm4py.write_xes(formatted, './synthetic_example_enriched.xes')
 
     return log_df
+
+
+@dataclass
+class RuntimeAttribute:
+    attribute_name: str
+    value_provider_activity: str
+
+
+def enrich_log_df_with_value_providers(log_df: pd.DataFrame, runtime_attributes: list[RuntimeAttribute]):
+    log_df = enrich_log_df(log_df)
+    by_case = log_df.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME).groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
+
+    # for every case in by_case, clear the attribute's value in every event that was before the value provider activity:
+    for case_id, case_df in by_case:
+        case_df = case_df.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
+        for runtime_attribute in runtime_attributes:
+            value_provider_activity = runtime_attribute.value_provider_activity
+            value_provider_activity_index = \
+                case_df[case_df[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == value_provider_activity].index[0]
+            case_df.loc[:value_provider_activity_index, runtime_attribute.attribute_name] = None

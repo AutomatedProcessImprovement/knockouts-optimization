@@ -1,32 +1,34 @@
 import pickle
-import pprint
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
-from knockout_ios.utils.redesign import evaluate_knockout_reordering_io, evaluate_knockout_relocation_io, \
+from knockout_ios.utils.redesign import evaluate_knockout_reordering_io_v1, evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io
 
+from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import *
 
-# KO redesign strategies
+'''
+KO redesign strategies
 
-# 1. Relocate a knock-out
-#    place the knock-out check as early in the process as the attribute value (based on which the knock-out is performed)
-#    is available.
-#
-# 2. Reorder knock-outs
-#    according to the knock-out principle:
-#    checks are ordered according to the principle of “least effort to reject”– checks that require less effort and are more
-#    likely to reject the case come first. In addition, consider the knock-out rule so that the attribute value (based on which
-#    the knock-out is performed) is available at that point in the process.
-#
-# 3. Change the knock-out rule
-#    change the attribute value (or its range) based on which the knock-out is performed;
-#
-# NOT IN CURRENT SCOPE:
-#
-# 4. Remove the knock-out
-#
-# 5. Add a new knock-out
+1. Relocate a knock-out
+   place the knock-out check as early in the process as the attribute value (based on which the knock-out is performed)
+   is available.
+
+2. Reorder knock-outs
+   according to the knock-out principle:
+   checks are ordered according to the principle of “least effort to reject”– checks that require less effort and are more
+   likely to reject the case come first. In addition, consider the knock-out rule so that the attribute value (based on which
+   the knock-out is performed) is available at that point in the process.
+
+3. Change the knock-out rule
+   change the attribute value (or its range) based on which the knock-out is performed;
+
+NOT IN CURRENT SCOPE:
+
+4. Remove the knock-out
+
+5. Add a new knock-out
+'''
 
 
 def read_analyzer_cache(cache_dir, cache_name):
@@ -49,7 +51,7 @@ class KnockoutRedesignAdviser(object):
 
     def get_redesign_options(self):
         self.redesign_options = {}
-        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io_v1(self.knockout_analyzer)
         self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer)
         self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
 
@@ -77,7 +79,8 @@ if __name__ == "__main__":
                                     config_dir="config",
                                     cache_dir="knockout_ios/cache/synthetic_example",
                                     always_force_recompute=False,
-                                    quiet=True)
+                                    quiet=True,
+                                    custom_log_preprocessing_function=enrich_synthetic_example_log_v1)
 
         analyzer.discover_knockouts()
 

@@ -5,11 +5,35 @@ from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.constants import *
 
 
-def evaluate_knockout_relocation_io(analyzer):
+def chained_eventually_follows(log, activities):
+    if len(activities) < 2:
+        return log
+
+    if len(activities) == 2:
+        return ltl.ltl_checker.A_eventually_B(log, activities[0], activities[1])
+
+    for i in range(0, len(activities) - 1):
+        log = ltl.ltl_checker.A_eventually_B(log, activities[i], activities[i + 1])
+
+    return log
+
+
+def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer):
     return []
 
 
-def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer):
+def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer):
+    return []
+
+
+def evaluate_knockout_reordering_io_v1(analyzer: KnockoutAnalyzer):
+    '''
+    Version 1:
+    - Produces suggestion only based on KO efforts.
+    - Does not yet take into account availability of attribute values after certain activity.
+    - Analyzes only non-knocked out cases to indicate if the observed ko-checks ordering is optimal
+    '''
+
     log = analyzer.discoverer.pm4py_formatted_df
 
     # TODO: determine optimal order of knockout activities
@@ -31,20 +55,3 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer):
 
     return {"optimal_order_names": list(optimal_order_names), "cases_respecting_order": cases_respecting_order.ngroups,
             "total_cases": total_cases}
-
-
-def chained_eventually_follows(log, activities):
-    if len(activities) < 2:
-        return log
-
-    if len(activities) == 2:
-        return ltl.ltl_checker.A_eventually_B(log, activities[0], activities[1])
-
-    for i in range(0, len(activities) - 1):
-        log = ltl.ltl_checker.A_eventually_B(log, activities[i], activities[i + 1])
-
-    return log
-
-
-def evaluate_knockout_rule_change_io(analyzer):
-    return []
