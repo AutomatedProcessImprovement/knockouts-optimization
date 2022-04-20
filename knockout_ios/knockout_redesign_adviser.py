@@ -4,6 +4,7 @@ from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
 from knockout_ios.utils.redesign import evaluate_knockout_reordering_io_v1, evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io
+from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import enrich_log_with_fully_known_attributes
 
 '''
 KO redesign strategies
@@ -66,3 +67,20 @@ class KnockoutRedesignAdviser(object):
                 "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} case(s) follow it.")
 
         return self.redesign_options
+
+
+if __name__ == "__main__":
+    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
+                                config_dir="config",
+                                cache_dir="test/knockout_ios/cache/synthetic_example",
+                                always_force_recompute=True,
+                                quiet=True,
+                                custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
+
+    analyzer.discover_knockouts()
+
+    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                          print_rule_discovery_stats=False, omit_report=False)
+
+    adviser = KnockoutRedesignAdviser(analyzer, quiet=True)
+    adviser.get_redesign_options()

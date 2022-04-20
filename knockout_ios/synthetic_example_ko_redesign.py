@@ -95,7 +95,20 @@ def test_ko_relocation_io():
 if __name__ == "__main__":
     test_ko_relocation_io()
 
-# TODO: [X] modify synthetic example log/simulation parameters to test ko order io
-# TODO: [X] modify synthetic example log/simulation parameters to test ko relocation io
-# TODO: [ ] modify synthetic example log/simulation parameters to test ko rule change io
-# TODO: [ ] modify synthetic example log/simulation parameters to test redesign strategies combined
+# TODO - KO redesign
+#   [X] modify synthetic example log/simulation parameters to test ko order io
+#   [X] modify synthetic example log/simulation parameters to test ko relocation io
+#   [ ] modify synthetic example log/simulation parameters to test ko rule change io
+#   [ ] modify synthetic example log/simulation parameters to test redesign strategies combined
+
+# Time waste metrics
+# TODO: implement Mean WT waste v2
+
+# Requested improvements
+# TODO: improve/clarify ko discovery parameters in config file
+
+# Other improvements
+# TODO: clean dependencies on variability analysis module, exclude it from repo hereafter
+# TODO: add minimum column names to config file, refactor files & parsers, and document in readme
+# TODO: try to improve execution times in bottlenecks
+# TODO: fix exporting attribute-enriched event log to .xes
