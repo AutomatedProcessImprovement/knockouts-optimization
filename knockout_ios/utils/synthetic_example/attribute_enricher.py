@@ -27,7 +27,10 @@ def enrich_log_df(log_df) -> pd.DataFrame:
 
     demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
 
-    log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    if SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    elif PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
 
     for caseid in tqdm(log_df.index.unique(), desc="Enriching with case attributes"):
 
@@ -74,24 +77,37 @@ class RuntimeAttribute:
     value_provider_activity: str
 
 
-def enrich_log_df_with_value_providers(log_df: pd.DataFrame,
-                                       runtime_attributes: list[RuntimeAttribute]) -> pd.DataFrame:
+def enrich_log_df_with_masked_attributes(log_df: pd.DataFrame,
+                                         runtime_attributes: list[RuntimeAttribute]) -> pd.DataFrame:
+    """
+    Emulates attributes known only after certain activity
+    """
+
     log_df = enrich_log_df(log_df)
 
+    activity_col = SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME
+
+    if SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    elif PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+        activity_col = PM4PY_ACTIVITY_COLUMN_NAME
+
+    for attribute in runtime_attributes:
+
+        for caseid in tqdm(log_df.index.unique(), desc="Masking case attributes"):
+            case = log_df.loc[caseid]
+
+            if attribute.value_provider_activity not in case[activity_col].unique():
+                continue
+
+            case = case.sort_values(by="start_timestamp", ascending=True)
+
+            value_producer_end = case[case['task'] == attribute.value_provider_activity]['end_timestamp'][0]
+
+            log_df.at[caseid, attribute.attribute_name] = np.where(case['start_timestamp'] >= value_producer_end,
+                                                                   case[attribute.attribute_name],
+                                                                   np.nan)
+
+    log_df.reset_index(inplace=True)
     return log_df
-
-    # TODO: implement these attributes known only after certain activity..
-    # idea: scan every row, if the activity is not the same as the producer, then set the attribute to None
-
-    # by_case = log_df.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME).groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
-    #
-    # # for every case in by_case, clear the attribute's value in every event that was before the value provider activity:
-    # for case_id, case_df in by_case:
-    #     case_df = case_df.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
-    #     for runtime_attribute in runtime_attributes:
-    #         value_provider_activity = runtime_attribute.value_provider_activity
-    #         value_provider_activity_index = \
-    #             case_df[case_df[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == value_provider_activity].index[0]
-    #         case_df.loc[:value_provider_activity_index, runtime_attribute.attribute_name] = None
-    #
-    # return by_case.to_frame()

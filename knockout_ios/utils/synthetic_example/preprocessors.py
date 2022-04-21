@@ -1,6 +1,6 @@
 import pandas as pd
 
-from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_df, enrich_log_df_with_value_providers, \
+from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_df, enrich_log_df_with_masked_attributes, \
     RuntimeAttribute
 
 
@@ -43,9 +43,9 @@ def enrich_log_for_ko_order_advanced_test(ko_analyzer: 'KnockoutAnalyzer',
             return pd.read_pickle(cache_file_path)
 
         except FileNotFoundError:
-            enriched_log = enrich_log_df_with_value_providers(log,
-                                                              [RuntimeAttribute(attribute_name='External Risk Score',
-                                                                                value_provider_activity='Get External Risk Score')])
+            enriched_log = enrich_log_df_with_masked_attributes(log,
+                                                                [RuntimeAttribute(attribute_name='External Risk Score',
+                                                                                  value_provider_activity='Get External Risk Score')])
             enriched_log.to_pickle(cache_file_path)
 
             return enriched_log
@@ -69,10 +69,10 @@ def enrich_log_for_ko_relocation_test(ko_analyzer: 'KnockoutAnalyzer',
             return pd.read_pickle(cache_file_path)
 
         except FileNotFoundError:
-            enriched_log = enrich_log_df_with_value_providers(log,
-                                                              [RuntimeAttribute(
-                                                                  attribute_name='Aggregated Risk Score',
-                                                                  value_provider_activity='Check Risk')])
+            enriched_log = enrich_log_df_with_masked_attributes(log,
+                                                                [RuntimeAttribute(
+                                                                    attribute_name='Aggregated Risk Score',
+                                                                    value_provider_activity='Check Risk')])
             enriched_log.to_pickle(cache_file_path)
 
             return enriched_log
