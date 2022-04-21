@@ -103,9 +103,3 @@ if __name__ == "__main__":
 
 # Time waste metrics
 # TODO: implement Mean WT waste v2
-
-# Other improvements
-# TODO: clean dependencies on variability analysis module, exclude it from repo hereafter
-# TODO: add minimum column names to config file, refactor files & parsers, and document in readme
-# TODO: try to improve execution times in bottlenecks
-# TODO: fix exporting attribute-enriched event log to .xes

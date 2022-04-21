@@ -4,7 +4,6 @@ from random import random, randint, seed
 
 import numpy as np
 import pandas as pd
-import pm4py
 
 from knockout_ios.utils.constants import *
 
@@ -54,21 +53,6 @@ def enrich_log_df(log_df) -> pd.DataFrame:
         elif ko_activity == 'Aggregated Risk Score Check':
             log_df.loc[i, 'Aggregated Risk Score'] = random() + 0.5
 
-    # TODO: fix problem with exported .xes; fluxicon disco complains about lack of activity classifier,
-    #  apromore does not even recognize it
-    # formatted = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-    #                                    activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
-    #                                    timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
-    #                                    start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
-
-    # pm4py.write_xes(formatted, '../../inputs/synthetic_example/synthetic_example_enriched.xes')
-
-    # Another way: convert to EventLog object and then try to export (problem missing activity classifier)
-    # formatted = log_converter.apply(formatted, variant=log_converter.Variants.TO_EVENT_LOG)
-    # formatted.classifiers["concept:name"] = "concept:name"
-
-    # pm4py.write_xes(formatted, './synthetic_example_enriched.xes')
-
     return log_df
 
 
@@ -98,4 +82,3 @@ def enrich_log_df_with_value_providers(log_df: pd.DataFrame,
     #         case_df.loc[:value_provider_activity_index, runtime_attribute.attribute_name] = None
     #
     # return by_case.to_frame()
-
