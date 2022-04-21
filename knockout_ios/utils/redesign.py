@@ -1,6 +1,10 @@
+from collections import Counter
+
 import numpy as np
 import pandas as pd
 from pm4py.algo.filtering.pandas import ltl
+from ruleset.base import Ruleset
+from tqdm import tqdm
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.constants import *
@@ -53,23 +57,61 @@ def get_observed_ko_checks_order(log, ko_activities):
     return observed_ko_order
 
 
+def get_attribute_names_from_ruleset(ruleset: Ruleset):
+    res = set()
+    for rule in ruleset.ruleset_:
+        for cond in rule.conds:
+            res.add(cond.feature.replace("_", " "))
+
+    return list(res)
+
+
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer):
     """
-    finds dependencies between log activities and attributes required by knockout checks
+    - Returns dependencies between log activities and attributes required by knockout checks
     """
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
     elif analyzer.ruleset_algorithm == "RIPPER":
         rule_discovery_dict = analyzer.RIPPER_rulesets
-
-    for ko_activity in rule_discovery_dict.keys():
-        ruleset = rule_discovery_dict[ko_activity][0]
+    else:
+        raise ValueError("Unknown ruleset algorithm")
 
     # for every knockout activity, there will be a list of tuples (attribute of KO rule, name of producer activity)
     dependencies = {k: [] for k in rule_discovery_dict.keys()}
 
+    log = analyzer.discoverer.log_df
+    log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+
+    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
+        ruleset = rule_discovery_dict[ko_activity][0]
+        required_attributes = get_attribute_names_from_ruleset(ruleset)
+
+        for attribute in required_attributes:
+            # Find after which activity the attribute is available in the log
+            producers = []
+            for caseid in log.index.unique():
+                case = log.loc[caseid]
+                case_ko = case['knockout_activity']
+                if not (len(case_ko.values) > 0):
+                    continue
+                if case_ko.values[0] != ko_activity:
+                    continue
+
+                activities_where_unavailable = case[np.isnan(case[attribute].values)][PM4PY_ACTIVITY_COLUMN_NAME].values
+                if len(activities_where_unavailable) > 0:
+                    producer_activity = activities_where_unavailable[-1]
+                    producers.append(producer_activity)
+
+            if len(producers) > 0:
+                # get most frequent producer activity
+                producers = Counter(producers).most_common(1)[0][0]
+                if producers == ko_activity:
+                    continue
+                dependencies[ko_activity].append((attribute, producers))
+
     # TODO: remove, just for testing
-    dependencies['Aggregated Risk Score'] = [('External Risk Score', 'Check Risk')]
+    # dependencies['Aggregated Risk Score'] = [('External Risk Score', 'Check Risk')]
 
     return dependencies
 
@@ -81,7 +123,7 @@ def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer):
 def evaluate_knockout_reordering_io_v2(analyzer: KnockoutAnalyzer):
     '''
     Version 2:
-    - Produces suggestion based on both KO efforts and availability of attribute values after certain activity.
+    - Returns optimal ordering by KO effort
     - Returns also the observed ko-checks ordering
     '''
 

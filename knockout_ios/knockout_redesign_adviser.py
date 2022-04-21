@@ -59,18 +59,18 @@ class KnockoutRedesignAdviser(object):
             print(f"\n** Redesign options **\n")
 
             # TODO: cleaner printing/reporting method...
-            print("> Knock-out Re-location\n")
+            print("> Knock-out Re-location")
             attribute_dependencies_dict = self.redesign_options["relocation"]
             for activity in attribute_dependencies_dict.keys():
                 if not (len(attribute_dependencies_dict[activity]) > 0):
-                    print(f"- '{activity}': required attributes are available from the start.")
+                    print(f"\n- '{activity}': required attributes are available from the start.")
                     continue
 
-                print(f"- '{activity}' requires attribute(s):")
+                print(f"\n- '{activity}' requires attribute(s):")
                 for pair in attribute_dependencies_dict[activity]:
-                    print(f"  '{pair[0]}', available after activity '{pair[1]}'")
+                    print(f"    '{pair[0]}', available after activity '{pair[1]}'")
 
-            print("\n> Knock-out Re-ordering\n")
+            print("\n\n> Knock-out Re-ordering\n")
             optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
                              enumerate(self.redesign_options['reordering']['optimal_order_names'])]
             observed_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
