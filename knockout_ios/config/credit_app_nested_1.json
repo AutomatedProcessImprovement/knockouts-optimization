@@ -6,6 +6,5 @@
     "Reject application"
   ],
   "positive_outcomes": [],
-  "known_ko_activities": [],
-  "ko_count_threshold": 6
+  "known_ko_activities": []
 }

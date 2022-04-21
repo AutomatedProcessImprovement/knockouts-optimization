@@ -104,9 +104,6 @@ if __name__ == "__main__":
 # Time waste metrics
 # TODO: implement Mean WT waste v2
 
-# Requested improvements
-# TODO: improve/clarify ko discovery parameters in config file
-
 # Other improvements
 # TODO: clean dependencies on variability analysis module, exclude it from repo hereafter
 # TODO: add minimum column names to config file, refactor files & parsers, and document in readme

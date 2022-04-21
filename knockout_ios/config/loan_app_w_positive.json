@@ -8,7 +8,6 @@
     "Loan__application_approved",
     "Loan application canceled"
   ],
-  "known_ko_activities": [],
-  "ko_count_threshold": 25
+  "known_ko_activities": []
 }
 
