@@ -4,7 +4,7 @@ from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
 from knockout_ios.utils.redesign import evaluate_knockout_reordering_io_v1, evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io
-from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import enrich_log_with_fully_known_attributes
+from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 '''
 KO redesign strategies

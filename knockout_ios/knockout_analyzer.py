@@ -21,7 +21,7 @@ from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
 
-from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import *
+from knockout_ios.utils.synthetic_example.preprocessors import *
 
 
 def clear_cache(cachedir, config_file_name):

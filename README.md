@@ -20,7 +20,7 @@ Depending on your platform, install graphviz (v 3.0.0+) separately, and make sur
 
 ```python
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import enrich_log_with_fully_known_attributes
+from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 #  Synthetic Example Ground Truth
 #  (K.O. checks and their rejection rules):
