@@ -1,6 +1,5 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from random import random, randint, seed
 
 import numpy as np
 import pandas as pd
@@ -10,21 +9,9 @@ from knockout_ios.utils.constants import *
 
 def enrich_log_df(log_df) -> pd.DataFrame:
     # To keep consistency on every call
-    seed(0)
     np.random.seed(0)
 
     log_df = deepcopy(log_df)
-
-    demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
-
-    # First populate df with values that don't fall under any of the knock outs' rules
-    log_df['Monthly Income'] = np.random.randint(1000, 4999, size=len(log_df))
-    log_df['Total Debt'] = np.random.randint(0, 4999, size=len(log_df))
-    log_df['Loan Ammount'] = np.random.randint(0, 9999, size=len(log_df))
-    log_df['Owns Vehicle'] = True
-    log_df['Demographic'] = np.random.choice(demographic_values, size=len(log_df))
-    log_df['External Risk Score'] = np.random.uniform(0, 0.3, size=len(log_df))
-    log_df['Aggregated Risk Score'] = np.random.uniform(0, 0.49, size=len(log_df))
 
     #  Synthetic Example Ground Truth
     #  (K.O. checks and their rejection rules):
@@ -35,23 +22,48 @@ def enrich_log_df(log_df) -> pd.DataFrame:
     # 'Assess application':              'External Risk Score' > 0.3
     # 'Aggregated Risk Score Check':     'Aggregated Risk Score' > 0.5
 
-    # TODO: this is slow, consider to_records()
-    for i, row in log_df.iterrows():
-        ko_activity = row["knockout_activity"]
+    # First populate df with values that don't fall under any of the knock outs' rules
+
+    demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
+
+    for caseid in log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME].unique():
+
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Monthly Income'] = np.random.randint(1000,
+                                                                                                                 4999)
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Total Debt'] = np.random.randint(0, 4999)
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Loan Ammount'] = np.random.randint(0, 9999)
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Owns Vehicle'] = True
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Demographic'] = np.random.choice(
+            demographic_values)
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'External Risk Score'] = np.random.uniform(0,
+                                                                                                                      0.3)
+        log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Aggregated Risk Score'] = np.random.uniform(
+            0, 0.49)
+
+        ko_activity = log_df[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid]["knockout_activity"]
+        if len(ko_activity) > 0:
+            ko_activity = ko_activity.iloc[0]
 
         if ko_activity == 'Check Liability':
-            if random() < 0.5:
-                log_df.loc[i, 'Total Debt'] = randint(5000, 30_000)
+            if np.random.uniform(0, 1) < 0.5:
+                log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Total Debt'] = np.random.randint(
+                    5000, 30_000)
             else:
-                log_df.loc[i, 'Owns Vehicle'] = False
+                log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Owns Vehicle'] = False
         elif ko_activity == 'Check Risk':
-            log_df.loc[i, 'Loan Ammount'] = randint(10_000, 30_000)
+            log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Loan Ammount'] = np.random.randint(
+                10_000, 30_000)
         elif ko_activity == 'Check Monthly Income':
-            log_df.loc[i, 'Monthly Income'] = randint(0, 999)
+            log_df.loc[log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Monthly Income'] = np.random.randint(0,
+                                                                                                                     999)
         elif ko_activity == 'Assess application':
-            log_df.loc[i, 'External Risk Score'] = random() + 0.3
+            log_df.loc[
+                log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'External Risk Score'] = np.random.uniform(0.3,
+                                                                                                                   1)
         elif ko_activity == 'Aggregated Risk Score Check':
-            log_df.loc[i, 'Aggregated Risk Score'] = random() + 0.5
+            log_df.loc[
+                log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == caseid, 'Aggregated Risk Score'] = np.random.uniform(
+                0.5, 1)
 
     return log_df
 
@@ -65,6 +77,7 @@ class RuntimeAttribute:
 def enrich_log_df_with_value_providers(log_df: pd.DataFrame,
                                        runtime_attributes: list[RuntimeAttribute]) -> pd.DataFrame:
     log_df = enrich_log_df(log_df)
+
     return log_df
 
     # TODO: implement these attributes known only after certain activity..
