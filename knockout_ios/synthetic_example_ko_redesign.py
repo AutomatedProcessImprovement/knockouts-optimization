@@ -19,7 +19,7 @@ def test_ko_reorder_io_simple():
 
         analyzer.discover_knockouts()
 
-        analyzer.get_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+        analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False)
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
@@ -47,7 +47,7 @@ def test_ko_reorder_io_advanced():
 
         analyzer.discover_knockouts()
 
-        analyzer.get_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+        analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False)
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_advanced",
@@ -62,17 +62,12 @@ def test_ko_reorder_io_advanced():
     #                                                                         "Check Monthly Income"]
 
 
-def test_ko_relocation_io():
-    pass
-
-
 if __name__ == "__main__":
     test_ko_reorder_io_advanced()
 
 # TODO - KO redesign
 #   [X] modify synthetic example log/simulation parameters to test ko order io
 #   [X] modify synthetic example log/simulation parameters to test ko order io - advanced
-#   [ ] modify synthetic example log/simulation parameters to test pure ko relocation io
 #   [?] modify synthetic example log/simulation parameters to test ko rule change io
 
 # Time waste metrics
