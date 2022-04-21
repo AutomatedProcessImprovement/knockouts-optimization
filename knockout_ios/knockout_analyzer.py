@@ -52,6 +52,8 @@ class KnockoutAnalyzer:
         self.IREP_rulesets = None
         self.aggregated_by_case_df = None
         self.ko_stats = {}
+        self.ruleset_algorithm = None
+        self.report_df = None
         self.custom_log_preprocessing_function = custom_log_preprocessing_function
 
         self.always_force_recompute = always_force_recompute
@@ -223,6 +225,7 @@ class KnockoutAnalyzer:
             raise Exception("ko activities not yet discovered")
 
         # Discover rules in knockout activities with chosen algorithm
+        self.ruleset_algorithm = algorithm
 
         self.available_cases_before_ko = calc_available_cases_before_ko(self.discoverer.ko_activities,
                                                                         self.discoverer.log_df)
@@ -274,7 +277,7 @@ class KnockoutAnalyzer:
         self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
                              algorithm=algorithm)
 
-        self.report_df = self.build_report(algorithm=algorithm, omit=omit_report)
+        self.report_df = self.build_report(omit=omit_report)
 
         if print_rule_discovery_stats:
             self.print_ko_rulesets_stats(algorithm=algorithm, compact=True)
@@ -317,9 +320,11 @@ class KnockoutAnalyzer:
                 )
                 print(f"rule discovery params: {params}")
 
-    def build_report(self, algorithm="IREP", omit=False):
+    def build_report(self, omit=False):
+        if self.ruleset_algorithm is None:
+            return
 
-        if algorithm == "RIPPER":
+        if self.ruleset_algorithm == "RIPPER":
             rulesets = self.RIPPER_rulesets
         else:
             rulesets = self.IREP_rulesets
@@ -342,8 +347,9 @@ class KnockoutAnalyzer:
                                 f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
                             REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
                             REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
-                            f"{REPORT_COLUMN_REJECTION_RULE} ({algorithm})": rulesets[ko][0].ruleset_,
-                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][algorithm]["effort"], ndigits=2),
+                            f"{REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})": rulesets[ko][0].ruleset_,
+                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][self.ruleset_algorithm]["effort"],
+                                                               ndigits=2),
                             REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
                             REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
                             REPORT_COLUMN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko]),
