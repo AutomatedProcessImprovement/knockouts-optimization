@@ -98,7 +98,7 @@ if __name__ == "__main__":
 # TODO - KO redesign
 #   [X] modify synthetic example log/simulation parameters to test ko order io
 #   [X] modify synthetic example log/simulation parameters to test ko relocation io
-#   [ ] modify synthetic example log/simulation parameters to test ko rule change io
+#   [?] modify synthetic example log/simulation parameters to test ko rule change io
 #   [ ] modify synthetic example log/simulation parameters to test redesign strategies combined
 
 # Time waste metrics
