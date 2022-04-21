@@ -6,7 +6,6 @@
     "Loan application rejected"
   ],
   "positive_outcomes": [],
-  "known_ko_activities": [],
-  "ko_count_threshold": 25
+  "known_ko_activities": []
 }
 

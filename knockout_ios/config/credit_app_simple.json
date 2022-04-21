@@ -6,6 +6,5 @@
     "Notify rejection"
   ],
   "positive_outcomes": [],
-  "known_ko_activities": [],
-  "ko_count_threshold": 5
+  "known_ko_activities": []
 }

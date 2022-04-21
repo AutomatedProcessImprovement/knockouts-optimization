@@ -98,6 +98,13 @@ class KnockoutDiscoverer:
 
         # Idea: iteratively increase the limit until finding a positive outcome in the outcome list;
         #       keep last num before this happened
+
+        if self.config.ko_count_threshold is None:
+            # count the unique values in the activity column of pm4py_formatted_df
+            ko_count_threshold = len(self.pm4py_formatted_df[PM4PY_ACTIVITY_COLUMN_NAME].unique())
+        else:
+            ko_count_threshold = self.config.ko_count_threshold
+
         self.ko_activities, self.ko_outcomes, self.ko_seqs = discover_ko_sequences(self.pm4py_formatted_df,
                                                                                    self.config_file_name,
                                                                                    cache_dir=self.cache_dir,
@@ -105,7 +112,7 @@ class KnockoutDiscoverer:
                                                                                    known_ko_activities=self.config.known_ko_activities,
                                                                                    negative_outcomes=self.config.negative_outcomes,
                                                                                    positive_outcomes=self.config.positive_outcomes,
-                                                                                   limit=self.config.ko_count_threshold,
+                                                                                   limit=ko_count_threshold,
                                                                                    quiet=self.quiet,
                                                                                    force_recompute=self.force_recompute)
 

@@ -7,6 +7,5 @@
     "Ban client forever"
   ],
   "positive_outcomes": [],
-  "known_ko_activities": [],
-  "ko_count_threshold": 7
+  "known_ko_activities": []
 }
