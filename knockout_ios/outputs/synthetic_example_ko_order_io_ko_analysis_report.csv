@@ -1,5 +1,5 @@
 Knock-out check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (IREP),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Mean Waiting Time Waste (*)
 Check Risk,1618,80.9 %,0:46:13,29.5 %,[[Loan_Ammount=>9773.25]],87.24,"46 days, 6:23:36","42 days, 21:28:57",0:00:00
 Assess application,555,27.75 %,1:33:04,18.0 %,[[External_Risk_Score=>0.29]],186.89,"22 days, 13:49:21","17 days, 3:31:18",0:00:00
-Check Monthly Income,1141,57.05 %,0:20:08,51.4 %,[[Monthly_Income=<276.0] V [Monthly_Income=562.33-861.75] V [Monthly_Income=276.0-562.33] V [Monthly_Income=861.75-1228.33]],20.72,"86 days, 17:33:09","69 days, 4:49:31",0:00:00
+Check Monthly Income,1141,57.05 %,0:20:08,51.4 %,[[Monthly_Income=<276.0] V [Monthly_Income=276.0-562.33] V [Monthly_Income=562.33-861.75] V [Monthly_Income=861.75-1228.33^Owns_Vehicle=True^Total_Debt=<434.58] V [Monthly_Income=861.75-1228.33]],20.72,"86 days, 17:33:09","69 days, 4:49:31",0:00:00
 Check Liability,2000,100.0 %,0:48:11,19.1 %,[[Owns_Vehicle=False] V [Total_Debt=>4787.12]],125.67,"23 days, 8:28:34","21 days, 10:54:38",0:00:00
