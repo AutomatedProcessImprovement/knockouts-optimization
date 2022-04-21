@@ -2,7 +2,7 @@ import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
-from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import enrich_log_with_fully_known_attributes, \
+from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes, \
     enrich_log_for_ko_order_advanced_test, enrich_log_for_ko_relocation_test
 
 

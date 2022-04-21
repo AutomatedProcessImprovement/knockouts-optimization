@@ -1,5 +1,5 @@
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.utils.synthetic_example.synthetic_example_preprocessors import enrich_log_with_fully_known_attributes
+from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 if __name__ == "__main__":
     #  Synthetic Example Ground Truth
