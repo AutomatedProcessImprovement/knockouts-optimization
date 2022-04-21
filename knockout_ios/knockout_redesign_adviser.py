@@ -3,7 +3,7 @@ import pickle
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
 from knockout_ios.utils.redesign import evaluate_knockout_reordering_io_v1, evaluate_knockout_relocation_io, \
-    evaluate_knockout_rule_change_io
+    evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io_v2
 from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 '''
@@ -50,7 +50,7 @@ class KnockoutRedesignAdviser(object):
 
     def get_redesign_options(self):
         self.redesign_options = {}
-        self.redesign_options["reordering"] = evaluate_knockout_reordering_io_v1(self.knockout_analyzer)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io_v2(self.knockout_analyzer)
         self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer)
         self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
 
@@ -61,8 +61,13 @@ class KnockoutRedesignAdviser(object):
             print("- Knock-out Re-ordering:\n")
             optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
                              enumerate(self.redesign_options['reordering']['optimal_order_names'])]
+            observed_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
+                              enumerate(self.redesign_options['reordering']['observed_ko_order'])]
             cases_respecting_order = self.redesign_options['reordering']['cases_respecting_order']
             total_cases = self.redesign_options['reordering']['total_cases']
+            
+            print(
+                "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
             print(
                 "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} case(s) follow it.")
 
