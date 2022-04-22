@@ -5,6 +5,8 @@ from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_f
 
 
 def test_ko_reorder_io_simple():
+    print("\n\nLog: Synthetic Example (KO Order IO)\n")
+
     try:
         analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io')
         analyzer.build_report()
@@ -33,6 +35,8 @@ def test_ko_reorder_io_simple():
 
 
 def test_ko_reorder_io_advanced():
+    print("\n\nLog: Synthetic Example (KO Order IO advanced)\n")
+
     try:
         analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io_advanced')
         analyzer.build_report()
@@ -63,6 +67,7 @@ def test_ko_reorder_io_advanced():
 
 
 if __name__ == "__main__":
+    test_ko_reorder_io_simple()
     test_ko_reorder_io_advanced()
 
 # TODO - KO redesign

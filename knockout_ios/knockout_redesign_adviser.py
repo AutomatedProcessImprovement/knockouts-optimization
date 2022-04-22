@@ -81,7 +81,7 @@ class KnockoutRedesignAdviser(object):
             print(
                 "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
             print(
-                "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} case(s) follow it.")
+                "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} completed case(s) follow it.")
 
         return self.redesign_options
 
