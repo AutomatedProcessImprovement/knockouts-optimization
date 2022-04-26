@@ -68,11 +68,12 @@ def test_ko_reorder_io_advanced():
     adviser.compute_redesign_options()
 
     # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"
-    # assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",
-    #                                                                         "Aggregated Risk Score Check"
-    #                                                                         "Check Monthly Income"]
+    assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",
+                                                                             "Aggregated Risk Score Check",
+                                                                             "Check Monthly Income"]
 
 
 if __name__ == "__main__":
-    ignore_caches = True
+    ignore_caches = False
+    test_ko_reorder_io_simple()
     test_ko_reorder_io_advanced()
