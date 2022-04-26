@@ -1,5 +1,0 @@
-log_path: ./inputs/credit_app.xes
-output: ./outputs
-start_activity: Start
-cancellation_activities: Notify rejection
-ko_count_threshold: 5

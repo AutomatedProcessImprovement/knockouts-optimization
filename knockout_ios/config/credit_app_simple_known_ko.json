@@ -8,6 +8,5 @@
   "positive_outcomes": [],
   "known_ko_activities": [
     "Assess application"
-  ],
-  "ko_count_threshold": 5
+  ]
 }

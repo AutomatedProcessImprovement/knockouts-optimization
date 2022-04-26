@@ -216,3 +216,13 @@ def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
         waste[activity] = overlaps.sum() / log_df.shape[0]
 
     return waste
+
+
+def calc_mean_waiting_time_waste_v2(ko_activities, log_df):
+    waste = {}
+
+    for activity in ko_activities:
+        waste[activity] = 0
+        continue
+
+    return waste

@@ -4,6 +4,7 @@ import os
 import pprint
 
 from copy import deepcopy
+from typing import Callable, Optional
 
 import numpy as np
 from tabulate import tabulate
@@ -14,12 +15,13 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.format import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
-    calc_processing_waste, calc_mean_waiting_time_waste_v1
+    calc_processing_waste, calc_mean_waiting_time_waste_v2
 
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
-from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_df
+
+from knockout_ios.utils.synthetic_example.preprocessors import *
 
 
 def clear_cache(cachedir, config_file_name):
@@ -34,7 +36,9 @@ def clear_cache(cachedir, config_file_name):
 class KnockoutAnalyzer:
 
     def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=False,
-                 quiet=True):
+                 quiet=True,
+                 custom_log_preprocessing_function: Callable[
+                     ['KnockoutAnalyzer', pd.DataFrame, Optional[str], ...], pd.DataFrame] = None):
 
         os.makedirs(cache_dir, exist_ok=True)
 
@@ -48,6 +52,9 @@ class KnockoutAnalyzer:
         self.IREP_rulesets = None
         self.aggregated_by_case_df = None
         self.ko_stats = {}
+        self.ruleset_algorithm = None
+        self.report_df = None
+        self.custom_log_preprocessing_function = custom_log_preprocessing_function
 
         self.always_force_recompute = always_force_recompute
 
@@ -63,7 +70,7 @@ class KnockoutAnalyzer:
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
 
-        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}.csv"
+        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}_ko_analysis_report.csv"
 
     def discover_knockouts(self, expected_kos=None):
         self.discoverer.find_ko_activities()
@@ -82,25 +89,15 @@ class KnockoutAnalyzer:
         # Populate dict with rejection rates and efforts (avg. KO activity durations)
         self.calc_rejection_rates()
 
-        # TODO: remove this if the .xes exporting problem is ever fixed - not critical anyway.
-        # if config_file_name contains "synthetic" then enrich log with synthetic attributes
-        if "synthetic" in self.config_file_name:
+        if self.custom_log_preprocessing_function is not None:
             enriched_log_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_enriched_.pkl'
+            self.discoverer.log_df = self.custom_log_preprocessing_function(self, self.discoverer.log_df,
+                                                                            enriched_log_df_cache_path)
+
             enriched_pm4py_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_pm4py_format_enriched_.pkl'
-
-            try:
-                if self.always_force_recompute:
-                    raise FileNotFoundError
-
-                self.discoverer.log_df = pd.read_pickle(enriched_log_df_cache_path)
-                self.discoverer.pm4py_formatted_df = pd.read_pickle(enriched_pm4py_df_cache_path)
-
-            except FileNotFoundError:
-                self.discoverer.log_df = enrich_log_df(self.discoverer.log_df)
-                self.discoverer.pm4py_formatted_df = enrich_log_df(self.discoverer.pm4py_formatted_df)
-
-                self.discoverer.log_df.to_pickle(enriched_log_df_cache_path)
-                self.discoverer.pm4py_formatted_df.to_pickle(enriched_pm4py_df_cache_path)
+            self.discoverer.pm4py_formatted_df = self.custom_log_preprocessing_function(self,
+                                                                                        self.discoverer.pm4py_formatted_df,
+                                                                                        enriched_pm4py_df_cache_path)
 
     def calc_rejection_rates(self):
         rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
@@ -205,21 +202,21 @@ class KnockoutAnalyzer:
 
         return log, columns_to_ignore
 
-    def get_ko_rules(self,
-                     algorithm="IREP",
-                     max_rules=None,
-                     max_rule_conds=None,
-                     max_total_conds=None,
-                     k=2,
-                     n_discretize_bins=7,
-                     dl_allowance=16,
-                     prune_size=0.33,
-                     grid_search=False,
-                     param_grid=None,
-                     confidence_threshold=0.5,
-                     support_threshold=0.5,
-                     omit_report=False,
-                     print_rule_discovery_stats=False):
+    def compute_ko_rules(self,
+                         algorithm="IREP",
+                         max_rules=None,
+                         max_rule_conds=None,
+                         max_total_conds=None,
+                         k=2,
+                         n_discretize_bins=7,
+                         dl_allowance=16,
+                         prune_size=0.33,
+                         grid_search=False,
+                         param_grid=None,
+                         confidence_threshold=0.5,
+                         support_threshold=0.5,
+                         omit_report=False,
+                         print_rule_discovery_stats=False):
 
         if self.discoverer.log_df is None:
             raise Exception("log not yet loaded")
@@ -228,6 +225,7 @@ class KnockoutAnalyzer:
             raise Exception("ko activities not yet discovered")
 
         # Discover rules in knockout activities with chosen algorithm
+        self.ruleset_algorithm = algorithm
 
         self.available_cases_before_ko = calc_available_cases_before_ko(self.discoverer.ko_activities,
                                                                         self.discoverer.log_df)
@@ -279,12 +277,12 @@ class KnockoutAnalyzer:
         self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
                              algorithm=algorithm)
 
-        report_df = self.build_report(algorithm=algorithm, omit=omit_report)
+        self.report_df = self.build_report(omit=omit_report)
 
         if print_rule_discovery_stats:
             self.print_ko_rulesets_stats(algorithm=algorithm, compact=True)
 
-        return report_df, self
+        return self.report_df, self
 
     def print_ko_rulesets_stats(self, algorithm, compact=False):
 
@@ -322,9 +320,11 @@ class KnockoutAnalyzer:
                 )
                 print(f"rule discovery params: {params}")
 
-    def build_report(self, algorithm="IREP", omit=False):
+    def build_report(self, omit=False):
+        if self.ruleset_algorithm is None:
+            return
 
-        if algorithm == "RIPPER":
+        if self.ruleset_algorithm == "RIPPER":
             rulesets = self.RIPPER_rulesets
         else:
             rulesets = self.IREP_rulesets
@@ -335,7 +335,7 @@ class KnockoutAnalyzer:
         overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
                                                          self.discoverer.pm4py_formatted_df)
         processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_formatted_df)
-        mean_waiting_time_waste = calc_mean_waiting_time_waste_v1(self.discoverer.ko_activities,
+        mean_waiting_time_waste = calc_mean_waiting_time_waste_v2(self.discoverer.ko_activities,
                                                                   self.discoverer.pm4py_formatted_df)
 
         entries = []
@@ -347,8 +347,9 @@ class KnockoutAnalyzer:
                                 f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
                             REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
                             REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
-                            f"{REPORT_COLUMN_REJECTION_RULE} ({algorithm})": rulesets[ko][0].ruleset_,
-                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][algorithm]["effort"], ndigits=2),
+                            f"{REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})": rulesets[ko][0].ruleset_,
+                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][self.ruleset_algorithm]["effort"],
+                                                               ndigits=2),
                             REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
                             REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
                             REPORT_COLUMN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko]),
@@ -368,13 +369,11 @@ if __name__ == "__main__":
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=True,
-                                quiet=True)
+                                quiet=True,
+                                custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
 
     analyzer.discover_knockouts(
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
-                          print_rule_discovery_stats=True)
-
-# TODOs - related to time waste metrics
-# TODO: implement Mean WT waste v2
+    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
+                              print_rule_discovery_stats=True)
