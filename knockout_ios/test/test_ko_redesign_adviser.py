@@ -2,8 +2,19 @@ import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
-from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes, \
-    enrich_log_for_ko_order_advanced_test, enrich_log_for_ko_order_advanced_test_fixed_values_wrapper
+from knockout_ios.utils.redesign import get_sorted_with_dependencies
+from knockout_ios.utils.synthetic_example.preprocessors import *
+
+
+def test_get_sorted_with_dependencies():
+    order = ["A", "C", "B"]
+    dependencies = {k: [] for k in order}
+    dependencies["A"].append(("attr_from_B", "B"))
+    dependencies["A"].append(("attr_from_C", "C"))
+
+    optimal_order = get_sorted_with_dependencies(dependencies=dependencies, optimal_order_names=order)
+
+    assert optimal_order == ["B", "C", "A"]
 
 
 def test_ko_reorder_io_simple():
@@ -39,7 +50,7 @@ def test_ko_reorder_io_advanced():
     analyzer.compute_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False)
 
-    adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
+    adviser = KnockoutRedesignAdviser(analyzer, quiet=True)
     adviser.compute_redesign_options()
 
     # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"

@@ -45,7 +45,7 @@ def dump_analyzer_cache(ko_analyzer, cache_dir, cache_name):
 
 
 class KnockoutRedesignAdviser(object):
-    def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=True):
+    def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=False):
         self.knockout_analyzer = knockout_analyzer
         self.quiet = quiet
 
@@ -83,7 +83,7 @@ class KnockoutRedesignAdviser(object):
             print(
                 "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
             print(
-                "Optimal Order of Knock-out checks:\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} completed case(s) follow it.")
+                "Optimal Order of Knock-out checks (taking into account attribute dependencies):\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it.")
 
         return self.redesign_options
 
@@ -101,5 +101,5 @@ if __name__ == "__main__":
     analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False)
 
-    adviser = KnockoutRedesignAdviser(analyzer, quiet=True)
+    adviser = KnockoutRedesignAdviser(analyzer)
     adviser.compute_redesign_options()
