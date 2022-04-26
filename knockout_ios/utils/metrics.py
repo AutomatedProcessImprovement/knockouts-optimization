@@ -1,3 +1,5 @@
+from typing import List
+
 import pandas as pd
 from datetimerange import DateTimeRange
 from numpy import nan
@@ -125,7 +127,7 @@ def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRules
     return confidence
 
 
-def calc_available_cases_before_ko(ko_activities, log_df):
+def calc_available_cases_before_ko(ko_activities: List[str], log_df: pd.DataFrame):
     counts = {}
 
     # group log_df by caseid and for each activity count how many groups (i.e. cases) contain that activity
@@ -136,7 +138,7 @@ def calc_available_cases_before_ko(ko_activities, log_df):
     return counts
 
 
-def calc_processing_waste(ko_activities, log_df):
+def calc_processing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     counts = {}
 
     # Approximation, only adding durations of all activities of knocked out cases per ko activity.
@@ -149,7 +151,7 @@ def calc_processing_waste(ko_activities, log_df):
     return counts
 
 
-def calc_overprocessing_waste(ko_activities, log_df):
+def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     counts = {}
 
     # Basic Cycle time calculation: end time of last activity of a case - start time of first activity of a case
@@ -167,7 +169,7 @@ def calc_overprocessing_waste(ko_activities, log_df):
 # TODO: still in v1 - computes overlap between events of ko case and non-ko case,
 #       not yet overlap between ko case and "empty spaces" between non-ko case events
 # TODO: atm very slow, even with swifter - DateTimeRange package comparison slows it down
-def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
+def calc_mean_waiting_time_waste_v1(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {}
 
     # Aggregate by case and take into account most frequent resource;
@@ -218,7 +220,7 @@ def calc_mean_waiting_time_waste_v1(ko_activities, log_df):
     return waste
 
 
-def calc_mean_waiting_time_waste_v2(ko_activities, log_df):
+def calc_mean_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {}
 
     for activity in ko_activities:
