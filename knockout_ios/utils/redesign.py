@@ -67,14 +67,26 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
     return list(res)
 
 
-def get_sorted_with_dependencies(dependencies, optimal_order_names):
-    # TODO: implement
-    # sort optimal_order_names such that every producer activity is before an activity that depends on it
-    for producer in dependencies:
-        optimal_order_names.remove(producer)
-        optimal_order_names.insert(0, producer)
+def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]], optimal_order_names: List[str]):
+    # TODO: test multiple dependencies
 
-    # optimal_order_names = ["Check Liability", "Check Risk", "Aggregated Risk Score Check", "Check Monthly Income"]
+    for knockout_activity in optimal_order_names:
+        _dependencies = dependencies[knockout_activity]
+        if not (len(_dependencies) > 0):
+            continue
+
+        # sort deps by the index of every second element of the tuples in optimal_order_names
+        _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
+
+        for pair in _dependencies:
+            attribute_value_producer = pair[1]
+            # remove activity from optimal_order_names
+            optimal_order_names.remove(knockout_activity)
+            # find where is dep[0] in optimal_order_names
+            idx = optimal_order_names.index(attribute_value_producer)
+            # insert activity after dep[0]
+            optimal_order_names.insert(idx + 1, knockout_activity)
+
     return optimal_order_names
 
 
@@ -145,7 +157,7 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     if dependencies is not None:
         # TODO: make it more flexible / generic, to include other sorting criteria
-        optimal_order_names = get_sorted_with_dependencies(dependencies, optimal_order_names)
+        optimal_order_names = get_sorted_with_dependencies(dependencies, list(optimal_order_names))
         pass
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \

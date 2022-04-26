@@ -55,7 +55,7 @@ class KnockoutRedesignAdviser(object):
         self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
                                                                               dependencies=self.redesign_options[
                                                                                   "relocation"])
-        # self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
+        self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
 
         if not self.quiet:
             print(f"\n** Redesign options **\n")
