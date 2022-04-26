@@ -18,5 +18,5 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts()
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=True)
+    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                              print_rule_discovery_stats=True)
