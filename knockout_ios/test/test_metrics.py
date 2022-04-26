@@ -224,8 +224,8 @@ def test_mean_waiting_time_waste_v2():
             'knocked_out_case': False,
             PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
             PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:00:00"),
-            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 10:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 10:05:00"),
         },
         {
             PM4PY_CASE_ID_COLUMN_NAME: 1,
@@ -233,7 +233,7 @@ def test_mean_waiting_time_waste_v2():
             'knocked_out_case': False,
             PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
             PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:05:00"),
             PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
         },
         {
@@ -252,5 +252,5 @@ def test_mean_waiting_time_waste_v2():
 
     waste = calc_mean_waiting_time_waste_v2(ko_activities, pd.DataFrame(events))
 
-    assert (waste["ko_1"] * len(events)) == pytest.approx(
-        3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
+    # 60 mins. between 13:05 (finish case 0, knocked out) and 14:05 (resume work on case 1, non knocked out)
+    assert waste["ko_1"] == pytest.approx(3600)
