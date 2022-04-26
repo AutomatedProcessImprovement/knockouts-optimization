@@ -31,7 +31,7 @@ def test_ko_reorder_io_simple():
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
                             ko_analyzer=analyzer)
 
-    adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
+    adviser = KnockoutRedesignAdviser(analyzer)
     adviser.compute_redesign_options()
 
     assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Monthly Income", "Check Risk",
@@ -64,7 +64,7 @@ def test_ko_reorder_io_advanced():
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_advanced",
                             ko_analyzer=analyzer)
 
-    adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
+    adviser = KnockoutRedesignAdviser(analyzer)
     adviser.compute_redesign_options()
 
     # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"

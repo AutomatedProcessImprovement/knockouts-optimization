@@ -20,27 +20,24 @@ Depending on your platform, install graphviz (v 3.0.0+) separately, and make sur
 
 ```python
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
+from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
+from knockout_ios.utils.synthetic_example.preprocessors import *
 
-#  Synthetic Example Ground Truth
-#  (K.O. checks and their rejection rules):
-#
-# 'Check Liability':        'Total Debt'     > 5000 ||  'Owns Vehicle' = False
-# 'Check Risk':             'Loan Ammount'   > 10000
-# 'Check Monthly Income':   'Monthly Income' < 1000
-# 'Assess application':     'External Risk Score' > 0.3
-
-analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
+analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_advanced.json",
                             config_dir="config",
-                            cache_dir="knockout_ios/cache/synthetic_example",
+                            cache_dir="test/knockout_ios/cache/synthetic_example",
                             always_force_recompute=True,
-                            custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
+                            quiet=True,
+                            custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test_fixed_values_wrapper)
 
 analyzer.discover_knockouts()
 
 analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=True)
+                          print_rule_discovery_stats=False, omit_report=False)
 
+adviser = KnockoutRedesignAdviser(analyzer)
+
+adviser.compute_redesign_options()
 ```
 
 ## Running tests
