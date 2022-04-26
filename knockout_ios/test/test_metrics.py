@@ -5,7 +5,7 @@ from pandas import Timestamp
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
-    calc_mean_waiting_time_waste_v1
+    calc_mean_waiting_time_waste_v1, calc_mean_waiting_time_waste_v2
 
 log = [
     # 1 Knocked out case (contains check_A and did not pass it)
@@ -181,6 +181,76 @@ def test_mean_waiting_time_waste_v1():
     ko_activities = ["ko_1"]
 
     waste = calc_mean_waiting_time_waste_v1(ko_activities, pd.DataFrame(events))
+
+    assert (waste["ko_1"] * len(events)) == pytest.approx(
+        3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
+
+
+def test_mean_waiting_time_waste_v2():
+    events = [
+        # Case that will be knocked out
+        {
+            PM4PY_CASE_ID_COLUMN_NAME: 0,
+            'knockout_activity': 'ko_1',
+            'knocked_out_case': True,
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
+            PM4PY_RESOURCE_COLUMN_NAME: 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
+        },
+        {
+            PM4PY_CASE_ID_COLUMN_NAME: 0,
+            'knockout_activity': 'ko_1',
+            'knocked_out_case': True,
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
+            PM4PY_RESOURCE_COLUMN_NAME: 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
+        },
+        {
+            PM4PY_CASE_ID_COLUMN_NAME: 0,
+            'knockout_activity': 'ko_1',
+            'knocked_out_case': True,
+            PM4PY_ACTIVITY_COLUMN_NAME: 'End',
+            PM4PY_RESOURCE_COLUMN_NAME: 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:05:00"),
+        },
+
+        # Non knocked out case that has to wait
+        {
+            PM4PY_CASE_ID_COLUMN_NAME: 1,
+            'knockout_activity': False,
+            'knocked_out_case': False,
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
+            PM4PY_RESOURCE_COLUMN_NAME: 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
+        },
+        {
+            PM4PY_CASE_ID_COLUMN_NAME: 1,
+            'knockout_activity': False,
+            'knocked_out_case': False,
+            PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
+            PM4PY_RESOURCE_COLUMN_NAME: 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
+        },
+        {
+            PM4PY_CASE_ID_COLUMN_NAME: 1,
+            'knockout_activity': False,
+            'knocked_out_case': False,
+            PM4PY_ACTIVITY_COLUMN_NAME: 'End',
+            PM4PY_RESOURCE_COLUMN_NAME: 'R1',
+            PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
+            PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:05:00"),
+        }
+
+    ]
+
+    ko_activities = ["ko_1"]
+
+    waste = calc_mean_waiting_time_waste_v2(ko_activities, pd.DataFrame(events))
 
     assert (waste["ko_1"] * len(events)) == pytest.approx(
         3900)  # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
