@@ -68,24 +68,22 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
 
 
 def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]], optimal_order_names: List[str]):
-    # TODO: test with multiple dependencies
-
-    for knockout_activity in optimal_order_names:
+    activities = optimal_order_names.copy()
+    
+    for knockout_activity in activities:
         _dependencies = dependencies[knockout_activity]
-        if not (len(_dependencies) > 0):
-            continue
 
-        # sort deps by the index of every second element of the tuples in optimal_order_names
-        _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
+        while len(_dependencies) > 0:
+            # Sort deps by the index of every second element of the tuples in optimal_order_names
+            _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
+            _, attribute_producer = _dependencies.pop(0)
 
-        # Remove knockout_activity from optimal_order_names,
-        # find where is attribute_value_producer in optimal_order_names,
-        # then insert knockout_activity after attribute_value_producer
-
-        for pair in _dependencies:
-            attribute_value_producer = pair[1]
+            # Remove knockout_activity from optimal_order_names to insert it in the right place
             optimal_order_names.remove(knockout_activity)
-            idx = optimal_order_names.index(attribute_value_producer)
+
+            # Find where is attribute_value_producer in optimal_order_names,
+            # then insert knockout_activity after attribute_value_producer
+            idx = optimal_order_names.index(attribute_producer)
             optimal_order_names.insert(idx + 1, knockout_activity)
 
     return optimal_order_names

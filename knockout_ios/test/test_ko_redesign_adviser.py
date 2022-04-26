@@ -2,19 +2,7 @@ import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
-from knockout_ios.utils.redesign import get_sorted_with_dependencies
 from knockout_ios.utils.synthetic_example.preprocessors import *
-
-
-def test_get_sorted_with_dependencies():
-    order = ["A", "C", "B"]
-    dependencies = {k: [] for k in order}
-    dependencies["A"].append(("attr_from_B", "B"))
-    dependencies["A"].append(("attr_from_C", "C"))
-
-    optimal_order = get_sorted_with_dependencies(dependencies=dependencies, optimal_order_names=order)
-
-    assert optimal_order == ["B", "C", "A"]
 
 
 def test_ko_reorder_io_simple():
