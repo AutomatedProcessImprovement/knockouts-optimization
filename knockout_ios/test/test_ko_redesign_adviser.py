@@ -16,11 +16,11 @@ def test_ko_reorder_io_simple():
 
     analyzer.discover_knockouts()
 
-    analyzer.get_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=False, omit_report=True)
+    analyzer.compute_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                              print_rule_discovery_stats=False, omit_report=True)
 
     adviser = KnockoutRedesignAdviser(analyzer, quiet=True)
-    adviser.get_redesign_options()
+    adviser.compute_redesign_options()
 
     assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Monthly Income", "Check Risk",
                                                                              "Check Liability", "Assess application"]
@@ -37,11 +37,11 @@ def test_ko_reorder_io_advanced():
 
     analyzer.discover_knockouts()
 
-    analyzer.get_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=False, omit_report=False)
+    analyzer.compute_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                              print_rule_discovery_stats=False, omit_report=False)
 
     adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
-    adviser.get_redesign_options()
+    adviser.compute_redesign_options()
 
     # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"
     assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",

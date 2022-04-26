@@ -16,8 +16,9 @@ def test_report_creation(algorithm):
 
     analyzer.discover_knockouts()
 
-    df, _ = analyzer.get_ko_rules(grid_search=False, algorithm=algorithm, omit_report=True, confidence_threshold=0.5,
-                                  support_threshold=0.5)
+    df, _ = analyzer.compute_ko_rules(grid_search=False, algorithm=algorithm, omit_report=True,
+                                      confidence_threshold=0.5,
+                                      support_threshold=0.5)
 
     expected_kos = ['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application']
 

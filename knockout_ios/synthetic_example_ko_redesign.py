@@ -25,14 +25,14 @@ def test_ko_reorder_io_simple():
 
         analyzer.discover_knockouts()
 
-        analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                              print_rule_discovery_stats=False, omit_report=False)
+        analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                                  print_rule_discovery_stats=False, omit_report=False)
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
                             ko_analyzer=analyzer)
 
     adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
-    adviser.get_redesign_options()
+    adviser.compute_redesign_options()
 
     assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Monthly Income", "Check Risk",
                                                                              "Check Liability", "Assess application"]
@@ -58,14 +58,14 @@ def test_ko_reorder_io_advanced():
 
         analyzer.discover_knockouts()
 
-        analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                              print_rule_discovery_stats=False, omit_report=False)
+        analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                                  print_rule_discovery_stats=False, omit_report=False)
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_advanced",
                             ko_analyzer=analyzer)
 
     adviser = KnockoutRedesignAdviser(analyzer, quiet=False)
-    adviser.get_redesign_options()
+    adviser.compute_redesign_options()
 
     # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"
     # assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",
@@ -74,6 +74,5 @@ def test_ko_reorder_io_advanced():
 
 
 if __name__ == "__main__":
-    # ignore_caches = True
-    # test_ko_reorder_io_simple()
+    ignore_caches = True
     test_ko_reorder_io_advanced()

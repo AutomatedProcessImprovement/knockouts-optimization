@@ -1,4 +1,5 @@
 from collections import Counter
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -66,7 +67,18 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
     return list(res)
 
 
-def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer):
+def get_sorted_with_dependencies(dependencies, optimal_order_names):
+    # TODO: implement
+    # sort optimal_order_names such that every producer activity is before an activity that depends on it
+    for producer in dependencies:
+        optimal_order_names.remove(producer)
+        optimal_order_names.insert(0, producer)
+
+    # optimal_order_names = ["Check Liability", "Check Risk", "Aggregated Risk Score Check", "Check Monthly Income"]
+    return optimal_order_names
+
+
+def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
     """
     - Returns dependencies between log activities and attributes required by knockout checks
     """
@@ -92,10 +104,10 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer):
             producers = []
             for caseid in log.index.unique():
                 case = log.loc[caseid]
-                case_ko = case['knockout_activity']
-                if not (len(case_ko.values) > 0):
+                knockout_activity_column_values = case['knockout_activity']
+                if not (len(knockout_activity_column_values.values) > 0):
                     continue
-                if case_ko.values[0] != ko_activity:
+                if knockout_activity_column_values.values[0] != ko_activity:
                     continue
 
                 activities_where_unavailable = case[np.isnan(case[attribute].values)][PM4PY_ACTIVITY_COLUMN_NAME].values
@@ -110,36 +122,31 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer):
                     continue
                 dependencies[ko_activity].append((attribute, producers))
 
-    # TODO: remove, just for testing
-    # dependencies['Aggregated Risk Score'] = [('External Risk Score', 'Check Risk')]
-
     return dependencies
 
 
-def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer):
-    return []
-
-
-def evaluate_knockout_reordering_io_v2(analyzer: KnockoutAnalyzer):
+def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
+                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> dict:
     '''
-    Version 2:
+    - Returns the observed ko-checks ordering (AS-IS)
     - Returns optimal ordering by KO effort
-    - Returns also the observed ko-checks ordering
+    - If a dependencies dictionary is provided, it will take it into account for the optimal ordering
     '''
 
     log = analyzer.discoverer.pm4py_formatted_df
 
-    # TODO: take into account availability of attribute values!
     sorted_by_effort = analyzer.report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO], ascending=True, inplace=False)
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
-
-    # TODO: remove this, just for testing
-    # optimal_order_names = ["Check Liability", "Check Risk", "Check Monthly Income", "Assess application"]
 
     # Determine how many cases respect this order in the log
     # TODO: for the moment, keeping only non knocked out cases to analyze order. Could be useful to see also partial (ko-d) cases
     filtered = log[log['knocked_out_case'] == False]
     total_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
+
+    if dependencies is not None:
+        # TODO: make it more flexible / generic, to include other sorting criteria
+        optimal_order_names = get_sorted_with_dependencies(dependencies, optimal_order_names)
+        pass
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
         .groupby([PM4PY_CASE_ID_COLUMN_NAME])
@@ -149,3 +156,7 @@ def evaluate_knockout_reordering_io_v2(analyzer: KnockoutAnalyzer):
     return {"optimal_order_names": list(optimal_order_names), "cases_respecting_order": cases_respecting_order.ngroups,
             "total_cases": total_cases,
             "observed_ko_order": observed_ko_order}
+
+
+def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer):
+    return []

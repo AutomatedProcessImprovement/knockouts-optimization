@@ -202,21 +202,21 @@ class KnockoutAnalyzer:
 
         return log, columns_to_ignore
 
-    def get_ko_rules(self,
-                     algorithm="IREP",
-                     max_rules=None,
-                     max_rule_conds=None,
-                     max_total_conds=None,
-                     k=2,
-                     n_discretize_bins=7,
-                     dl_allowance=16,
-                     prune_size=0.33,
-                     grid_search=False,
-                     param_grid=None,
-                     confidence_threshold=0.5,
-                     support_threshold=0.5,
-                     omit_report=False,
-                     print_rule_discovery_stats=False):
+    def compute_ko_rules(self,
+                         algorithm="IREP",
+                         max_rules=None,
+                         max_rule_conds=None,
+                         max_total_conds=None,
+                         k=2,
+                         n_discretize_bins=7,
+                         dl_allowance=16,
+                         prune_size=0.33,
+                         grid_search=False,
+                         param_grid=None,
+                         confidence_threshold=0.5,
+                         support_threshold=0.5,
+                         omit_report=False,
+                         print_rule_discovery_stats=False):
 
         if self.discoverer.log_df is None:
             raise Exception("log not yet loaded")
@@ -375,5 +375,5 @@ if __name__ == "__main__":
     analyzer.discover_knockouts(
         expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
-                          print_rule_discovery_stats=True)
+    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
+                              print_rule_discovery_stats=True)

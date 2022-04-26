@@ -4,7 +4,7 @@ import pprint
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
-    evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io_v2
+    evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io
 from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 '''
@@ -49,11 +49,13 @@ class KnockoutRedesignAdviser(object):
         self.knockout_analyzer = knockout_analyzer
         self.quiet = quiet
 
-    def get_redesign_options(self):
+    def compute_redesign_options(self):
         self.redesign_options = {}
-        self.redesign_options["reordering"] = evaluate_knockout_reordering_io_v2(self.knockout_analyzer)
         self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer)
-        self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
+                                                                              dependencies=self.redesign_options[
+                                                                                  "relocation"])
+        # self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
 
         if not self.quiet:
             print(f"\n** Redesign options **\n")
@@ -96,8 +98,8 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts()
 
-    analyzer.get_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=False, omit_report=False)
+    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                              print_rule_discovery_stats=False, omit_report=False)
 
     adviser = KnockoutRedesignAdviser(analyzer, quiet=True)
-    adviser.get_redesign_options()
+    adviser.compute_redesign_options()
