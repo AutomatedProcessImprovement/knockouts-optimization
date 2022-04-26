@@ -1,0 +1,5 @@
+Knock-out check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (IREP),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Mean Waiting Time Waste (*)
+Check Liability,2000,100.0 %,0:17:28,49.6 %,[[Aggregated_Risk_Score=0.49]],19.82,"32 days, 23:32:15","32 days, 19:41:58",0:00:00
+Check Risk,1009,50.45 %,0:33:47,31.1 %,[[Loan_Ammount=10000.0]],65.18,"20 days, 23:14:22","20 days, 4:53:47",0:00:00
+Aggregated Risk Score Check,546,27.3 %,0:08:01,87.9 %,[[Aggregated_Risk_Score=0.5]],5.48,"52 days, 16:18:59","52 days, 10:43:34",0:00:00
+Check Monthly Income,695,34.75 %,0:46:46,21.4 %,[[Monthly_Income=999.0]],131.13,"10 days, 23:46:20","10 days, 5:44:06",0:00:00

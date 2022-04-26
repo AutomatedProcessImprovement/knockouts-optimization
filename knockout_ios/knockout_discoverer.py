@@ -98,6 +98,13 @@ class KnockoutDiscoverer:
 
         # Idea: iteratively increase the limit until finding a positive outcome in the outcome list;
         #       keep last num before this happened
+
+        if self.config.ko_count_threshold is None:
+            # count the unique values in the activity column of pm4py_formatted_df
+            ko_count_threshold = len(self.pm4py_formatted_df[PM4PY_ACTIVITY_COLUMN_NAME].unique())
+        else:
+            ko_count_threshold = self.config.ko_count_threshold
+
         self.ko_activities, self.ko_outcomes, self.ko_seqs = discover_ko_sequences(self.pm4py_formatted_df,
                                                                                    self.config_file_name,
                                                                                    cache_dir=self.cache_dir,
@@ -105,7 +112,7 @@ class KnockoutDiscoverer:
                                                                                    known_ko_activities=self.config.known_ko_activities,
                                                                                    negative_outcomes=self.config.negative_outcomes,
                                                                                    positive_outcomes=self.config.positive_outcomes,
-                                                                                   limit=self.config.ko_count_threshold,
+                                                                                   limit=ko_count_threshold,
                                                                                    quiet=self.quiet,
                                                                                    force_recompute=self.force_recompute)
 
@@ -169,22 +176,22 @@ class KnockoutDiscoverer:
 
             gr = rejected.groupby(PM4PY_CASE_ID_COLUMN_NAME)
 
-            if not self.quiet:
-                print("\nMarking knocked-out cases in log")
-            for group in tqdm(gr.groups.keys(), desc="Knocked-out cases"):
+            self.log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+            self.pm4py_formatted_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+
+            for group in tqdm(gr.groups.keys(), desc="Marking knocked-out cases in log"):
                 case_df = gr.get_group(group)
                 sorted_case = case_df.sort_values("start_timestamp")
                 knockout_activity = find_ko_activity(self.ko_activities, sorted_case)
 
-                self.log_df.loc[self.log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == group, 'knocked_out_case'] = True
-                self.log_df.loc[
-                    self.log_df[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME] == group, 'knockout_activity'] = knockout_activity
+                self.log_df.at[group, 'knocked_out_case'] = True
+                self.log_df.at[group, 'knockout_activity'] = knockout_activity
 
-                self.pm4py_formatted_df.loc[
-                    self.pm4py_formatted_df[PM4PY_CASE_ID_COLUMN_NAME] == group, 'knocked_out_case'] = True
-                self.pm4py_formatted_df.loc[
-                    self.pm4py_formatted_df[
-                        PM4PY_CASE_ID_COLUMN_NAME] == group, 'knockout_activity'] = knockout_activity
+                self.pm4py_formatted_df.at[group, 'knocked_out_case'] = True
+                self.pm4py_formatted_df.at[group, 'knockout_activity'] = knockout_activity
+
+            self.log_df.reset_index(inplace=True)
+            self.pm4py_formatted_df.reset_index(inplace=True)
 
             self.log_df.to_pickle(f"./{self.cache_dir}/{self.config_file_name}_with_knockouts.pkl")
             self.pm4py_formatted_df.to_pickle(f"./{self.cache_dir}/{self.config_file_name}_pm4pyf_with_knockouts.pkl")

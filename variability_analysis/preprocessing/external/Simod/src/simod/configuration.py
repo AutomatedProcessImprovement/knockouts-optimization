@@ -63,7 +63,7 @@ class AndPriorORemove(Enum):
 
     @classmethod
     def from_str(
-        cls, value: Union[str, List[str]]
+            cls, value: Union[str, List[str]]
     ) -> Union["AndPriorORemove", List["AndPriorORemove"]]:
         if isinstance(value, str):
             return AndPriorORemove._from_str(value)
@@ -85,7 +85,7 @@ class AndPriorORemove(Enum):
 
     @staticmethod
     def to_str(
-        value: Union["AndPriorORemove", List["AndPriorORemove"]]
+            value: Union["AndPriorORemove", List["AndPriorORemove"]]
     ) -> Union[str, List[str]]:
         if isinstance(value, AndPriorORemove):
             return str(value)
@@ -109,7 +109,7 @@ class GateManagement(Enum):
 
     @classmethod
     def from_str(
-        cls, value: Union[str, List[str]]
+            cls, value: Union[str, List[str]]
     ) -> "Union[GateManagement, List[GateManagement]]":
         if isinstance(value, str):
             return GateManagement._from_str(value)
@@ -160,7 +160,7 @@ class DataType(Enum):
 
     @classmethod
     def from_str(
-        cls, value: Union[str, List[str]]
+            cls, value: Union[str, List[str]]
     ) -> "Union[DataType, List[DataType]]":
         if isinstance(value, str):
             return DataType._from_str(value)
@@ -337,13 +337,11 @@ class Configuration:
     positive_outcomes: Optional[str] = None
     known_ko_activities: Optional[str] = None
     start_activity: Optional[str] = "Start"
-    ko_count_threshold: Optional[int] = 1
+    ko_count_threshold: Optional[int] = None
 
     def fill_in_derived_fields(self):
         if self.log_path:
             self.project_name, _ = os.path.splitext(os.path.basename(self.log_path))
-
-
 
 
 def config_data_from_file(config_path: Path) -> dict:
@@ -417,7 +415,7 @@ def config_data_with_datastructures(data: dict) -> dict:
 
     gate_management = data.get("gate_management")
     if gate_management and (
-        isinstance(gate_management, str) or isinstance(gate_management, list)
+            isinstance(gate_management, str) or isinstance(gate_management, list)
     ):
         data["gate_management"] = GateManagement.from_str(gate_management)
 
@@ -477,7 +475,7 @@ def config_data_with_datastructures(data: dict) -> dict:
     if ko_count_threshold:
         data["ko_count_threshold"] = ko_count_threshold
     else:
-        data["ko_count_threshold"] = 1
+        data["ko_count_threshold"] = None
 
     known_ko_activities = data.get("known_ko_activities")
     if known_ko_activities:
