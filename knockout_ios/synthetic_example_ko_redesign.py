@@ -74,6 +74,4 @@ def test_ko_reorder_io_advanced():
 
 
 if __name__ == "__main__":
-    # ignore_caches = True
-    # test_ko_reorder_io_simple()
     test_ko_reorder_io_advanced()
