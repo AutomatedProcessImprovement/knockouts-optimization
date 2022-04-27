@@ -45,8 +45,3 @@ def test_ko_reorder_io_advanced():
     assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",
                                                                              "Aggregated Risk Score Check",
                                                                              "Check Monthly Income"]
-
-
-@pytest.mark.skip()
-def test_ko_relocation_io():
-    pass
