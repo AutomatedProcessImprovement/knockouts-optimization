@@ -101,7 +101,8 @@ def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
         if knockout_activity_column_values.values[0] != ko_activity:
             continue
 
-        activities_where_unavailable = case[np.isnan(case[attribute].values)][PM4PY_ACTIVITY_COLUMN_NAME].values
+        activities_where_unavailable = case[pd.isnull(case[attribute].values)][
+            SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME].values
         if len(activities_where_unavailable) > 0:
             producer_activity = activities_where_unavailable[-1]
             producers.append(producer_activity)
@@ -125,7 +126,7 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, Lis
 
     log = analyzer.discoverer.log_df
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
+    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME, inplace=True)
 
     for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
         ruleset = rule_discovery_dict[ko_activity][0]
