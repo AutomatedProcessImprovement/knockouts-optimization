@@ -67,7 +67,8 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
     return list(res)
 
 
-def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]], optimal_order_names: List[str]):
+def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]], optimal_order_names: List[str],
+                                 efforts=None):
     activities = optimal_order_names.copy()
 
     for knockout_activity in activities:
@@ -85,6 +86,10 @@ def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]],
             # then insert knockout_activity after attribute_value_producer
             idx = optimal_order_names.index(attribute_producer)
             optimal_order_names.insert(idx + 1, knockout_activity)
+
+            # TODO: sort everything after producer by ko effort
+            if efforts is not None:
+                pass
 
     return optimal_order_names
 
@@ -180,6 +185,7 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     sorted_by_effort = analyzer.report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO], ascending=True, inplace=False)
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
+    efforts = analyzer.report_df[[REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO]]
 
     # Determine how many cases respect this order in the log
     # TODO: for the moment, keeping only non knocked out cases to analyze order. Could be useful to see also partial (ko-d) cases
@@ -188,7 +194,7 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     if dependencies is not None:
         # TODO: make it more flexible / generic, to include other sorting criteria
-        optimal_order_names = get_sorted_with_dependencies(dependencies, list(optimal_order_names))
+        optimal_order_names = get_sorted_with_dependencies(dependencies, list(optimal_order_names), efforts)
         pass
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \

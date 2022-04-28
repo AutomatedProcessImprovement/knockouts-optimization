@@ -12,8 +12,10 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts()
 
-    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                              print_rule_discovery_stats=False, omit_report=False)
+    analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                              print_rule_discovery_stats=False, omit_report=False,
+                              max_total_conds=2
+                              )
 
     adviser = KnockoutRedesignAdviser(analyzer)
 
