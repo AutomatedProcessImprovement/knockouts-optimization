@@ -1,4 +1,5 @@
 from collections import Counter
+from copy import deepcopy
 from typing import List
 
 import numpy as np
@@ -144,6 +145,8 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, Lis
                     continue
                 dependencies[ko_activity].append((attribute, producers))
 
+    log.reset_index(inplace=True)
+
     return dependencies
 
 
@@ -155,7 +158,7 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     - If a dependencies dictionary is provided, it will take it into account for the optimal ordering
     '''
 
-    log = analyzer.discoverer.pm4py_formatted_df
+    log = analyzer.discoverer.log_df
 
     sorted_by_effort = analyzer.report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO], ascending=True, inplace=False)
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
