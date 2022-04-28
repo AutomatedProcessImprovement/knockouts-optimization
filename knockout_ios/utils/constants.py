@@ -15,7 +15,7 @@ PROCESSING_TIME = 'Processing Time'
 
 EMPTY_NON_NUMERICAL_VALUE = "<NONE>"
 
-REPORT_COLUMN_WT_WASTE = 'Waiting Time Waste'
+REPORT_COLUMN_WT_WASTE = 'Total Waiting Time Waste'
 REPORT_COLUMN_MEAN_WT_WASTE = 'Mean Waiting Time Waste'
 REPORT_COLUMN_TOTAL_PT_WASTE = 'Total PT Waste'
 REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE = 'Total Overprocessing Waste'

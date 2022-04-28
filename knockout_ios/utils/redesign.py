@@ -1,5 +1,4 @@
 from collections import Counter
-from copy import deepcopy
 from typing import List
 
 import numpy as np
@@ -104,9 +103,28 @@ def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
 
         activities_where_unavailable = case[pd.isnull(case[attribute].values)][
             SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME].values
-        if len(activities_where_unavailable) > 0:
-            producer_activity = activities_where_unavailable[-1]
+
+        # if attribute is never null, it means it's available from the start
+        if not (len(activities_where_unavailable) > 0):
+            continue
+
+        try:
+            log.loc[caseid, "next_attribute_value"] = (case[attribute]).shift(-1)
+            # refresh view after adding column to log
+            case = log.loc[caseid]
+
+            # find after which row, the attribute value stopped changing
+            last_valid_value = case[attribute].values[-1]
+            producer_event = case[case["next_attribute_value"] == last_valid_value].values[0]
+
+            # extract the activity name
+            idx = case.columns.get_loc(SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME)
+            producer_activity = producer_event[idx]
+
             producers.append(producer_activity)
+
+        except Exception:
+            continue
 
     return producers
 

@@ -325,8 +325,11 @@ class KnockoutAnalyzer:
         overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
                                                          self.discoverer.log_df)
         processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
-        mean_waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
-                                                             self.discoverer.log_df)
+        waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
+                                                        self.discoverer.log_df)
+
+        filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
+        total_non_ko_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
         entries = []
         for ko in self.discoverer.ko_activities:
@@ -342,7 +345,8 @@ class KnockoutAnalyzer:
                                                                ndigits=2),
                             REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
                             REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
-                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko])
+                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko]),
+                            REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko] / total_non_ko_cases)
                             }
                            )
 
