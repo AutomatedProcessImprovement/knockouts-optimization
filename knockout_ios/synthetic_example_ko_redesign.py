@@ -74,4 +74,5 @@ def test_ko_reorder_io_advanced():
 
 
 if __name__ == "__main__":
-    test_ko_reorder_io_advanced()
+    test_ko_reorder_io_simple()
+    # test_ko_reorder_io_advanced()
