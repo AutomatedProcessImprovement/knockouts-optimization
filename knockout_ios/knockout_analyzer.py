@@ -198,11 +198,11 @@ class KnockoutAnalyzer:
 
     def compute_ko_rules(self,
                          algorithm="IREP",
-                         max_rules=None,
-                         max_rule_conds=None,
+                         max_rules=3,
+                         max_rule_conds=2,
                          max_total_conds=None,
                          k=2,
-                         n_discretize_bins=7,
+                         n_discretize_bins=10,
                          dl_allowance=16,
                          prune_size=0.33,
                          grid_search=False,
@@ -236,9 +236,9 @@ class KnockoutAnalyzer:
         if grid_search & (param_grid is None):
             if algorithm == "RIPPER":
                 param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
-                              "n_discretize_bins": [4, 8, 12]}
+                              "n_discretize_bins": [10, 20, 30]}
             elif algorithm == "IREP":
-                param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [4, 8, 12]}
+                param_grid = {"prune_size": [0.33, 0.5], "n_discretize_bins": [10, 20, 30]}
 
         rulesets = find_ko_rulesets(self.rule_discovery_log_df,
                                     self.discoverer.ko_activities,
