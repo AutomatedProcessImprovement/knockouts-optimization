@@ -94,11 +94,6 @@ class KnockoutAnalyzer:
             self.discoverer.log_df = self.custom_log_preprocessing_function(self, self.discoverer.log_df,
                                                                             enriched_log_df_cache_path)
 
-            enriched_pm4py_df_cache_path = f'{self.cache_dir}/{self.config_file_name}_pm4py_format_enriched_.pkl'
-            self.discoverer.pm4py_formatted_df = self.custom_log_preprocessing_function(self,
-                                                                                        self.discoverer.pm4py_formatted_df,
-                                                                                        enriched_pm4py_df_cache_path)
-
     def calc_rejection_rates(self):
         rejection_rates = find_rejection_rates(self.discoverer.log_df, self.discoverer.ko_activities)
 
@@ -118,16 +113,12 @@ class KnockoutAnalyzer:
             rulesets = self.IREP_rulesets
 
         # average processing time of the knock-out check activity
-        soj_time = soj_time_get.apply(self.discoverer.pm4py_formatted_df,
+        soj_time = soj_time_get.apply(self.discoverer.log_df,
                                       parameters={
-                                          soj_time_get.Parameters.TIMESTAMP_KEY: PM4PY_END_TIMESTAMP_COLUMN_NAME,
+                                          soj_time_get.Parameters.TIMESTAMP_KEY: SIMOD_END_TIMESTAMP_COLUMN_NAME,
                                           soj_time_get.Parameters.START_TIMESTAMP_KEY:
-                                              PM4PY_START_TIMESTAMP_COLUMN_NAME}
+                                              SIMOD_START_TIMESTAMP_COLUMN_NAME}
                                       )
-
-        if not self.quiet:
-            print("\navg. time spent in each K.O. activity:\n")
-            pprint.pprint(soj_time)
 
         # Compute KO rejection rates and efforts
         for key in rulesets.keys():
@@ -182,6 +173,9 @@ class KnockoutAnalyzer:
         # skip the rest of pre-proc in case it has been already done
         if compute_columns_only:
             return None, columns_to_ignore
+        else:
+            # prepare to edit the log, w/o overwriting original
+            log = deepcopy(log)
 
         # Necessary in case the log contains numerical values as strings
         for attr in log.columns:
@@ -231,9 +225,8 @@ class KnockoutAnalyzer:
                                                                         self.discoverer.log_df)
 
         compute_columns_only = (self.RIPPER_rulesets is not None) or (self.IREP_rulesets is not None)
-        preprocessed_df, columns_to_ignore = \
-            self.preprocess_for_rule_discovery(self.discoverer.log_df,
-                                               compute_columns_only=compute_columns_only)
+        preprocessed_df, columns_to_ignore = self.preprocess_for_rule_discovery(self.discoverer.log_df,
+                                                                                compute_columns_only=compute_columns_only)
         if preprocessed_df is not None:
             self.rule_discovery_log_df = preprocessed_df
 
@@ -270,9 +263,6 @@ class KnockoutAnalyzer:
             self.RIPPER_rulesets = rulesets
         elif algorithm == "IREP":
             self.IREP_rulesets = rulesets
-
-        if not self.quiet:
-            self.print_ko_rulesets_stats(algorithm=algorithm)
 
         self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
                              algorithm=algorithm)
@@ -333,10 +323,13 @@ class KnockoutAnalyzer:
         freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
 
         overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
-                                                         self.discoverer.pm4py_formatted_df)
-        processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.pm4py_formatted_df)
-        mean_waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
-                                                             self.discoverer.pm4py_formatted_df)
+                                                         self.discoverer.log_df)
+        processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
+        waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
+                                                        self.discoverer.log_df)
+
+        filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
+        total_non_ko_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
         entries = []
         for ko in self.discoverer.ko_activities:
@@ -352,9 +345,8 @@ class KnockoutAnalyzer:
                                                                ndigits=2),
                             REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
                             REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
-                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(mean_waiting_time_waste[ko])
-                            # REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(
-                            #    mean_waiting_time_waste[ko] / self.discoverer.log_df.shape[0]),
+                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko]),
+                            REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko] / total_non_ko_cases)
                             }
                            )
 

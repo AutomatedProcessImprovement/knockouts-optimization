@@ -28,6 +28,7 @@ def test_report_creation(algorithm):
 
     # assert all columns are in the report
     assert sorted([REPORT_COLUMN_WT_WASTE,
+                   REPORT_COLUMN_MEAN_WT_WASTE,
                    REPORT_COLUMN_TOTAL_PT_WASTE,
                    REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE,
                    REPORT_COLUMN_EFFORT_PER_KO,
