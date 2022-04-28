@@ -71,6 +71,9 @@ def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]],
                                  efforts=None):
     activities = optimal_order_names.copy()
 
+    if efforts is not None:
+        efforts.set_index(REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
+
     for knockout_activity in activities:
         _dependencies = dependencies[knockout_activity]
 
@@ -87,9 +90,11 @@ def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]],
             idx = optimal_order_names.index(attribute_producer)
             optimal_order_names.insert(idx + 1, knockout_activity)
 
-            # TODO: sort everything after producer by ko effort
+            # Sort by effort everything after the producer
             if efforts is not None:
-                pass
+                idx = optimal_order_names.index(attribute_producer)
+                optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
+                                                       key=lambda x: efforts.loc[x].values[0])
 
     return optimal_order_names
 
