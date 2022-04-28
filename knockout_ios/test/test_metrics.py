@@ -5,7 +5,7 @@ from pandas import Timestamp
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
-    calc_waiting_time_waste_v1, calc_waiting_time_waste_v2
+    calc_overlapping_time_ko_and_non_ko, calc_waiting_time_waste_v2
 
 log = [
     # 1 Knocked out case (contains check_A and did not pass it)
@@ -116,7 +116,7 @@ def test_available_cases_before_ko_calculation():
     assert counts["Check Monthly Income"] == 350
 
 
-def test_waiting_time_waste_v1():
+def test_overlapping_time_ko_and_non_ko():
     events = [
         # Case that will be knocked out
         {
@@ -180,7 +180,7 @@ def test_waiting_time_waste_v1():
 
     ko_activities = ["ko_1"]
 
-    waste = calc_waiting_time_waste_v1(ko_activities, pd.DataFrame(events))
+    waste = calc_overlapping_time_ko_and_non_ko(ko_activities, pd.DataFrame(events))
 
     # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
     assert waste["ko_1"] == pytest.approx(3900)

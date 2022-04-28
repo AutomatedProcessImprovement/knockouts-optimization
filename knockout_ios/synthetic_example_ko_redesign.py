@@ -21,7 +21,7 @@ def test_ko_reorder_io_simple():
                                     cache_dir="test/knockout_ios/cache/synthetic_example",
                                     always_force_recompute=True,
                                     quiet=True,
-                                    custom_log_preprocessing_function=enrich_log_with_fully_known_attributes_fixed_values_wrapper)
+                                    custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
 
         analyzer.discover_knockouts()
 
@@ -74,4 +74,5 @@ def test_ko_reorder_io_advanced():
 
 
 if __name__ == "__main__":
+    # test_ko_reorder_io_simple()
     test_ko_reorder_io_advanced()

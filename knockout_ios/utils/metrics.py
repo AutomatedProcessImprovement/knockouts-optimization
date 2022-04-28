@@ -167,9 +167,9 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     return counts
 
 
-def calc_waiting_time_waste_v1(ko_activities: List[str], log_df: pd.DataFrame):
+def calc_overlapping_time_ko_and_non_ko(ko_activities: List[str], log_df: pd.DataFrame):
     """
-    - v1: computes overlap between events of ko case and non-ko case,
+    - computes overlap between events of ko case and non-ko case,
         not yet overlap between ko case and "empty spaces" between non-ko case events
     - slow, even with swifter - DateTimeRange package comparison slows it down
     """
@@ -222,6 +222,8 @@ def calc_waiting_time_waste_v1(ko_activities: List[str], log_df: pd.DataFrame):
     return waste
 
 
+# TODO: still very slow, but calls to apply are optimized as much as possible using swifter
+#  and raw ndarrays in the calls to apply()
 def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {activity: 0 for activity in ko_activities}
 
@@ -255,38 +257,48 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
             non_knocked_out = non_knocked_out_case_events[
                 non_knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME] == resource]
 
-            def compute_overlaps(non_ko_case_event):
+            # find indexes of columns in non_knocked_out, for an apply() call later using the 'raw' flag
+            end_timestamp_index = non_knocked_out.columns.get_loc(PM4PY_END_TIMESTAMP_COLUMN_NAME)
+            next_activity_start_index = non_knocked_out.columns.get_loc("next_activity_start")
 
-                total_overlap = 0
+            # find indexes of columns in knocked_out, for an apply() call later using the 'raw' flag
+            start_timestamp_index = knocked_out.columns.get_loc(PM4PY_START_TIMESTAMP_COLUMN_NAME)
+            ko_end_timestamp_index = knocked_out.columns.get_loc(PM4PY_END_TIMESTAMP_COLUMN_NAME)
+
+            def compute_overlaps(non_ko_case_event):
 
                 # handle these cases:
                 # - value of NaT in last activity of every case
                 # - cases with no "idle time" between its activities
-                if (pd.isnull(non_ko_case_event["next_activity_start"])) or (
-                        non_ko_case_event["next_activity_start"] <= non_ko_case_event[PM4PY_END_TIMESTAMP_COLUMN_NAME]):
-                    return total_overlap
+
+                if (pd.isnull(non_ko_case_event[next_activity_start_index])) or (
+                        non_ko_case_event[next_activity_start_index] <= non_ko_case_event[end_timestamp_index]):
+                    return 0
 
                 # Get the overlapping time between idle intervals of non_ko_case_event and knocked out cases
 
                 idle_time = DateTimeRange(
-                    non_ko_case_event[PM4PY_END_TIMESTAMP_COLUMN_NAME],
-                    non_ko_case_event["next_activity_start"]
+                    non_ko_case_event[end_timestamp_index],
+                    non_ko_case_event[next_activity_start_index]
                 )
 
-                for knocked_out_case_event in knocked_out.iterrows():
+                def compute_intersections_with_non_ko_case_event(knocked_out_case_event):
                     time_range2 = DateTimeRange(
-                        knocked_out_case_event[1][PM4PY_START_TIMESTAMP_COLUMN_NAME],
-                        knocked_out_case_event[1][PM4PY_END_TIMESTAMP_COLUMN_NAME]
+                        knocked_out_case_event[start_timestamp_index],
+                        knocked_out_case_event[ko_end_timestamp_index]
                     )
 
                     try:
-                        total_overlap += idle_time.intersection(time_range2).timedelta.total_seconds()
+                        return idle_time.intersection(time_range2).timedelta.total_seconds()
                     except TypeError:  # like this we save up 1 call to is_intersection()
-                        continue
+                        return 0
 
-                return total_overlap
+                total_overlap = knocked_out.swifter.progress_bar(False).apply(
+                    compute_intersections_with_non_ko_case_event, axis=1, raw=True)
 
-            overlaps = non_knocked_out.swifter.progress_bar(False).apply(compute_overlaps, axis=1)
+                return total_overlap.sum()
+
+            overlaps = non_knocked_out.swifter.progress_bar(False).apply(compute_overlaps, axis=1, raw=True)
             waste[activity] = overlaps.sum()
             continue
 
