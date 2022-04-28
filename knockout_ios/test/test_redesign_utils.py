@@ -111,7 +111,6 @@ def test_find_producer_activity_simple():
     assert Counter(producers).most_common(1)[0][0] == "B"
 
 
-@pytest.mark.skip(reason="TODO")
 def test_find_producer_activity_advanced():
     attribute_key = "attr_produced_by_D"
     ko_activity = "F"
