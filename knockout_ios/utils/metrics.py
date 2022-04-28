@@ -167,9 +167,9 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     return counts
 
 
-def calc_waiting_time_waste_v1(ko_activities: List[str], log_df: pd.DataFrame):
+def calc_overlapping_time_ko_and_non_ko(ko_activities: List[str], log_df: pd.DataFrame):
     """
-    - v1: computes overlap between events of ko case and non-ko case,
+    - computes overlap between events of ko case and non-ko case,
         not yet overlap between ko case and "empty spaces" between non-ko case events
     - slow, even with swifter - DateTimeRange package comparison slows it down
     """
@@ -222,6 +222,7 @@ def calc_waiting_time_waste_v1(ko_activities: List[str], log_df: pd.DataFrame):
     return waste
 
 
+# TODO: extremely slow, check for possible dup index problem
 def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {activity: 0 for activity in ko_activities}
 

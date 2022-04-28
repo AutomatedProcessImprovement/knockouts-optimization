@@ -48,7 +48,6 @@ class KnockoutDiscoverer:
         self.force_recompute = None
         self.ko_rules_classifiers = None
         self.log_df = None
-        self.pm4py_formatted_df = None
         self.config = None
 
         self.read_log_and_config()
@@ -67,9 +66,12 @@ class KnockoutDiscoverer:
         # replace empty strings in log_df with NaN
         self.log_df = self.log_df.replace("", np.nan)
 
-        self.pm4py_formatted_df = pm4py.format_dataframe(self.log_df, case_id='caseid', activity_key='task',
-                                                         timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
-                                                         start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
+        pm4py_formatted_log_df = pm4py.format_dataframe(self.log_df, case_id='caseid', activity_key='task',
+                                                        timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                                                        start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
+
+        if set(list(self.log_df.columns.values)).issubset(set(list(pm4py_formatted_log_df.columns.values))):
+            self.log_df = pm4py_formatted_log_df
 
     def update_should_recompute(self):
         # Automatically force recompute if config changes
@@ -98,12 +100,12 @@ class KnockoutDiscoverer:
         #       keep last num before this happened
 
         if self.config.ko_count_threshold is None:
-            # count the unique values in the activity column of pm4py_formatted_df
-            ko_count_threshold = len(self.pm4py_formatted_df[PM4PY_ACTIVITY_COLUMN_NAME].unique())
+            # count the unique values in the activity column of log_df
+            ko_count_threshold = len(self.log_df[PM4PY_ACTIVITY_COLUMN_NAME].unique())
         else:
             ko_count_threshold = self.config.ko_count_threshold
 
-        self.ko_activities, self.ko_outcomes, self.ko_seqs = discover_ko_sequences(self.pm4py_formatted_df,
+        self.ko_activities, self.ko_outcomes, self.ko_seqs = discover_ko_sequences(self.log_df,
                                                                                    self.config_file_name,
                                                                                    cache_dir=self.cache_dir,
                                                                                    start_activity_name=self.config.start_activity,
@@ -132,8 +134,6 @@ class KnockoutDiscoverer:
                 raise FileNotFoundError
 
             self.log_df = pd.read_pickle(f"./{self.cache_dir}/{self.config_file_name}_with_knockouts.pkl")
-            self.pm4py_formatted_df = pd.read_pickle(
-                f"./{self.cache_dir}/{self.config_file_name}_pm4pyf_with_knockouts.pkl")
             if not self.quiet:
                 print(f"\nFound cache for {self.config_file_name} knockouts\n")
 
@@ -141,19 +141,16 @@ class KnockoutDiscoverer:
 
             if len(self.config.negative_outcomes) > 0:
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
-                rejected = pm4py.filter_eventually_follows_relation(self.pm4py_formatted_df, relations)
+                rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
             else:
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.ko_outcomes))
-                rejected = pm4py.filter_eventually_follows_relation(self.pm4py_formatted_df, relations)
+                rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
 
             rejected = pm4py.convert_to_dataframe(rejected)
 
             # Mark Knocked-out cases & their knock-out activity
             self.log_df['knocked_out_case'] = False
             self.log_df['knockout_activity'] = False
-
-            self.pm4py_formatted_df['knocked_out_case'] = False
-            self.pm4py_formatted_df['knockout_activity'] = False
 
             def find_ko_activity(_ko_activities, _sorted_case):
                 case_activities = list(_sorted_case[PM4PY_ACTIVITY_COLUMN_NAME].values)
@@ -175,7 +172,6 @@ class KnockoutDiscoverer:
             gr = rejected.groupby(PM4PY_CASE_ID_COLUMN_NAME)
 
             self.log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-            self.pm4py_formatted_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
 
             for group in tqdm(gr.groups.keys(), desc="Marking knocked-out cases in log"):
                 case_df = gr.get_group(group)
@@ -185,14 +181,9 @@ class KnockoutDiscoverer:
                 self.log_df.at[group, 'knocked_out_case'] = True
                 self.log_df.at[group, 'knockout_activity'] = knockout_activity
 
-                self.pm4py_formatted_df.at[group, 'knocked_out_case'] = True
-                self.pm4py_formatted_df.at[group, 'knockout_activity'] = knockout_activity
-
             self.log_df.reset_index(inplace=True)
-            self.pm4py_formatted_df.reset_index(inplace=True)
 
             self.log_df.to_pickle(f"./{self.cache_dir}/{self.config_file_name}_with_knockouts.pkl")
-            self.pm4py_formatted_df.to_pickle(f"./{self.cache_dir}/{self.config_file_name}_pm4pyf_with_knockouts.pkl")
 
         self.ko_activities = list(filter(lambda act: act, set(self.log_df['knockout_activity'])))
 
@@ -213,16 +204,16 @@ class KnockoutDiscoverer:
         # See processing time distributions for cases that have the knockout and end in negative end
         # vs. cases that don't get knockout out but have negative end
 
-        if self.pm4py_formatted_df is None:
-            raise Exception("pm4py-formatted log missing")
+        if self.log_df is None:
+            raise Exception("log not yet processed")
 
-        aggregated_df = format_for_post_proc(self.pm4py_formatted_df)
+        aggregated_df = format_for_post_proc(self.log_df)
 
         plot_cycle_times_per_ko_activity(aggregated_df, self.ko_activities)
         plot_ko_activities_count(aggregated_df)
 
     def get_activities(self):
-        return list(set(self.pm4py_formatted_df[PM4PY_ACTIVITY_COLUMN_NAME]))
+        return list(set(self.log_df[PM4PY_ACTIVITY_COLUMN_NAME]))
 
     def get_discovery_metrics(self, expected_kos):
 
@@ -235,7 +226,7 @@ class KnockoutDiscoverer:
 if __name__ == "__main__":
     test_data = ("credit_app_simple.json", ['Assess application', 'Check credit history', 'Check income sources'])
     analyzer = KnockoutDiscoverer(config_file_name=test_data[0], cache_dir="cache/credit_app",
-                                  always_force_recompute=True)
+                                  always_force_recompute=True, quiet=False)
 
     analyzer.find_ko_activities()
     analyzer.print_basic_stats()

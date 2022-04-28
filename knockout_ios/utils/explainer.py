@@ -163,8 +163,8 @@ def RIPPER_wrapper(train, activity, max_rules=None,
 
     if grid_search:
         if param_grid is None:
-            param_grid = {"prune_size": [0.33, 0.5, 0.7], "k": [1, 2, 5, 10],
-                          "n_discretize_bins": [3, 5, 8]}
+            param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
+                          "n_discretize_bins": [4, 8, 12]}
         ruleset_model, optimized_params = do_grid_search(ruleset_model, train, activity, algorithm="RIPPER",
                                                          param_grid=param_grid)
         params.update(optimized_params)
@@ -188,7 +188,7 @@ def IREP_wrapper(train, activity, max_rules=None,
 
     if grid_search:
         if param_grid is None:
-            param_grid = {"prune_size": [0.33, 0.5, 0.7], "n_discretize_bins": [3, 5, 8]}
+            param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [4, 8, 12]}
 
         ruleset_model, optimized_params = do_grid_search(lw.IREP(), train, activity, algorithm="IREP",
                                                          param_grid=param_grid)
