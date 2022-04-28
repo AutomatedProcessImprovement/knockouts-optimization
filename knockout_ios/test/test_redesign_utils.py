@@ -32,6 +32,23 @@ def test_get_sorted_with_dependencies_2():
     assert optimal_order == ["B", "C", "A"]
 
 
+def test_get_sorted_with_dependencies_3():
+    order = ["B", "C", "A"]
+    dependencies = {k: [] for k in order}
+    dependencies["B"].append(("attr_from_A", "A"))
+    dependencies["C"].append(("attr_from_A", "A"))
+
+    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5}]
+
+    optimal_order = get_sorted_with_dependencies(dependencies=dependencies,
+                                                 optimal_order_names=order,
+                                                 efforts=pd.DataFrame(efforts))
+
+    assert optimal_order == ["A", "B", "C"]
+
+
 def test_find_producer_activity_simple():
     attribute_key = "attr_produced_by_B"
     ko_activity = "D"
