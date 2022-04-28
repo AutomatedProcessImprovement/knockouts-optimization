@@ -69,7 +69,7 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
 
 def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]], optimal_order_names: List[str]):
     activities = optimal_order_names.copy()
-    
+
     for knockout_activity in activities:
         _dependencies = dependencies[knockout_activity]
 
@@ -89,6 +89,26 @@ def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]],
     return optimal_order_names
 
 
+def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
+    """ Assumes log has case id as index and is sorted by end timestamp"""
+
+    producers = []
+    for caseid in log.index.unique():
+        case = log.loc[caseid]
+        knockout_activity_column_values = case['knockout_activity']
+        if not (len(knockout_activity_column_values.values) > 0):
+            continue
+        if knockout_activity_column_values.values[0] != ko_activity:
+            continue
+
+        activities_where_unavailable = case[np.isnan(case[attribute].values)][PM4PY_ACTIVITY_COLUMN_NAME].values
+        if len(activities_where_unavailable) > 0:
+            producer_activity = activities_where_unavailable[-1]
+            producers.append(producer_activity)
+
+    return producers
+
+
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
     """
     - Returns dependencies between log activities and attributes required by knockout checks
@@ -105,6 +125,7 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, Lis
 
     log = analyzer.discoverer.log_df
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
 
     for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
         ruleset = rule_discovery_dict[ko_activity][0]
@@ -112,19 +133,8 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, Lis
 
         for attribute in required_attributes:
             # Find after which activity the attribute is available in the log
-            producers = []
-            for caseid in log.index.unique():
-                case = log.loc[caseid]
-                knockout_activity_column_values = case['knockout_activity']
-                if not (len(knockout_activity_column_values.values) > 0):
-                    continue
-                if knockout_activity_column_values.values[0] != ko_activity:
-                    continue
-
-                activities_where_unavailable = case[np.isnan(case[attribute].values)][PM4PY_ACTIVITY_COLUMN_NAME].values
-                if len(activities_where_unavailable) > 0:
-                    producer_activity = activities_where_unavailable[-1]
-                    producers.append(producer_activity)
+            # (a list is returned; we then consider the most frequent activity as the producer)
+            producers = find_producers(attribute, ko_activity, log)
 
             if len(producers) > 0:
                 # get most frequent producer activity
