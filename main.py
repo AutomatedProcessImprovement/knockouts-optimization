@@ -8,13 +8,13 @@ if __name__ == "__main__":
                                 cache_dir="test/knockout_ios/cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,
-                                custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test_fixed_values_wrapper)
+                                custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test)
 
     analyzer.discover_knockouts()
 
     analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False,
-                              max_rules=3, grid_search=True
+                              max_rules=2, grid_search=True
                               )
 
     adviser = KnockoutRedesignAdviser(analyzer)

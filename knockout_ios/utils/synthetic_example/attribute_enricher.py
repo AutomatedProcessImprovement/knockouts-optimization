@@ -7,6 +7,14 @@ from tqdm import tqdm
 
 from knockout_ios.utils.constants import *
 
+from scipy.stats import truncnorm
+
+
+def get_truncated_normal(mean, std, low, high):
+    # source: https://stackoverflow.com/a/44308018/8522453
+
+    return truncnorm((low - mean) / std, (high - mean) / std, loc=mean, scale=std).rvs()
+
 
 def enrich_log_df(log_df) -> pd.DataFrame:
     # To keep consistency on every call
@@ -34,13 +42,13 @@ def enrich_log_df(log_df) -> pd.DataFrame:
 
     for caseid in tqdm(log_df.index.unique(), desc="Enriching with case attributes"):
 
-        log_df.at[caseid, 'Monthly Income'] = np.random.randint(1000, 4999)
-        log_df.at[caseid, 'Total Debt'] = np.random.randint(0, 4999)
-        log_df.at[caseid, 'Loan Ammount'] = np.random.randint(0, 9999)
+        log_df.at[caseid, 'Monthly Income'] = get_truncated_normal(mean=1000, std=500, low=1000, high=5000)
+        log_df.at[caseid, 'Total Debt'] = get_truncated_normal(mean=5000, std=2000, low=0, high=4999)
+        log_df.at[caseid, 'Loan Ammount'] = get_truncated_normal(mean=10000, std=8000, low=0, high=9999)
         log_df.at[caseid, 'Owns Vehicle'] = True
         log_df.at[caseid, 'Demographic'] = np.random.choice(demographic_values)
-        log_df.at[caseid, 'External Risk Score'] = np.random.uniform(0, 0.3)
-        log_df.at[caseid, 'Aggregated Risk Score'] = np.random.uniform(0, 0.49)
+        log_df.at[caseid, 'External Risk Score'] = get_truncated_normal(mean=0.5, std=0.5, low=0, high=0.29)
+        log_df.at[caseid, 'Aggregated Risk Score'] = get_truncated_normal(mean=0.5, std=0.5, low=0, high=0.49)
 
         ko_activity = log_df.loc[caseid]["knockout_activity"].unique()
         if len(ko_activity) > 0:
@@ -48,17 +56,17 @@ def enrich_log_df(log_df) -> pd.DataFrame:
 
         if ko_activity == 'Check Liability':
             if np.random.uniform(0, 1) < 0.5:
-                log_df.at[caseid, 'Total Debt'] = np.random.randint(5000, 100000)
+                log_df.at[caseid, 'Total Debt'] = get_truncated_normal(mean=5000, std=2000, low=4999, high=50000)
             else:
                 log_df.at[caseid, 'Owns Vehicle'] = False
         elif ko_activity == 'Check Risk':
-            log_df.at[caseid, 'Loan Ammount'] = np.random.randint(10_000, 100000)
+            log_df.at[caseid, 'Loan Ammount'] = get_truncated_normal(mean=10000, std=8000, low=10000, high=100000)
         elif ko_activity == 'Check Monthly Income':
-            log_df.at[caseid, 'Monthly Income'] = np.random.randint(0, 999)
+            log_df.at[caseid, 'Monthly Income'] = get_truncated_normal(mean=1000, std=500, low=0, high=999)
         elif ko_activity == 'Assess application':
-            log_df.at[caseid, 'External Risk Score'] = np.random.uniform(0.3, 1)
+            log_df.at[caseid, 'External Risk Score'] = get_truncated_normal(mean=0.5, std=0.5, low=0.3, high=1)
         elif ko_activity == 'Aggregated Risk Score Check':
-            log_df.at[caseid, 'Aggregated Risk Score'] = np.random.uniform(0.5, 1)
+            log_df.at[caseid, 'Aggregated Risk Score'] = get_truncated_normal(mean=0.5, std=0.5, low=0.5, high=1)
 
     log_df.reset_index(inplace=True)
     return log_df
@@ -79,13 +87,13 @@ def enrich_log_df_fixed_values(log_df) -> pd.DataFrame:
 
     for caseid in tqdm(log_df.index.unique(), desc="Enriching with case attributes"):
 
-        log_df.at[caseid, 'Monthly Income'] = 4999
-        log_df.at[caseid, 'Total Debt'] = 4999
-        log_df.at[caseid, 'Loan Ammount'] = 9999
+        log_df.at[caseid, 'Monthly Income'] = 1500
+        log_df.at[caseid, 'Total Debt'] = 4000
+        log_df.at[caseid, 'Loan Ammount'] = 9000
         log_df.at[caseid, 'Owns Vehicle'] = True
-        log_df.at[caseid, 'Demographic'] = np.random.choice(demographic_values)
-        log_df.at[caseid, 'External Risk Score'] = 0.29
-        log_df.at[caseid, 'Aggregated Risk Score'] = 0.49
+        log_df.at[caseid, 'Demographic'] = 'demographic_type_1'
+        log_df.at[caseid, 'External Risk Score'] = 0.1
+        log_df.at[caseid, 'Aggregated Risk Score'] = 0.2
 
         ko_activity = log_df.loc[caseid]["knockout_activity"].unique()
         if len(ko_activity) > 0:
@@ -97,13 +105,13 @@ def enrich_log_df_fixed_values(log_df) -> pd.DataFrame:
             else:
                 log_df.at[caseid, 'Owns Vehicle'] = False
         elif ko_activity == 'Check Risk':
-            log_df.at[caseid, 'Loan Ammount'] = 10000
+            log_df.at[caseid, 'Loan Ammount'] = 15000
         elif ko_activity == 'Check Monthly Income':
-            log_df.at[caseid, 'Monthly Income'] = 999
+            log_df.at[caseid, 'Monthly Income'] = 800
         elif ko_activity == 'Assess application':
-            log_df.at[caseid, 'External Risk Score'] = 0.3
+            log_df.at[caseid, 'External Risk Score'] = 0.4
         elif ko_activity == 'Aggregated Risk Score Check':
-            log_df.at[caseid, 'Aggregated Risk Score'] = 0.5
+            log_df.at[caseid, 'Aggregated Risk Score'] = 0.6
 
     log_df.reset_index(inplace=True)
     return log_df
