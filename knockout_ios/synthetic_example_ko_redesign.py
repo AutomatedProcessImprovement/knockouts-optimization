@@ -115,5 +115,5 @@ def test_ko_reorder_io_advanced():
 
 
 if __name__ == "__main__":
-    ignore_caches = True
+    ignore_caches = False
     test_ko_reorder_io_advanced()
