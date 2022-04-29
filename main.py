@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False,
-                              max_total_conds=2
+                              max_rules=3, grid_search=True
                               )
 
     adviser = KnockoutRedesignAdviser(analyzer)

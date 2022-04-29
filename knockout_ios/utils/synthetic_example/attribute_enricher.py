@@ -48,11 +48,11 @@ def enrich_log_df(log_df) -> pd.DataFrame:
 
         if ko_activity == 'Check Liability':
             if np.random.uniform(0, 1) < 0.5:
-                log_df.at[caseid, 'Total Debt'] = np.random.randint(5000, 30_000)
+                log_df.at[caseid, 'Total Debt'] = np.random.randint(5000, 100000)
             else:
                 log_df.at[caseid, 'Owns Vehicle'] = False
         elif ko_activity == 'Check Risk':
-            log_df.at[caseid, 'Loan Ammount'] = np.random.randint(10_000, 30_000)
+            log_df.at[caseid, 'Loan Ammount'] = np.random.randint(10_000, 100000)
         elif ko_activity == 'Check Monthly Income':
             log_df.at[caseid, 'Monthly Income'] = np.random.randint(0, 999)
         elif ko_activity == 'Assess application':
@@ -142,13 +142,16 @@ def enrich_log_df_with_masked_attributes(log_df: pd.DataFrame,
             if attribute.value_provider_activity not in case[activity_col].unique():
                 continue
 
-            case = case.sort_values(by="start_timestamp", ascending=True)
+            case = case.sort_values(by=SIMOD_START_TIMESTAMP_COLUMN_NAME, ascending=True)
 
-            value_producer_end = case[case['task'] == attribute.value_provider_activity]['end_timestamp'][0]
+            value_producer_end = \
+                case[case[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == attribute.value_provider_activity][
+                    SIMOD_END_TIMESTAMP_COLUMN_NAME][0]
 
-            log_df.at[caseid, attribute.attribute_name] = np.where(case['start_timestamp'] >= value_producer_end,
-                                                                   case[attribute.attribute_name],
-                                                                   np.nan)
+            log_df.at[caseid, attribute.attribute_name] = np.where(
+                case[SIMOD_START_TIMESTAMP_COLUMN_NAME] >= value_producer_end,
+                case[attribute.attribute_name],
+                np.nan)
 
     log_df.reset_index(inplace=True)
     return log_df

@@ -61,7 +61,7 @@ def test_ko_reorder_io_advanced_fixed_values():
 
         analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                                   print_rule_discovery_stats=False, omit_report=False,
-                                  max_rules=2, max_rule_conds=1
+                                  max_rules=3, grid_search=True
                                   )
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures",
@@ -99,7 +99,7 @@ def test_ko_reorder_io_advanced():
 
         analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                                   print_rule_discovery_stats=False, omit_report=False,
-                                  max_rules=2, max_rule_conds=1
+                                  max_rules=3, grid_search=True
                                   )
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_advanced",
@@ -116,5 +116,5 @@ def test_ko_reorder_io_advanced():
 
 if __name__ == "__main__":
     ignore_caches = False
-    # test_ko_reorder_io_advanced_fixed_values()
+    test_ko_reorder_io_advanced_fixed_values()
     test_ko_reorder_io_advanced()
