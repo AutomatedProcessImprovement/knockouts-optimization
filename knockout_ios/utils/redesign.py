@@ -3,6 +3,8 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from scipy.stats import t
+
 from pm4py.algo.filtering.pandas import ltl
 from ruleset.base import Ruleset
 from tqdm import tqdm
@@ -139,6 +141,46 @@ def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
     return producers
 
 
+def bootstrap_ci(
+        data,
+        statfunction=np.average,
+        alpha=0.05,
+        n_samples=100):
+    # source: https://stackoverflow.com/a/66008548/8522453
+    import warnings
+
+    def bootstrap_ids(data, n_samples=100):
+        for _ in range(n_samples):
+            yield np.random.randint(data.shape[0], size=(data.shape[0],))
+
+    alphas = np.array([alpha / 2, 1 - alpha / 2])
+    nvals = np.round((n_samples - 1) * alphas).astype(int)
+    if np.any(nvals < 10) or np.any(nvals >= n_samples - 10):
+        warnings.warn("Some values used extremal samples; results are probably unstable. "
+                      "Try to increase n_samples")
+
+    data = np.array(data)
+    if np.prod(data.shape) != max(data.shape):
+        raise ValueError("Data must be 1D")
+    data = data.ravel()
+
+    boot_indexes = bootstrap_ids(data, n_samples)
+    stat = np.asarray([statfunction(data[_ids]) for _ids in boot_indexes])
+    stat.sort(axis=0)
+
+    return stat[nvals]
+
+
+def t_student_ci(x, confidence=0.95):
+    m = x.mean()
+    s = x.std()
+    dof = len(x) - 1
+
+    t_crit = np.abs(t.ppf((1 - confidence) / 2, dof))
+
+    return m - s * t_crit / np.sqrt(len(x)), m + s * t_crit / np.sqrt(len(x))
+
+
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
     """
     - Returns dependencies between log activities and attributes required by knockout checks
@@ -212,5 +254,35 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
             "observed_ko_order": observed_ko_order}
 
 
-def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer):
-    return []
+def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95):
+    """
+        - Returns dependencies between log activities and attributes required by knockout checks
+        """
+    if analyzer.ruleset_algorithm == "IREP":
+        rule_discovery_dict = analyzer.IREP_rulesets
+    elif analyzer.ruleset_algorithm == "RIPPER":
+        rule_discovery_dict = analyzer.RIPPER_rulesets
+    else:
+        raise ValueError("Unknown ruleset algorithm")
+
+    adjusted_values = {k: [] for k in rule_discovery_dict.keys()}
+    raw_rulesets = {k: [] for k in rule_discovery_dict.keys()}
+    log = analyzer.discoverer.log_df
+
+    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Analyzing KO rule values ranges"):
+        log_subset = log[log['knockout_activity'] == ko_activity]
+
+        ruleset = rule_discovery_dict[ko_activity][0]
+        required_attributes = get_attribute_names_from_ruleset(ruleset)
+
+        adjusted_values[ko_activity] = {}
+        raw_rulesets[ko_activity] = ruleset.ruleset_
+        for attribute in required_attributes:
+            column = log_subset[attribute]
+            if column.dtype.kind not in ['i', 'f']:
+                continue
+            column = column.dropna()
+            low_ci, up_ci = t_student_ci(column, confidence)
+            adjusted_values[ko_activity][attribute] = (low_ci, up_ci)
+
+    return adjusted_values, raw_rulesets

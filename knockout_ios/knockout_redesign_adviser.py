@@ -1,7 +1,11 @@
 import pickle
 import pprint
 
+import pandas as pd
+from tabulate import tabulate
+
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io
@@ -45,45 +49,79 @@ def dump_analyzer_cache(ko_analyzer, cache_dir, cache_name):
 
 
 class KnockoutRedesignAdviser(object):
-    def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=False):
+    def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=False, attribute_range_confidence_interval=0.99):
         self.knockout_analyzer = knockout_analyzer
         self.quiet = quiet
+        self.attribute_range_confidence_interval = attribute_range_confidence_interval
+        self.redesign_options = {}
 
     def compute_redesign_options(self):
-        self.redesign_options = {}
         self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer)
         self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
                                                                               dependencies=self.redesign_options[
                                                                                   "relocation"])
-        self.redesign_options["rule_change"] = evaluate_knockout_rule_change_io(self.knockout_analyzer)
+        self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
+                                                                                              self.attribute_range_confidence_interval)
 
         if not self.quiet:
             print(f"\n** Redesign options **\n")
 
             # TODO: cleaner printing/reporting method...
-            print("> Knock-out Re-location")
-            attribute_dependencies_dict = self.redesign_options["relocation"]
-            for activity in attribute_dependencies_dict.keys():
-                if not (len(attribute_dependencies_dict[activity]) > 0):
-                    print(f"\n- '{activity}': required attributes are available from the start.")
-                    continue
+            if "relocation" in self.redesign_options:
+                print("> Knock-out Re-location")
+                entries = []
+                attribute_dependencies_dict = self.redesign_options["relocation"]
+                for activity in attribute_dependencies_dict.keys():
+                    if not (len(attribute_dependencies_dict[activity]) > 0):
+                        entries.append(
+                            {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                             "Dependencies": "required attributes are available from the start."})
+                        continue
 
-                print(f"\n- '{activity}' requires attribute(s):")
-                for pair in attribute_dependencies_dict[activity]:
-                    print(f"    '{pair[0]}', available after activity '{pair[1]}'")
+                    dependencies_str = ""
+                    for pair in attribute_dependencies_dict[activity]:
+                        dependencies_str += f"'{pair[0]}', available after activity '{pair[1]}'"
 
-            print("\n\n> Knock-out Re-ordering\n")
-            optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
-                             enumerate(self.redesign_options['reordering']['optimal_order_names'])]
-            observed_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
-                              enumerate(self.redesign_options['reordering']['observed_ko_order'])]
-            cases_respecting_order = self.redesign_options['reordering']['cases_respecting_order']
-            total_cases = self.redesign_options['reordering']['total_cases']
+                    entries.append(
+                        {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                         "Dependencies": dependencies_str})
 
-            print(
-                "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
-            print(
-                "Optimal Order of Knock-out checks (taking into account attribute dependencies):\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it.")
+                df = pd.DataFrame(entries)
+                df.sort_values(by="Dependencies", inplace=True)
+                print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
+
+            if "reordering" in self.redesign_options:
+                print("\n\n> Knock-out Re-ordering\n")
+                optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
+                                 enumerate(self.redesign_options['reordering']['optimal_order_names'])]
+                observed_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
+                                  enumerate(self.redesign_options['reordering']['observed_ko_order'])]
+                cases_respecting_order = self.redesign_options['reordering']['cases_respecting_order']
+                total_cases = self.redesign_options['reordering']['total_cases']
+
+                print(
+                    "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
+                print(
+                    "Optimal Order of Knock-out checks (taking into account attribute dependencies):\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it.")
+
+            if "rule_change" in self.redesign_options:
+                print("\n\n> Knock-out rule value ranges\n")
+
+                entries = []
+
+                rule_attribute_ranges_dict = self.redesign_options["rule_change"]
+                for activity in rule_attribute_ranges_dict.keys():
+                    confidence_intervals_string = f"Rule:\n{raw_rulesets[activity]}"
+                    confidence_intervals_string += f"\n\nfor {self.attribute_range_confidence_interval * 100:.0f}% of knocked out cases, these attributes fall within the ranges:"
+                    for attribute in rule_attribute_ranges_dict[activity]:
+                        confidence_intervals_string += f"\n- {attribute}: {rule_attribute_ranges_dict[activity][attribute][0]:.2f} - {rule_attribute_ranges_dict[activity][attribute][1]:.2f}"
+
+                    confidence_intervals_string += "\n"
+                    entries.append(
+                        {REPORT_COLUMN_KNOCKOUT_CHECK: activity, "Observation": confidence_intervals_string})
+
+                df = pd.DataFrame(entries)
+                print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
         return self.redesign_options
 

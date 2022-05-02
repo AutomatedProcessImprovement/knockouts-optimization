@@ -234,7 +234,7 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Tru
     # Source: https://scikit-learn.org/stable/modules/grid_search.html#tips-for-parameter-search
 
     # TODO: understand better the concept of this scoring function, it works much better than the previous but why
-    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="roc_auc", n_jobs=-1)
+    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1)
     grid.fit(x_train, y_train)
 
     if not quiet:

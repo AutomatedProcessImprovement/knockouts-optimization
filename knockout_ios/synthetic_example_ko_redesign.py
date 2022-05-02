@@ -46,7 +46,7 @@ def test_ko_reorder_io_advanced_fixed_values():
             raise FileNotFoundError
 
         analyzer = read_analyzer_cache('./test/test_fixtures',
-                                       'synthetic_example_ko_order_io_advanced_fixed_values_demo')
+                                       'synthetic_example_ko_order_io_advanced_fixed_values')
         analyzer.build_report()
 
     except FileNotFoundError:
@@ -61,7 +61,7 @@ def test_ko_reorder_io_advanced_fixed_values():
 
         analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                                   print_rule_discovery_stats=False, omit_report=False,
-                                  max_rules=3, grid_search=True
+                                  max_rules=2, grid_search=True
                                   )
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures",
@@ -84,7 +84,7 @@ def test_ko_reorder_io_advanced():
         if ignore_caches:
             raise FileNotFoundError
 
-        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io_advanced_demo')
+        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io_advanced')
         analyzer.build_report()
 
     except FileNotFoundError:
@@ -99,7 +99,7 @@ def test_ko_reorder_io_advanced():
 
         analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                                   print_rule_discovery_stats=False, omit_report=False,
-                                  max_rules=3, grid_search=True
+                                  max_rules=2, grid_search=True
                                   )
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_advanced",
@@ -116,5 +116,4 @@ def test_ko_reorder_io_advanced():
 
 if __name__ == "__main__":
     ignore_caches = False
-    test_ko_reorder_io_advanced_fixed_values()
     test_ko_reorder_io_advanced()
