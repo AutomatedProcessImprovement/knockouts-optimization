@@ -2,6 +2,7 @@ import glob
 import itertools
 import os
 import pprint
+import sys
 
 from copy import deepcopy
 from typing import Callable, Optional
@@ -199,7 +200,7 @@ class KnockoutAnalyzer:
     def compute_ko_rules(self,
                          algorithm="IREP",
                          max_rules=3,
-                         max_rule_conds=2,
+                         max_rule_conds=None,
                          max_total_conds=None,
                          k=2,
                          n_discretize_bins=10,
@@ -240,24 +241,31 @@ class KnockoutAnalyzer:
             elif algorithm == "IREP":
                 param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [10, 20, 30]}
 
-        rulesets = find_ko_rulesets(self.rule_discovery_log_df,
-                                    self.discoverer.ko_activities,
-                                    self.discoverer.config_file_name,
-                                    self.cache_dir,
-                                    available_cases_before_ko=self.available_cases_before_ko,
-                                    force_recompute=self.always_force_recompute,
-                                    columns_to_ignore=columns_to_ignore,
-                                    algorithm=algorithm,
-                                    max_rules=max_rules,
-                                    max_rule_conds=max_rule_conds,
-                                    max_total_conds=max_total_conds,
-                                    k=k,
-                                    n_discretize_bins=n_discretize_bins,
-                                    dl_allowance=dl_allowance,
-                                    prune_size=prune_size,
-                                    grid_search=grid_search,
-                                    param_grid=param_grid
-                                    )
+        try:
+            rulesets = find_ko_rulesets(self.rule_discovery_log_df,
+                                        self.discoverer.ko_activities,
+                                        self.discoverer.config_file_name,
+                                        self.cache_dir,
+                                        available_cases_before_ko=self.available_cases_before_ko,
+                                        force_recompute=self.always_force_recompute,
+                                        columns_to_ignore=columns_to_ignore,
+                                        algorithm=algorithm,
+                                        max_rules=max_rules,
+                                        max_rule_conds=max_rule_conds,
+                                        max_total_conds=max_total_conds,
+                                        k=k,
+                                        n_discretize_bins=n_discretize_bins,
+                                        dl_allowance=dl_allowance,
+                                        prune_size=prune_size,
+                                        grid_search=grid_search,
+                                        param_grid=param_grid
+                                        )
+
+        # TODO: cleaner way to catch this
+        # TODO: also iterate and report if for some ko activity the ruleset found is []
+        except Exception:
+            print(f"Error in rule discovery, try adjusting the parameters")
+            sys.exit(1)
 
         if algorithm == "RIPPER":
             self.RIPPER_rulesets = rulesets
@@ -354,7 +362,7 @@ class KnockoutAnalyzer:
 
         if not omit:
             df.to_csv(self.report_file_name, index=False)
-            print(tabulate(df, headers='keys', tablefmt='psql'))
+            print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
         return df
 
