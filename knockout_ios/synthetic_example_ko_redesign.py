@@ -25,8 +25,9 @@ def test_ko_reorder_io_simple():
 
         analyzer.discover_knockouts()
 
-        analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                                  print_rule_discovery_stats=False, omit_report=False)
+        analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                                  print_rule_discovery_stats=False, omit_report=False, grid_search=True, max_rules=2,
+                                  max_rule_conds=1)
 
         dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
                             ko_analyzer=analyzer)
@@ -114,6 +115,40 @@ def test_ko_reorder_io_advanced():
                                                                              "Check Monthly Income"]
 
 
+def test_ko_reorder_io_simple_2():
+    print("\n\nLog: Synthetic Example (KO Order IO 2)\n")
+
+    try:
+        if ignore_caches:
+            raise FileNotFoundError
+
+        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io_2')
+        analyzer.build_report()
+
+    except FileNotFoundError:
+        analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_2.json",
+                                    config_dir="config",
+                                    cache_dir="test/knockout_ios/cache/synthetic_example",
+                                    always_force_recompute=True,
+                                    quiet=True,
+                                    custom_log_preprocessing_function=enrich_log_for_synthetic_example_validation)
+
+        analyzer.discover_knockouts()
+
+        analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+                                  print_rule_discovery_stats=False, omit_report=False, grid_search=False, max_rules=2,
+                                  prune_size=0.95)
+
+        dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_2",
+                            ko_analyzer=analyzer)
+
+    adviser = KnockoutRedesignAdviser(analyzer)
+    adviser.compute_redesign_options()
+
+    assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Monthly Income", "Check Risk",
+                                                                             "Assess application", "Check Liability"]
+
+
 if __name__ == "__main__":
     ignore_caches = False
-    test_ko_reorder_io_advanced()
+    test_ko_reorder_io_simple_2()
