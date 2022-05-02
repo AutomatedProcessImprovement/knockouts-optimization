@@ -205,7 +205,7 @@ class KnockoutAnalyzer:
                          k=2,
                          n_discretize_bins=10,
                          dl_allowance=16,
-                         prune_size=0.33,
+                         prune_size=0.95,
                          grid_search=False,
                          param_grid=None,
                          confidence_threshold=0.5,
@@ -239,7 +239,7 @@ class KnockoutAnalyzer:
                 param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
                               "n_discretize_bins": [10, 20, 30]}
             elif algorithm == "IREP":
-                param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [10, 20, 30]}
+                param_grid = {"prune_size": [0.5, 0.7, 0.95], "n_discretize_bins": [10, 20, 30]}
 
         try:
             rulesets = find_ko_rulesets(self.rule_discovery_log_df,
