@@ -362,7 +362,7 @@ class KnockoutAnalyzer:
 
         if not omit:
             df.to_csv(self.report_file_name, index=False)
-            print(tabulate(df, headers='keys', tablefmt='psql'))
+            print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
         return df
 
