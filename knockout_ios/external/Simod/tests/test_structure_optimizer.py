@@ -17,14 +17,14 @@ optimize_config_files = [
 # def test_best_parameters(entry_point):
 #     for path in optimize_config_files:
 #         config_path = Path(os.path.join(entry_point, path))
-#         config = config_data_from_file(config_path)
-#         config_structure = config.pop('strc')
-#         config.pop('tm')
-#         config_structure.update(config)
+#         pipeline_config = config_data_from_file(config_path)
+#         config_structure = pipeline_config.pop('strc')
+#         pipeline_config.pop('tm')
+#         config_structure.update(pipeline_config)
 #         config_structure = Configuration(**config_structure)
 #         config_structure.fill_in_derived_fields()
 #
-#         log = LogReader(config['log_path'])
+#         log = LogReader(pipeline_config['log_path'])
 #
 #         structure_optimizer = StructureOptimizer(config_structure, log)
 #         structure_optimizer.run()

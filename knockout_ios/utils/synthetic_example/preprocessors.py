@@ -93,3 +93,12 @@ def enrich_log_for_synthetic_example_validation(ko_analyzer: 'KnockoutAnalyzer',
             enriched_log.to_pickle(cache_file_path)
 
             return enriched_log
+    else:
+        return log
+
+
+preprocessors_dict = {"enrich_log_with_fully_known_attributes": enrich_log_with_fully_known_attributes,
+                      "enrich_log_with_fully_known_attributes_fixed_values_wrapper": enrich_log_with_fully_known_attributes_fixed_values_wrapper,
+                      "enrich_log_for_ko_order_advanced_test": enrich_log_for_ko_order_advanced_test,
+                      "enrich_log_for_ko_order_advanced_test_fixed_values_wrapper": enrich_log_for_ko_order_advanced_test_fixed_values_wrapper,
+                      "enrich_log_for_synthetic_example_validation": enrich_log_for_synthetic_example_validation}

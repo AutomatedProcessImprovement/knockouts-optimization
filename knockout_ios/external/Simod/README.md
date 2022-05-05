@@ -36,9 +36,9 @@ Invoke the tool with either of these:
 
 ```shell
 $ simod
-$ simod optimize --config_path config/optimize_config.yml
-$ simod discover --config_path config/discover_without_model_config.yml  # does automatic model discovery from the log
-$ simod discover --config_path config/discover_with_model_config.yml     # no need for model discovery
+$ simod optimize --config_path pipeline_config/optimize_config.yml
+$ simod discover --config_path pipeline_config/discover_without_model_config.yml  # does automatic model discovery from the log
+$ simod discover --config_path pipeline_config/discover_with_model_config.yml     # no need for model discovery
 ```
 
 The optimizer finds optimal parameters for a model and saves them in `outputs/<id>/PurchasingExample_canon.json`.
@@ -128,7 +128,7 @@ for LOG_NAME in "${files[@]}"; do
 	mkdir -p $OUTPUT_PATH
 	
 	echo "* Running Simod"
-	docker run --name simod_benchmarking -v /home/ihar/config:/usr/src/simod/config_benchmarking -v /home/ihar/inputs:/usr/src/simod/inputs nokal/simod bash -c "Xvfb :99 &>/dev/null & disown; cd /usr/src/simod; git checkout ${BRANCH_NAME}; git pull && pip install -e .; simod optimize --config_path ${CONFIG_PATH}" &> $OUTPUT_LOG_PATH
+	docker run --name simod_benchmarking -v /home/ihar/pipeline_config:/usr/src/simod/config_benchmarking -v /home/ihar/inputs:/usr/src/simod/inputs nokal/simod bash -c "Xvfb :99 &>/dev/null & disown; cd /usr/src/simod; git checkout ${BRANCH_NAME}; git pull && pip install -e .; simod optimize --config_path ${CONFIG_PATH}" &> $OUTPUT_LOG_PATH
 
 	echo "* Copying output"
 	docker container cp simod_benchmarking:/usr/src/simod/outputs $OUTPUT_PATH	
