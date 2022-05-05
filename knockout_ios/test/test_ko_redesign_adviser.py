@@ -2,11 +2,16 @@ import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
+from knockout_ios.utils.configuration import read_log_and_config
 from knockout_ios.utils.synthetic_example.preprocessors import *
 
 
 def test_ko_reorder_io_simple():
-    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
+    log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io.json",
+                                             "cache/synthetic_example")
+
+    analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
+                                config_file_name="synthetic_example_ko_order_io.json",
                                 config_dir="./config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
@@ -26,7 +31,11 @@ def test_ko_reorder_io_simple():
 
 
 def test_ko_reorder_io_advanced():
-    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_advanced.json",
+    log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io_advanced.json",
+                                             "cache/synthetic_example")
+
+    analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
+                                config_file_name="synthetic_example_ko_order_io_advanced.json",
                                 config_dir="./config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
