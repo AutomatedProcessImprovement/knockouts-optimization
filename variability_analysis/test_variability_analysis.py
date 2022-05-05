@@ -48,13 +48,13 @@ def test_intercase_case_level():
 
     try:
         # to skip parsing on notebook resets
-        log_df = pd.read_pickle("./outputs/" + config_file.split("./config/")[1] + "_case_grouping_dump.pkl")
+        log_df = pd.read_pickle("./outputs/" + config_file.split("./pipeline_config/")[1] + "_case_grouping_dump.pkl")
 
     except:
         enriched_log_df, res_analyzer = intercase_and_context.extract(log, _model_type='dual_inter')
         log_df = pt_cleaning.clean_processing_times_with_calendar(enriched_log_df, config, res_analyzer)
 
-        log_df.to_pickle("./outputs/" + config_file.split("./config/")[1] + "_case_grouping_dump.pkl")
+        log_df.to_pickle("./outputs/" + config_file.split("./pipeline_config/")[1] + "_case_grouping_dump.pkl")
 
     log_df.head()
 

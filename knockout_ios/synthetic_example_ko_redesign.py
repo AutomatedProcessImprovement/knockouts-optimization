@@ -1,119 +1,17 @@
-from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser, read_analyzer_cache, dump_analyzer_cache
-from knockout_ios.utils.synthetic_example.preprocessors import *
-
-ignore_caches = False
+from knockout_ios.pipeline_wrapper import run_pipeline
 
 
-def test_ko_reorder_io_simple():
-    print("\n\nLog: Synthetic Example (KO Order IO)\n")
+def ko_reorder_io():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
+                                       cache_dir="cache/synthetic_example")
 
-    try:
-        if ignore_caches:
-            raise FileNotFoundError
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_order_names'].index("Check Risk") \
+           < ko_redesign_adviser.redesign_options['reordering']['optimal_order_names'].index("Assess application")
 
-        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io')
-        analyzer.build_report()
-
-    except FileNotFoundError:
-        analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
-                                    config_dir="config",
-                                    cache_dir="test/knockout_ios/cache/synthetic_example",
-                                    always_force_recompute=True,
-                                    quiet=True,
-                                    custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
-
-        analyzer.discover_knockouts()
-
-        analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                                  print_rule_discovery_stats=False, omit_report=False)
-
-        dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io",
-                            ko_analyzer=analyzer)
-
-    adviser = KnockoutRedesignAdviser(analyzer)
-    adviser.compute_redesign_options()
-
-    assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Monthly Income", "Check Risk",
-                                                                             "Check Liability", "Assess application"]
-
-
-def test_ko_reorder_io_advanced_fixed_values():
-    print("\n\nLog: Synthetic Example (KO Order IO advanced - fixed values)\n")
-
-    try:
-        if ignore_caches:
-            raise FileNotFoundError
-
-        analyzer = read_analyzer_cache('./test/test_fixtures',
-                                       'synthetic_example_ko_order_io_advanced_fixed_values')
-        analyzer.build_report()
-
-    except FileNotFoundError:
-        analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_advanced.json",
-                                    config_dir="config",
-                                    cache_dir="test/knockout_ios/cache/synthetic_example",
-                                    always_force_recompute=True,
-                                    quiet=True,
-                                    custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test_fixed_values_wrapper)
-
-        analyzer.discover_knockouts()
-
-        analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                                  print_rule_discovery_stats=False, omit_report=False,
-                                  max_rules=2, grid_search=True
-                                  )
-
-        dump_analyzer_cache(cache_dir="./test/test_fixtures",
-                            cache_name="synthetic_example_ko_order_io_advanced_fixed_values",
-                            ko_analyzer=analyzer)
-
-    adviser = KnockoutRedesignAdviser(analyzer)
-    adviser.compute_redesign_options()
-
-    # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"
-    assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",
-                                                                             "Aggregated Risk Score Check",
-                                                                             "Check Monthly Income"]
-
-
-def test_ko_reorder_io_advanced():
-    print("\n\nLog: Synthetic Example (KO Order IO advanced)\n")
-
-    try:
-        if ignore_caches:
-            raise FileNotFoundError
-
-        analyzer = read_analyzer_cache('./test/test_fixtures', 'synthetic_example_ko_order_io_advanced')
-        analyzer.build_report()
-
-    except FileNotFoundError:
-        analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_advanced.json",
-                                    config_dir="config",
-                                    cache_dir="test/knockout_ios/cache/synthetic_example",
-                                    always_force_recompute=True,
-                                    quiet=True,
-                                    custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test)
-
-        analyzer.discover_knockouts()
-
-        analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                                  print_rule_discovery_stats=False, omit_report=False,
-                                  max_rules=2, grid_search=True
-                                  )
-
-        dump_analyzer_cache(cache_dir="./test/test_fixtures", cache_name="synthetic_example_ko_order_io_advanced",
-                            ko_analyzer=analyzer)
-
-    adviser = KnockoutRedesignAdviser(analyzer)
-    adviser.compute_redesign_options()
-
-    # "Aggregated Risk Score Check" has the lowest KO effort but requires an attribute that is available after "Check Risk"
-    assert adviser.redesign_options['reordering']['optimal_order_names'] == ["Check Liability", "Check Risk",
-                                                                             "Aggregated Risk Score Check",
-                                                                             "Check Monthly Income"]
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_order_names'].index("Check Liability") \
+           == len(ko_redesign_adviser.redesign_options['reordering']['optimal_order_names']) - 1
 
 
 if __name__ == "__main__":
-    ignore_caches = False
-    test_ko_reorder_io_advanced()
+    ko_reorder_io()

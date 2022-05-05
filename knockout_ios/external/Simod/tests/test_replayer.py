@@ -119,17 +119,17 @@ def test_compute_sequence_flow_frequencies(args):
 #         log_path = arg['log_path']
 #         print(f'\n\nTesting {log_path.name}')
 #
-#         config = Configuration(log_path=log_path)
-#         config.fill_in_derived_fields()
+#         pipeline_config = Configuration(log_path=log_path)
+#         pipeline_config.fill_in_derived_fields()
 #
 #         # settings for StructureOptimizer
-#         config.max_eval_s = 2
-#         config.concurrency = [0.0, 1.0]
-#         config.epsilon = [0.0, 1.0]
-#         config.eta = [0.0, 1.0]
-#         config.gate_management = [GateManagement.DISCOVERY]
+#         pipeline_config.max_eval_s = 2
+#         pipeline_config.concurrency = [0.0, 1.0]
+#         pipeline_config.epsilon = [0.0, 1.0]
+#         pipeline_config.eta = [0.0, 1.0]
+#         pipeline_config.gate_management = [GateManagement.DISCOVERY]
 #
-#         model_path, log_train, _ = discover_model(config)
+#         model_path, log_train, _ = discover_model(pipeline_config)
 #         print(f'\nmodel_path = {model_path}\n')
 #
 #         graph = BPMNGraph.from_bpmn_path(model_path)
@@ -219,17 +219,17 @@ def test_mine_gateway_probabilities_alternative_with_gateway_management(args):
 #         log_path = arg['log_path']
 #         print(f'\n\nTesting {log_path.name}')
 #
-#         config = Configuration(log_path=log_path)
-#         config.fill_in_derived_fields()
+#         pipeline_config = Configuration(log_path=log_path)
+#         pipeline_config.fill_in_derived_fields()
 #
 #         # settings for StructureOptimizer
-#         config.max_eval_s = 2
-#         config.concurrency = [0.0, 1.0]
-#         config.epsilon = [0.0, 1.0]
-#         config.eta = [0.0, 1.0]
-#         config.gate_management = [GateManagement.DISCOVERY]
+#         pipeline_config.max_eval_s = 2
+#         pipeline_config.concurrency = [0.0, 1.0]
+#         pipeline_config.epsilon = [0.0, 1.0]
+#         pipeline_config.eta = [0.0, 1.0]
+#         pipeline_config.gate_management = [GateManagement.DISCOVERY]
 #
-#         model_path, log_train, _ = TestReplayer.discover_model(config)
+#         model_path, log_train, _ = TestReplayer.discover_model(pipeline_config)
 #         print(f'\nmodel_path = {model_path}\n')
 #
 #         graph = BPMNGraph.from_bpmn_path(model_path)

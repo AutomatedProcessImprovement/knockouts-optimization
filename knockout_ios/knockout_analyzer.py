@@ -10,7 +10,6 @@ from typing import Callable, Optional
 import numpy as np
 from tabulate import tabulate
 
-import pandas as pd
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
@@ -21,6 +20,7 @@ from knockout_ios.utils.metrics import find_rejection_rates, calc_available_case
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
+from knockout_ios.utils.configuration import read_log_and_config, Configuration
 
 from knockout_ios.utils.synthetic_example.preprocessors import *
 
@@ -36,10 +36,13 @@ def clear_cache(cachedir, config_file_name):
 
 class KnockoutAnalyzer:
 
-    def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=False,
+    def __init__(self, log_df: pd.DataFrame, config: Configuration, config_file_name, cache_dir="cache",
+                 config_dir="config", always_force_recompute=False,
                  quiet=True,
                  custom_log_preprocessing_function: Callable[
                      ['KnockoutAnalyzer', pd.DataFrame, Optional[str], ...], pd.DataFrame] = None):
+
+        # TODO: refactor the need for config_dir, cache_dir...
 
         os.makedirs(cache_dir, exist_ok=True)
 
@@ -58,20 +61,21 @@ class KnockoutAnalyzer:
         self.custom_log_preprocessing_function = custom_log_preprocessing_function
 
         self.always_force_recompute = always_force_recompute
+        self.report_file_name = f"{config.output}/{config_file_name.split('.')[0]}_ko_analysis_report.csv"
 
         if self.always_force_recompute:
             clear_cache(self.cache_dir, config_file_name)
 
         if not self.quiet:
-            print(f"Starting Knockout Analyzer with config file \"{config_file_name}\"\n")
+            print(f"Starting Knockout Analyzer with pipeline_config file \"{config_file_name}\"\n")
 
-        self.discoverer = KnockoutDiscoverer(config_file_name=config_file_name,
+        self.discoverer = KnockoutDiscoverer(log_df=log_df,
+                                             config=config,
+                                             config_file_name=config_file_name,
                                              config_dir=self.config_dir,
                                              cache_dir=self.cache_dir,
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
-
-        self.report_file_name = f"{self.discoverer.config.output}/{config_file_name.split('.')[0]}_ko_analysis_report.csv"
 
     def discover_knockouts(self, expected_kos=None):
         self.discoverer.find_ko_activities()
@@ -198,14 +202,14 @@ class KnockoutAnalyzer:
         return log, columns_to_ignore
 
     def compute_ko_rules(self,
-                         algorithm="IREP",
+                         algorithm="RIPPER",
                          max_rules=3,
                          max_rule_conds=None,
                          max_total_conds=None,
                          k=2,
                          n_discretize_bins=10,
                          dl_allowance=16,
-                         prune_size=0.33,
+                         prune_size=0.95,
                          grid_search=False,
                          param_grid=None,
                          confidence_threshold=0.5,
@@ -236,10 +240,10 @@ class KnockoutAnalyzer:
 
         if grid_search & (param_grid is None):
             if algorithm == "RIPPER":
-                param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
-                              "n_discretize_bins": [10, 20, 30]}
+                param_grid = {"prune_size": [0.5, 0.7, 0.95], "k": [2, 4, 8], "dl_allowance": [8, 16],
+                              "n_discretize_bins": [10, 20]}
             elif algorithm == "IREP":
-                param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [10, 20, 30]}
+                param_grid = {"prune_size": [0.5, 0.7, 0.95], "n_discretize_bins": [10, 20, 30]}
 
         try:
             rulesets = find_ko_rulesets(self.rule_discovery_log_df,
@@ -318,57 +322,62 @@ class KnockoutAnalyzer:
                 )
                 print(f"rule discovery params: {params}")
 
-    def build_report(self, omit=False):
-        if self.ruleset_algorithm is None:
-            return
+    def build_report(self, omit=False, use_cache=False):
+        if (not use_cache) or (self.report_df is None):
+            if self.ruleset_algorithm is None:
+                return
 
-        if self.ruleset_algorithm == "RIPPER":
-            rulesets = self.RIPPER_rulesets
-        else:
-            rulesets = self.IREP_rulesets
+            if self.ruleset_algorithm == "RIPPER":
+                rulesets = self.RIPPER_rulesets
+            else:
+                rulesets = self.IREP_rulesets
 
-        _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
-        freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
+            _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
+            freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
 
-        overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
-                                                         self.discoverer.log_df)
-        processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
-        waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
-                                                        self.discoverer.log_df)
+            overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
+                                                             self.discoverer.log_df)
+            processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
+            waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
+                                                            self.discoverer.log_df)
 
-        filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
-        total_non_ko_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
+            filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
+            total_non_ko_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
-        entries = []
-        for ko in self.discoverer.ko_activities:
-            entries.append({("%s" % REPORT_COLUMN_KNOCKOUT_CHECK): ko,
-                            REPORT_COLUMN_TOTAL_FREQ:
-                                freqs[ko],
-                            REPORT_COLUMN_CASE_FREQ:
-                                f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
-                            REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
-                            REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
-                            f"{REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})": rulesets[ko][0].ruleset_,
-                            REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][self.ruleset_algorithm]["effort"],
-                                                               ndigits=2),
-                            REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
-                            REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
-                            REPORT_COLUMN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko]),
-                            REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko] / total_non_ko_cases)
-                            }
-                           )
+            entries = []
+            for ko in self.discoverer.ko_activities:
+                entries.append({("%s" % REPORT_COLUMN_KNOCKOUT_CHECK): ko,
+                                REPORT_COLUMN_TOTAL_FREQ:
+                                    freqs[ko],
+                                REPORT_COLUMN_CASE_FREQ:
+                                    f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
+                                REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
+                                REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
+                                f"{REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})": rulesets[ko][0].ruleset_,
+                                REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][self.ruleset_algorithm]["effort"],
+                                                                   ndigits=2),
+                                REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
+                                REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
+                                REPORT_COLUMN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko]),
+                                REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko] / total_non_ko_cases)
+                                }
+                               )
 
-        df = pd.DataFrame(entries)
+            self.report_df = pd.DataFrame(entries)
 
         if not omit:
-            df.to_csv(self.report_file_name, index=False)
-            print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
+            self.report_df.to_csv(self.report_file_name, index=False)
+            print(tabulate(self.report_df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
-        return df
+        return self.report_df
 
 
 if __name__ == "__main__":
-    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
+    log, configuration = read_log_and_config("config", "synthetic_example.json",
+                                             "cache/synthetic_example")
+    analyzer = KnockoutAnalyzer(log_df=log,
+                                config=configuration,
+                                config_file_name="synthetic_example.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=True,

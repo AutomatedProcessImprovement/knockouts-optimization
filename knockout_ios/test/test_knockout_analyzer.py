@@ -1,13 +1,18 @@
 import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.configuration import read_log_and_config
 from knockout_ios.utils.constants import *
 from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 
 @pytest.mark.parametrize("algorithm", ["RIPPER", "IREP"])
 def test_report_creation(algorithm):
-    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example.json",
+    log, configuration = read_log_and_config("config", "synthetic_example.json",
+                                             "cache/synthetic_example")
+
+    analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
+                                config_file_name="synthetic_example.json",
                                 config_dir="./config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,

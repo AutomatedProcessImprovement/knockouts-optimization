@@ -16,23 +16,29 @@
 import os
 import pprint
 
-import numpy as np
+import pandas as pd
 import pm4py
 from tqdm import tqdm
 
-from knockout_ios.utils.discovery import *
-
-from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache
+from knockout_ios.utils.constants import *
+from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache, \
+    discover_ko_sequences
 from knockout_ios.utils.metrics import get_ko_discovery_metrics
-from knockout_ios.utils.post_proc import format_for_post_proc, plot_cycle_times_per_ko_activity, \
+from knockout_ios.utils.post_processing import format_for_post_proc, plot_cycle_times_per_ko_activity, \
     plot_ko_activities_count
-from knockout_ios.utils.pre_proc import preprocess
+from knockout_ios.utils.configuration import read_log_and_config, Configuration
 
 
 class KnockoutDiscoverer:
 
-    def __init__(self, config_file_name, cache_dir="cache", config_dir="config", always_force_recompute=True,
-                 quiet=False):
+    def __init__(self, log_df: pd.DataFrame, config: Configuration, config_file_name: str,
+                 cache_dir="cache",
+                 config_dir="config",
+                 always_force_recompute=True,
+                 quiet=False
+                 ):
+
+        # TODO: refactor the need for config_dir, cache_dir...
 
         os.makedirs(cache_dir, exist_ok=True)
 
@@ -47,36 +53,18 @@ class KnockoutDiscoverer:
         self.ko_activities = None
         self.force_recompute = None
         self.ko_rules_classifiers = None
-        self.log_df = None
-        self.config = None
 
-        self.read_log_and_config()
+        self.log_df = log_df
+        self.config = config
 
-        self.force_recompute = True
         self.update_should_recompute()
 
-    def read_log_and_config(self):
-        # TODO: document that add_intercase_and_context and add_only_context are False
-        self.log_df, self.config = preprocess(config_file=f"./{self.config_dir}/{self.config_file_name}",
-                                              config_dir=self.config_dir,
-                                              cache_dir=self.cache_dir,
-                                              add_intercase_and_context=False,
-                                              clean_processing_times=False, add_only_context=False)
-
-        # replace empty strings in log_df with NaN
-        self.log_df = self.log_df.replace("", np.nan)
-
-        pm4py_formatted_log_df = pm4py.format_dataframe(self.log_df, case_id='caseid', activity_key='task',
-                                                        timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
-                                                        start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
-
-        if set(list(self.log_df.columns.values)).issubset(set(list(pm4py_formatted_log_df.columns.values))):
-            self.log_df = pm4py_formatted_log_df
-
     def update_should_recompute(self):
-        # Automatically force recompute if config changes
+        self.force_recompute = True
+
+        # Automatically force recompute if pipeline_config changes
         if self.config is None:
-            raise Exception("config not yet loaded")
+            raise Exception("pipeline_config not yet loaded")
 
         try:
             if self.always_force_recompute:
@@ -92,7 +80,7 @@ class KnockoutDiscoverer:
     def find_ko_activities(self):
 
         if self.config is None:
-            raise Exception("config not yet loaded")
+            raise Exception("pipeline_config not yet loaded")
 
         self.update_should_recompute()
 
@@ -225,7 +213,11 @@ class KnockoutDiscoverer:
 
 if __name__ == "__main__":
     test_data = ("credit_app_simple.json", ['Assess application', 'Check credit history', 'Check income sources'])
-    analyzer = KnockoutDiscoverer(config_file_name=test_data[0], cache_dir="cache/credit_app",
+
+    log, configuration = read_log_and_config("config", "credit_app_simple.json", "cache/credit_app")
+
+    analyzer = KnockoutDiscoverer(log_df=log, config=configuration, config_file_name=test_data[0],
+                                  cache_dir="cache/credit_app",
                                   always_force_recompute=True, quiet=False)
 
     analyzer.find_ko_activities()

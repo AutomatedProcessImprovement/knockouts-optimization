@@ -1,10 +1,10 @@
 import pickle
-import pprint
 
 import pandas as pd
 from tabulate import tabulate
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.configuration import read_log_and_config
 from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
@@ -112,6 +112,8 @@ class KnockoutRedesignAdviser(object):
                 rule_attribute_ranges_dict = self.redesign_options["rule_change"]
                 for activity in rule_attribute_ranges_dict.keys():
                     confidence_intervals_string = f"Rule:\n{raw_rulesets[activity]}"
+                    if not (len(raw_rulesets[activity]) > 0):
+                        continue
                     confidence_intervals_string += f"\n\nfor {self.attribute_range_confidence_interval * 100:.0f}% of knocked out cases, these attributes fall within the ranges:"
                     for attribute in rule_attribute_ranges_dict[activity]:
                         confidence_intervals_string += f"\n- {attribute}: {rule_attribute_ranges_dict[activity][attribute][0]:.2f} - {rule_attribute_ranges_dict[activity][attribute][1]:.2f}"
@@ -127,7 +129,12 @@ class KnockoutRedesignAdviser(object):
 
 
 if __name__ == "__main__":
-    analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
+    log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io.json",
+                                             "cache/synthetic_example")
+
+    analyzer = KnockoutAnalyzer(log_df=log,
+                                config=configuration,
+                                config_file_name="synthetic_example_ko_order_io.json",
                                 config_dir="config",
                                 cache_dir="test/knockout_ios/cache/synthetic_example",
                                 always_force_recompute=True,
@@ -136,7 +143,7 @@ if __name__ == "__main__":
 
     analyzer.discover_knockouts()
 
-    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
+    analyzer.compute_ko_rules(grid_search=False, algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
                               print_rule_discovery_stats=False, omit_report=False)
 
     adviser = KnockoutRedesignAdviser(analyzer)

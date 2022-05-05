@@ -4,43 +4,29 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ## Set-up
 
-Clone the repo, then run:
-
-```
-source venv/Scripts/activate
-pip install -r requirements.txt
-```
-
-Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`:
-[graphviz downloads page](https://graphviz.org/download/#windows).
+- Clone the repo
+- [Create a virtual environment with venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment)
+- In the directory that contains the newly created `venv` folder, run:
+    ```
+    source venv/Scripts/activate
+    pip install -r requirements.txt
+    ```
+- Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`:
+  [graphviz downloads page](https://graphviz.org/download/#windows).
 
 ## Usage example
 
-(Same code is found in [`main.py`](./main.py)):
+- **Method 1**: create a config file (see `config_examples` directory), and then simply run:
 
-```python
-from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
-from knockout_ios.utils.synthetic_example.preprocessors import *
+  ```python
+  from knockout_ios.pipeline_wrapper import run_pipeline
+  
+  ko_redesign_adviser = run_pipeline(config_dir="config",
+                                     config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
+                                     cache_dir="cache/synthetic_example")
+  ```
 
-analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_advanced.json",
-                            config_dir="config",
-                            cache_dir="test/knockout_ios/cache/synthetic_example",
-                            always_force_recompute=True,
-                            quiet=True,
-                            custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test)
-
-analyzer.discover_knockouts()
-
-analyzer.compute_ko_rules(algorithm="IREP", confidence_threshold=0.5, support_threshold=0.1,
-                          print_rule_discovery_stats=False, omit_report=False,
-                          max_rules=2, grid_search=True
-                          )
-
-adviser = KnockoutRedesignAdviser(analyzer)
-
-adviser.compute_redesign_options()
-```
+- **Method 2**: see [`main.py`](./main.py)
 
 ## Running tests
 
