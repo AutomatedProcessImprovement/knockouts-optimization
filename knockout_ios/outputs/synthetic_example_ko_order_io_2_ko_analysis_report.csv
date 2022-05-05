@@ -1,5 +1,5 @@
 Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
-Check Risk,1599,79.95 %,1:04:53,30.1 %,[[Loan_Ammount=11693.46-16382.72] V [Loan_Ammount=>16382.72]],129.34,"66 days, 10:56:23","55 days, 17:06:03",0:00:00,0:00:00
-Assess application,562,28.1 %,0:34:01,78.3 %,[[External_Risk_Score=>0.69] V [External_Risk_Score=0.35-0.69]],26.07,"131 days, 21:46:59","118 days, 8:08:49",0:00:00,0:00:00
-Check Monthly Income,1118,55.9 %,0:41:54,49.7 %,[[External_Risk_Score=<0.1^Monthly_Income=<550.93] V [Monthly_Income=824.05-1020.55^Owns_Vehicle=True^External_Risk_Score=<0.1] V [Monthly_Income=550.93-824.05]],48.76,"99 days, 1:32:54","87 days, 17:56:20",0:00:00,0:00:00
-Check Liability,2000,100.0 %,1:16:58,20.0 %,[[Owns_Vehicle=False] V [Total_Debt=>5076.21]],230.9,"31 days, 5:16:26","26 days, 7:04:13",0:11:38,0:00:05
+Assess application,836,27.87 %,1:06:57,80.0 %,[[External_Risk_Score=>0.63] V [External_Risk_Score=0.36-0.63]],50.21,"178 days, 0:35:06","172 days, 22:02:40",0:00:00,0:00:00
+Check Monthly Income,1674,55.8 %,0:35:56,50.1 %,[[Monthly_Income=<568.28] V [Monthly_Income=568.28-830.84] V [Monthly_Income=830.84-1021.0]],39.82,"139 days, 4:24:46","126 days, 8:02:21",0:00:00,0:00:00
+Check Risk,2395,79.83 %,1:08:30,30.1 %,[[Loan_Ammount=>16851.45] V [Loan_Ammount=11853.21-16851.45] V [Loan_Ammount=9356.07-11853.21^External_Risk_Score=<0.092]],122.16,"143 days, 1:12:30","141 days, 18:10:49",0:00:00,0:00:00
+Check Liability,3000,100.0 %,1:08:10,20.2 %,[[Total_Debt=>5116.55] V [Owns_Vehicle=False]],202.49,"55 days, 18:56:43","55 days, 5:47:58",0:00:00,0:00:00
