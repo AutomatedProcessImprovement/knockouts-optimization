@@ -198,7 +198,7 @@ class KnockoutAnalyzer:
         return log, columns_to_ignore
 
     def compute_ko_rules(self,
-                         algorithm="IREP",
+                         algorithm="RIPPER",
                          max_rules=3,
                          max_rule_conds=None,
                          max_total_conds=None,
@@ -236,7 +236,7 @@ class KnockoutAnalyzer:
 
         if grid_search & (param_grid is None):
             if algorithm == "RIPPER":
-                param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
+                param_grid = {"prune_size": [0.5, 0.7, 0.95], "k": [2, 4, 8], "dl_allowance": [16, 32, 64],
                               "n_discretize_bins": [10, 20, 30]}
             elif algorithm == "IREP":
                 param_grid = {"prune_size": [0.5, 0.7, 0.95], "n_discretize_bins": [10, 20, 30]}

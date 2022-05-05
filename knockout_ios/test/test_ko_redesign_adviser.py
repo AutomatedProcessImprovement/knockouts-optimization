@@ -7,8 +7,8 @@ from knockout_ios.utils.synthetic_example.preprocessors import *
 
 def test_ko_reorder_io_simple():
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io.json",
-                                config_dir="config",
-                                cache_dir="test/knockout_ios/cache/synthetic_example",
+                                config_dir="./config",
+                                cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,
                                 custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
@@ -27,8 +27,8 @@ def test_ko_reorder_io_simple():
 
 def test_ko_reorder_io_advanced():
     analyzer = KnockoutAnalyzer(config_file_name="synthetic_example_ko_order_io_advanced.json",
-                                config_dir="config",
-                                cache_dir="test/knockout_ios/cache/synthetic_example",
+                                config_dir="./config",
+                                cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,
                                 custom_log_preprocessing_function=enrich_log_for_ko_order_advanced_test_fixed_values_wrapper)
