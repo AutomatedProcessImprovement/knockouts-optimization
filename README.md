@@ -1,4 +1,4 @@
-# knockouts-optimization
+# knockouts-redesign
 
 This project is about discovering improvement opportunities in Knock-out checks performed within Business Processes.
 
