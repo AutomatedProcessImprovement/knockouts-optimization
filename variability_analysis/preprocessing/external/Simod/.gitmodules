@@ -1,3 +1,0 @@
-[submodule "external_tools/DiffResBP_Simulator"]
-	path = external_tools/DiffResBP_Simulator
-	url = https://github.com/AutomatedProcessImprovement/DiffResBP_Simulator.git

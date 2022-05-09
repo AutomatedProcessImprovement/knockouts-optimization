@@ -20,7 +20,7 @@ from knockout_ios.utils.metrics import find_rejection_rates, calc_available_case
 from knockout_ios.utils.constants import *
 
 from knockout_ios.utils.explainer import find_ko_rulesets
-from knockout_ios.utils.configuration import read_log_and_config, Configuration
+from knockout_ios.utils.preprocessing.configuration import read_log_and_config, Configuration
 
 from knockout_ios.utils.synthetic_example.preprocessors import *
 

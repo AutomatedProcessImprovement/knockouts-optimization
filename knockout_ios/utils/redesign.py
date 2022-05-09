@@ -171,7 +171,9 @@ def bootstrap_ci(
     return stat[nvals]
 
 
-def t_student_ci(x, confidence=0.95):
+def confidence_intervals_t_student(x, confidence=0.95):
+    # source: https://towardsdatascience.com/how-to-calculate-confidence-intervals-in-python-a8625a48e62b
+
     m = x.mean()
     s = x.std()
     dof = len(x) - 1
@@ -181,10 +183,14 @@ def t_student_ci(x, confidence=0.95):
     return m - s * t_crit / np.sqrt(len(x)), m + s * t_crit / np.sqrt(len(x))
 
 
-def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
+def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> tuple[dict[str, List[tuple[str, str]]], List[tuple]]:
     """
     - Returns dependencies between log activities and attributes required by knockout checks
     """
+
+    # TODO: return also KO activity relocation w.r.t other non-KO activities, based on computed dependencies
+    proposed_relocations = []
+
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
     elif analyzer.ruleset_algorithm == "RIPPER":
@@ -217,7 +223,7 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> dict[str, Lis
 
     log.reset_index(inplace=True)
 
-    return dependencies
+    return dependencies, proposed_relocations
 
 
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
@@ -282,7 +288,7 @@ def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95
             if column.dtype.kind not in ['i', 'f']:
                 continue
             column = column.dropna()
-            low_ci, up_ci = t_student_ci(column, confidence)
+            low_ci, up_ci = confidence_intervals_t_student(column, confidence)
             adjusted_values[ko_activity][attribute] = (low_ci, up_ci)
 
     return adjusted_values, raw_rulesets

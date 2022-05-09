@@ -1,7 +1,7 @@
 import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.utils.configuration import read_log_and_config
+from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.constants import *
 from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 

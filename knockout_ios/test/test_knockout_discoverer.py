@@ -2,7 +2,7 @@ import pytest
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 
 # Credit Application
-from knockout_ios.utils.configuration import read_log_and_config
+from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 
 credit_app_kos = ['Assess application', 'Check credit history', 'Check income sources']
 credit_app_scenarios = [

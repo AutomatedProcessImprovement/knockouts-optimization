@@ -4,7 +4,7 @@ import pandas as pd
 from tabulate import tabulate
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.utils.configuration import read_log_and_config
+from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
@@ -56,10 +56,11 @@ class KnockoutRedesignAdviser(object):
         self.redesign_options = {}
 
     def compute_redesign_options(self):
-        self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer)
+        dependencies, proposed_relocations = evaluate_knockout_relocation_io(self.knockout_analyzer)
+        self.redesign_options["relocation"] = proposed_relocations
+
         self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
-                                                                              dependencies=self.redesign_options[
-                                                                                  "relocation"])
+                                                                              dependencies=dependencies)
         self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
                                                                                               self.attribute_range_confidence_interval)
 
@@ -70,7 +71,7 @@ class KnockoutRedesignAdviser(object):
             if "relocation" in self.redesign_options:
                 print("> Knock-out Re-location")
                 entries = []
-                attribute_dependencies_dict = self.redesign_options["relocation"]
+                attribute_dependencies_dict = dependencies
                 for activity in attribute_dependencies_dict.keys():
                     if not (len(attribute_dependencies_dict[activity]) > 0):
                         entries.append(

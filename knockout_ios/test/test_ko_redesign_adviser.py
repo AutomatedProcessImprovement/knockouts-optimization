@@ -1,8 +1,6 @@
-import pytest
-
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
-from knockout_ios.utils.configuration import read_log_and_config
+from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.synthetic_example.preprocessors import *
 
 
