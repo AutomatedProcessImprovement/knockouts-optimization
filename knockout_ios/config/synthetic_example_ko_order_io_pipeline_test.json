@@ -13,7 +13,7 @@
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
   "max_rules": 3,
-  "always_force_recompute": true,
+  "always_force_recompute": false,
   "print_rule_discovery_stats": true,
   "grid_search": false,
   "custom_log_preprocessing_function": "enrich_log_for_synthetic_example_validation"

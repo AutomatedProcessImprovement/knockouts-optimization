@@ -1,8 +1,11 @@
+import itertools
 from collections import Counter
-from typing import List
+from copy import deepcopy
+from typing import List, Dict
 
 import numpy as np
 import pandas as pd
+import pm4py
 from scipy.stats import t
 
 from pm4py.algo.filtering.pandas import ltl
@@ -69,36 +72,40 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
     return list(res)
 
 
-def get_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]], optimal_order_names: List[str],
+def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[str, List[tuple[str, str]]],
+                                 current_activity_order: List[str],
                                  efforts=None):
-    activities = optimal_order_names.copy()
-
     if efforts is not None:
         efforts.set_index(REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
 
-    for knockout_activity in activities:
+    for knockout_activity in ko_activities:
+        if knockout_activity not in current_activity_order:
+            continue
+
         _dependencies = dependencies[knockout_activity]
+        if not all(map(lambda x: x[1] in current_activity_order, _dependencies)):
+            continue
 
         while len(_dependencies) > 0:
-            # Sort deps by the index of every second element of the tuples in optimal_order_names
-            _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
+            # Sort deps by the index of every second element of the tuples in current_activity_order
+            _dependencies = sorted(_dependencies, key=lambda x: current_activity_order.index(x[1]))
             _, attribute_producer = _dependencies.pop(0)
 
-            # Remove knockout_activity from optimal_order_names to insert it in the right place
-            optimal_order_names.remove(knockout_activity)
+            # Remove knockout_activity from current_activity_order to insert it in the right place
+            current_activity_order.remove(knockout_activity)
 
-            # Find where is attribute_value_producer in optimal_order_names,
+            # Find where is attribute_value_producer in current_activity_order,
             # then insert knockout_activity after attribute_value_producer
-            idx = optimal_order_names.index(attribute_producer)
-            optimal_order_names.insert(idx + 1, knockout_activity)
+            idx = current_activity_order.index(attribute_producer)
+            current_activity_order.insert(idx + 1, knockout_activity)
 
             # Sort by effort everything after the producer
             if efforts is not None:
-                idx = optimal_order_names.index(attribute_producer)
-                optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
-                                                       key=lambda x: efforts.loc[x].values[0])
+                idx = current_activity_order.index(attribute_producer)
+                current_activity_order[idx + 1:] = sorted(current_activity_order[idx + 1:],
+                                                          key=lambda x: efforts.loc[x].values[0])
 
-    return optimal_order_names
+    return current_activity_order
 
 
 def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
@@ -183,13 +190,41 @@ def confidence_intervals_t_student(x, confidence=0.95):
     return m - s * t_crit / np.sqrt(len(x)), m + s * t_crit / np.sqrt(len(x))
 
 
-def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> tuple[dict[str, List[tuple[str, str]]], List[tuple]]:
-    """
-    - Returns dependencies between log activities and attributes required by knockout checks
-    """
+def get_relocated_kos(current_order_all_activities, ko_activities, dependencies, start_activity_constraint=None,
+                      optimal_ko_order_constraint=None):
+    trace_start_slice = []
+    if not (start_activity_constraint is None):
+        try:
+            # get a slice of the list right before the start activity, so that re-location does not interfere with the process semantics
+            trace_start_slice = current_order_all_activities[
+                                0:current_order_all_activities.index(start_activity_constraint) + 1]
+            current_order_all_activities = current_order_all_activities[
+                                           current_order_all_activities.index(start_activity_constraint) + 1:]
+        except Exception:
+            return current_order_all_activities
 
-    # TODO: return also KO activity relocation w.r.t other non-KO activities, based on computed dependencies
-    proposed_relocations = []
+    if not (optimal_ko_order_constraint is None):
+        # reorder current_order_all_activities to match the relative orders in optimal_ko_order_constraint (potentially shorter list, as it only contains ko activities)
+        def position(value):
+            # source: https://stackoverflow.com/a/52545309/8522453
+            try:
+                return optimal_ko_order_constraint.index(value)
+            except ValueError:
+                return len(optimal_ko_order_constraint)
+
+        current_order_all_activities.sort(key=position)
+
+    relocated = get_sorted_with_dependencies(ko_activities=ko_activities, dependencies=dependencies,
+                                             current_activity_order=current_order_all_activities)
+
+    trace_start_slice.extend(relocated)
+    return trace_start_slice
+
+
+def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
+    """
+    - Returns dependencies between log ko_activities and attributes required by knockout checks
+    """
 
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
@@ -201,7 +236,7 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> tuple[dict[st
     # for every knockout activity, there will be a list of tuples (attribute of KO rule, name of producer activity)
     dependencies = {k: [] for k in rule_discovery_dict.keys()}
 
-    log = analyzer.discoverer.log_df
+    log = deepcopy(analyzer.discoverer.log_df)
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
     log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME, inplace=True)
 
@@ -221,9 +256,31 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer) -> tuple[dict[st
                     continue
                 dependencies[ko_activity].append((attribute, producers))
 
-    log.reset_index(inplace=True)
+    return dependencies
 
-    return dependencies, proposed_relocations
+
+def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: dict[str, List[tuple[str, str]]],
+                                    optimal_ko_order=None) -> dict[tuple[str], List[str]]:
+    # TODO: return KO activity relocation w.r.t other non-KO ko_activities, based on computed dependencies
+    # TODO: get min_coverage_percentage or K as a parameter in config file
+    log = deepcopy(analyzer.discoverer.log_df)
+    log.sort_values(
+        by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME],
+        inplace=True)
+
+    # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df, min_coverage_percentage=0.01)
+    flt = pm4py.filter_variants_top_k(analyzer.discoverer.log_df, k=10)
+    variants = pm4py.get_variants_as_tuples(flt)
+
+    proposed_relocations = {}
+    for variant in variants.keys():
+        proposed_relocations[variant] = get_relocated_kos(current_order_all_activities=list(variant),
+                                                          ko_activities=analyzer.discoverer.ko_activities,
+                                                          dependencies=dependencies,
+                                                          start_activity_constraint=analyzer.start_activity,
+                                                          optimal_ko_order_constraint=optimal_ko_order)
+
+    return proposed_relocations
 
 
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
@@ -234,7 +291,10 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     - If a dependencies dictionary is provided, it will take it into account for the optimal ordering
     '''
 
-    log = analyzer.discoverer.log_df
+    log = deepcopy(analyzer.discoverer.log_df)
+    log.sort_values(
+        by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME],
+        inplace=True)
 
     sorted_by_effort = analyzer.report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO], ascending=True, inplace=False)
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
@@ -247,7 +307,9 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     if dependencies is not None:
         # TODO: make it more flexible / generic, to include other sorting criteria
-        optimal_order_names = get_sorted_with_dependencies(dependencies, list(optimal_order_names), efforts)
+        optimal_order_names = get_sorted_with_dependencies(
+            ko_activities=list(optimal_order_names), dependencies=dependencies,
+            current_activity_order=list(optimal_order_names), efforts=efforts)
         pass
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
@@ -255,14 +317,15 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     observed_ko_order = get_observed_ko_checks_order(log, analyzer.discoverer.ko_activities)
 
-    return {"optimal_order_names": list(optimal_order_names), "cases_respecting_order": cases_respecting_order.ngroups,
+    return {"optimal_ko_order": list(optimal_order_names),
+            "cases_respecting_order": cases_respecting_order.ngroups,
             "total_cases": total_cases,
             "observed_ko_order": observed_ko_order}
 
 
 def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95):
     """
-        - Returns dependencies between log activities and attributes required by knockout checks
+        - Returns dependencies between log ko_activities and attributes required by knockout checks
         """
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets

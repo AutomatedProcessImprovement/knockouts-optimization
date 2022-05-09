@@ -1,14 +1,14 @@
-Knockouts Redesign Pipeline started @ 2022-05-09 19:50:59.233201
+Knockouts Redesign Pipeline started @ 2022-05-10 01:56:40.742859
 
 Input parameters:
 
-{'always_force_recompute': True,
+{'always_force_recompute': False,
  'cache_dir': 'cache/synthetic_example',
  'confidence_threshold': 0.5,
  'config_dir': None,
  'config_file_name': None,
  'config_path': None,
- 'custom_log_preprocessing_function': <function enrich_log_for_synthetic_example_validation at 0x000001E0DFC0FE50>,
+ 'custom_log_preprocessing_function': <function enrich_log_for_synthetic_example_validation at 0x0000026DA1D8FDC0>,
  'grid_search': False,
  'known_ko_activities': [],
  'ko_count_threshold': None,
@@ -37,38 +37,18 @@ Input parameters:
 ╞══════════════════════╪═══════════════════╪══════════════════╪═════════════════╪══════════════════╪════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╪════════════════════════╪══════════════════════════════╪════════════════════╪════════════════════════════╪═══════════════════════════╡
 │ Check Risk           │              2395 │ 79.83 %          │ 1:08:30         │ 30.1 %           │ [[Loan_Ammount=11820.12-16590.47] V [Loan_Ammount=>16590.47]]                                                          │                 136.56 │ 143 days, 1:12:30            │ 141 days, 18:10:49 │ 0:00:00                    │ 0:00:00                   │
 ├──────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
-│ Check Liability      │              3000 │ 100.0 %          │ 1:08:10         │ 20.2 %           │ [[Total_Debt=>5213.55] V [Owns_Vehicle=False]]                                                                         │                 202.49 │ 55 days, 18:56:43            │ 55 days, 5:47:58   │ 0:00:00                    │ 0:00:00                   │
+│ Check Monthly Income │              1674 │ 55.8 %           │ 0:35:56         │ 50.1 %           │ [[Monthly_Income=<568.28] V [Monthly_Income=830.84-1021.0^External_Risk_Score=<0.12] V [Monthly_Income=568.28-830.84]] │                  41.51 │ 139 days, 4:24:46            │ 126 days, 8:02:21  │ 0:00:00                    │ 0:00:00                   │
 ├──────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
-│ Check Monthly Income │              1674 │ 55.8 %           │ 0:35:56         │ 50.1 %           │ [[External_Risk_Score=<0.1^Monthly_Income=<565.64] V [Monthly_Income=816.45-1019.61] V [Monthly_Income=565.64-816.45]] │                  40.17 │ 139 days, 4:24:46            │ 126 days, 8:02:21  │ 0:00:00                    │ 0:00:00                   │
+│ Check Liability      │              3000 │ 100.0 %          │ 1:08:10         │ 20.2 %           │ [[Total_Debt=>5100.22] V [Owns_Vehicle=False]]                                                                         │                 202.49 │ 55 days, 18:56:43            │ 55 days, 5:47:58   │ 0:00:00                    │ 0:00:00                   │
 ├──────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
-│ Assess application   │               836 │ 27.87 %          │ 1:06:57         │ 80.0 %           │ [[External_Risk_Score=>0.64] V [External_Risk_Score=0.36-0.64]]                                                        │                  50.21 │ 178 days, 0:35:06            │ 172 days, 22:02:40 │ 0:00:00                    │ 0:00:00                   │
+│ Assess application   │               836 │ 27.87 %          │ 1:06:57         │ 80.0 %           │ [[External_Risk_Score=0.36-0.64] V [External_Risk_Score=>0.64]]                                                        │                  50.21 │ 178 days, 0:35:06            │ 172 days, 22:02:40 │ 0:00:00                    │ 0:00:00                   │
 ╘══════════════════════╧═══════════════════╧══════════════════╧═════════════════╧══════════════════╧════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════╧══════════════════════════════╧════════════════════╧════════════════════════════╧═══════════════════════════╛
-
-IREP
-
-"Check Risk"
-# conditions: 2, # rules: 2
-support: 0.25, confidence: 1.00 
-roc_auc score: 0.89, f1 score: 0.88, accuracy: 0.95, precision: 1.00, recall: 0.78
-
-"Check Liability"
-# conditions: 2, # rules: 2
-support: 0.19, confidence: 1.00 
-roc_auc score: 0.97, f1 score: 0.96, accuracy: 0.99, precision: 1.00, recall: 0.93
-
-"Check Monthly Income"
-# conditions: 4, # rules: 3
-support: 0.50, confidence: 0.93 
-roc_auc score: 0.97, f1 score: 0.96, accuracy: 0.97, precision: 0.94, recall: 0.97
-
-"Assess application"
-# conditions: 2, # rules: 2
-support: 0.72, confidence: 1.00 
-roc_auc score: 0.94, f1 score: 0.94, accuracy: 0.97, precision: 1.00, recall: 0.89
 
 ** Redesign options **
 
-> Knock-out Re-location
+
+> Dependencies of KO activities
+
 ╒══════════════════════╤══════════════════════════════════════════════════════════════╕
 │ Knockout Check       │ Dependencies                                                 │
 ╞══════════════════════╪══════════════════════════════════════════════════════════════╡
@@ -99,6 +79,23 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 0/167 non-knocked-out case(s) follow it.
 
 
+> Knock-out Re-location
+
+╒═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╤═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Variant                                                                                                                                                                         │ Relocation Suggestion                                                                                                                                                           │
+╞═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╪═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Start -> Credit application received -> Check Liability -> Notify rejection -> Credit application processed -> End                                                              │ Start -> Credit application received -> Check Liability -> Notify rejection -> Credit application processed -> End                                                              │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> Credit application received -> Check Liability -> Check Risk -> Check Monthly Income -> Notify rejection -> Credit application processed -> End                        │ Start -> Credit application received -> Check Risk -> Check Monthly Income -> Check Liability -> Notify rejection -> Credit application processed -> End                        │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> Credit application received -> Check Liability -> Check Risk -> Check Monthly Income -> Assess application -> Notify rejection -> Credit application processed -> End  │ Start -> Credit application received -> Check Risk -> Assess application -> Check Monthly Income -> Check Liability -> Notify rejection -> Credit application processed -> End  │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> Credit application received -> Check Liability -> Check Risk -> Notify rejection -> Credit application processed -> End                                                │ Start -> Credit application received -> Check Risk -> Check Liability -> Notify rejection -> Credit application processed -> End                                                │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> Credit application received -> Check Liability -> Check Risk -> Check Monthly Income -> Assess application -> Make credit offer -> Credit application processed -> End │ Start -> Credit application received -> Check Risk -> Assess application -> Check Monthly Income -> Check Liability -> Make credit offer -> Credit application processed -> End │
+╘═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+
+
 > Knock-out rule value ranges
 
 ╒══════════════════════╤════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
@@ -110,26 +107,26 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                      │ for 99% of knocked out cases, these attributes fall within the ranges:                                                 │
 │                      │ - Loan Ammount: 16333.66 - 16696.31                                                                                    │
 ├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Check Liability      │ Rule:                                                                                                                  │
-│                      │ [[Total_Debt=>5213.55] V [Owns_Vehicle=False]]                                                                         │
-│                      │                                                                                                                        │
-│                      │ for 99% of knocked out cases, these attributes fall within the ranges:                                                 │
-│                      │ - Total Debt: 5093.18 - 5262.10                                                                                        │
-├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Check Monthly Income │ Rule:                                                                                                                  │
-│                      │ [[External_Risk_Score=<0.1^Monthly_Income=<565.64] V [Monthly_Income=816.45-1019.61] V [Monthly_Income=565.64-816.45]] │
+│                      │ [[Monthly_Income=<568.28] V [Monthly_Income=830.84-1021.0^External_Risk_Score=<0.12] V [Monthly_Income=568.28-830.84]] │
 │                      │                                                                                                                        │
 │                      │ for 99% of knocked out cases, these attributes fall within the ranges:                                                 │
 │                      │ - Monthly Income: 624.30 - 640.43                                                                                      │
 │                      │ - External Risk Score: 0.15 - 0.16                                                                                     │
 ├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Check Liability      │ Rule:                                                                                                                  │
+│                      │ [[Total_Debt=>5100.22] V [Owns_Vehicle=False]]                                                                         │
+│                      │                                                                                                                        │
+│                      │ for 99% of knocked out cases, these attributes fall within the ranges:                                                 │
+│                      │ - Total Debt: 5093.18 - 5262.10                                                                                        │
+├──────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Assess application   │ Rule:                                                                                                                  │
-│                      │ [[External_Risk_Score=>0.64] V [External_Risk_Score=0.36-0.64]]                                                        │
+│                      │ [[External_Risk_Score=0.36-0.64] V [External_Risk_Score=>0.64]]                                                        │
 │                      │                                                                                                                        │
 │                      │ for 99% of knocked out cases, these attributes fall within the ranges:                                                 │
 │                      │ - External Risk Score: 0.62 - 0.64                                                                                     │
 ╘══════════════════════╧════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-09 19:52:51.102301
+Knockouts Redesign Pipeline ended @ 2022-05-10 01:57:02.583861
 
-Wall-clock execution time:  0:01:51.867888
+Wall-clock execution time:  0:00:21.840577

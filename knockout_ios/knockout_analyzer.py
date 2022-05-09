@@ -47,6 +47,7 @@ class KnockoutAnalyzer:
         os.makedirs(cache_dir, exist_ok=True)
 
         self.quiet = quiet
+        self.start_activity = config.start_activity
         self.config_file_name = config_file_name
         self.config_dir = config_dir
         self.cache_dir = cache_dir
@@ -221,9 +222,9 @@ class KnockoutAnalyzer:
             raise Exception("log not yet loaded")
 
         if self.discoverer.ko_activities is None:
-            raise Exception("ko activities not yet discovered")
+            raise Exception("ko ko_activities not yet discovered")
 
-        # Discover rules in knockout activities with chosen algorithm
+        # Discover rules in knockout ko_activities with chosen algorithm
         self.ruleset_algorithm = algorithm
 
         self.available_cases_before_ko = calc_available_cases_before_ko(self.discoverer.ko_activities,

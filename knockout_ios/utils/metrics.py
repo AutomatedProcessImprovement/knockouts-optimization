@@ -36,7 +36,7 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
     total_observations = len(activities)
 
     if total_observations == 0:
-        raise Exception("No activities provided")
+        raise Exception("No ko_activities provided")
 
     # Compute components of metrics
 
@@ -142,7 +142,7 @@ def calc_available_cases_before_ko(ko_activities: List[str], log_df: pd.DataFram
 def calc_processing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     counts = {}
 
-    # Approximation, only adding durations of all activities of knocked out cases per ko activity.
+    # Approximation, only adding durations of all ko_activities of knocked out cases per ko activity.
     # does not take into account idle time due to resource timetables
     for activity in ko_activities:
         filtered_df = log_df[log_df['knockout_activity'] == activity]
@@ -269,7 +269,7 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
 
                 # handle these cases:
                 # - value of NaT in last activity of every case
-                # - cases with no "idle time" between its activities
+                # - cases with no "idle time" between its ko_activities
 
                 if (pd.isnull(non_ko_case_event[next_activity_start_index])) or (
                         non_ko_case_event[next_activity_start_index] <= non_ko_case_event[end_timestamp_index]):

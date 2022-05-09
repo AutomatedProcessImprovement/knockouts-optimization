@@ -161,7 +161,7 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_out
             relations = list(map(lambda ca: (start_activity_name, ca), positive_outcomes))
             df = filter_eventually_follows_relation(df, relations, retain=False)
 
-        # Find variants & sort by prefix length (less activities start to end: possible indicator of knockout)
+        # Find variants & sort by prefix length (less ko_activities start to end: possible indicator of knockout)
         variants = get_sorted_variants(df)
 
         # Ideas:

@@ -1,12 +1,12 @@
-# Knockout activities source:
+# Knockout ko_activities source:
 #
-# - automatically discovered: program considers characteristic activities of top available_cases_before_ko shortest variants as
-#                             knock-out-check activities
+# - automatically discovered: program considers characteristic ko_activities of top available_cases_before_ko shortest variants as
+#                             knock-out-check ko_activities
 #
 # - semi-automatically discovered: user provides activity name(s) associated to negative case outcome(s),
-#                                  program uses that info to refine analysis and find knock-out-check activities.
+#                                  program uses that info to refine analysis and find knock-out-check ko_activities.
 #
-# - manual: user provides names of knock-out-check activities  (utility?)
+# - manual: user provides names of knock-out-check ko_activities  (utility?)
 
 # Ideas:
 #
@@ -104,7 +104,7 @@ class KnockoutDiscoverer:
                                                                                    quiet=self.quiet,
                                                                                    force_recompute=self.force_recompute)
 
-        # Do not consider known negative outcomes as ko activities
+        # Do not consider known negative outcomes as ko ko_activities
         if len(self.config.negative_outcomes) > 0:
             self.ko_activities = list(filter(lambda act: not (act in self.config.negative_outcomes),
                                              self.ko_activities))
@@ -115,7 +115,7 @@ class KnockoutDiscoverer:
 
         if not self.quiet:
             print(f"\nNegative outcomes to search in log: {list(self.ko_outcomes)}"
-                  f"\nPotential K.O. activities in log: {list(self.ko_activities)}")
+                  f"\nPotential K.O. ko_activities in log: {list(self.ko_activities)}")
 
         try:
             if self.force_recompute:
@@ -178,14 +178,14 @@ class KnockoutDiscoverer:
         # Throw error when no KOs are distinguished (all cases are considered 'knocked out')
         # Ask user for more info
         if self.log_df['knocked_out_case'].all():
-            raise Exception("No K.O. activities could be distinguished."
+            raise Exception("No K.O. ko_activities could be distinguished."
                             "\n\nSuggestions:"
                             "\n- Reduce the ko_count_threshold"
                             "\n- Provide negative outcome activity name(s)"
                             "\n- Provide positive outcome activity name(s)")
         elif not self.quiet:
             print(f"\nNegative outcomes found in log: {list(self.ko_outcomes)}"
-                  f"\nK.O. activities found in log: {list(self.ko_activities)}")
+                  f"\nK.O. ko_activities found in log: {list(self.ko_activities)}")
 
     def print_basic_stats(self):
         # Basic impact assessment
@@ -206,7 +206,7 @@ class KnockoutDiscoverer:
     def get_discovery_metrics(self, expected_kos):
 
         if self.ko_activities is None:
-            raise Exception("ko activities not yet computed")
+            raise Exception("ko ko_activities not yet computed")
 
         return get_ko_discovery_metrics(self.get_activities(), expected_kos, self.ko_activities)
 

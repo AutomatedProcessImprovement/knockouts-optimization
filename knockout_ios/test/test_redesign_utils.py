@@ -6,31 +6,24 @@ from pandas import Timestamp
 from collections import Counter
 
 from knockout_ios.utils.constants import *
-from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_producers
-
-
-def get_relocated_kos(current_order, ko_activities, dependencies):
-    relocated = get_sorted_with_dependencies(dependencies=dependencies, optimal_order_names=current_order)
-
-    return relocated
+from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_producers, get_relocated_kos
 
 
 def test_pure_relocation_1():
-    order = ["ko_1", "normal_1", "normal_2", "ko_2", "normal_3", "ko_3"]
+    activities = ["ko_1", "normal_1", "normal_2", "ko_2", "normal_3", "ko_3"]
 
-    dependencies = {k: [] for k in order}
+    dependencies = {k: [] for k in activities}
 
     # ko_2 depends on normal_1
     dependencies["ko_2"].append(("attr1", "normal_1"))
 
     # ko_3 depends on ko_2 and normal_3
-
     dependencies["ko_3"].append(("attr2", "ko_2"))
     dependencies["ko_3"].append(("attr3", "normal_3"))
 
     # ko_3 has no dependencies
 
-    proposed_order = get_relocated_kos(current_order=order,
+    proposed_order = get_relocated_kos(current_order_all_activities=activities,
                                        ko_activities=["ko_1", "ko_2", "ko_3"],
                                        dependencies=dependencies)
 
@@ -38,15 +31,15 @@ def test_pure_relocation_1():
 
 
 def test_pure_relocation_2():
-    order = ["ko_1", "normal_1", "normal_2", "normal_3", "ko_2", "ko_3"]
+    activities = ["ko_1", "normal_1", "normal_2", "normal_3", "ko_2", "ko_3"]
 
-    dependencies = {k: [] for k in order}
+    dependencies = {k: [] for k in activities}
 
-    proposed_order = get_relocated_kos(current_order=order,
+    proposed_order = get_relocated_kos(current_order_all_activities=activities,
                                        ko_activities=["ko_1", "ko_2", "ko_3"],
                                        dependencies=dependencies)
 
-    # we expect to see all the KO activities placed as early as possible because they have no dependencies
+    # we expect to see all the KO ko_activities placed as early as possible because they have no dependencies
     assert proposed_order == ["ko_1", "ko_2", "ko_3", "normal_1", "normal_2", "normal_3"]
 
 
@@ -56,7 +49,8 @@ def test_get_sorted_with_dependencies_1():
     dependencies["A"].append(("attr_from_C", "C"))
     dependencies["A"].append(("attr_from_B", "B"))
 
-    optimal_order = get_sorted_with_dependencies(dependencies=dependencies, optimal_order_names=order)
+    optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
+                                                 current_activity_order=order)
 
     assert optimal_order == ["C", "B", "A"]
 
@@ -68,7 +62,8 @@ def test_get_sorted_with_dependencies_2():
     dependencies["A"].append(("attr_from_C", "C"))
     dependencies["A"].append(("attr_from_B", "B"))
 
-    optimal_order = get_sorted_with_dependencies(dependencies=dependencies, optimal_order_names=order)
+    optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
+                                                 current_activity_order=order)
 
     assert optimal_order == ["B", "C", "A"]
 
@@ -83,8 +78,8 @@ def test_get_sorted_with_dependencies_3():
                {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1},
                {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5}]
 
-    optimal_order = get_sorted_with_dependencies(dependencies=dependencies,
-                                                 optimal_order_names=order,
+    optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
+                                                 current_activity_order=order,
                                                  efforts=pd.DataFrame(efforts))
 
     assert optimal_order == ["A", "B", "C"]

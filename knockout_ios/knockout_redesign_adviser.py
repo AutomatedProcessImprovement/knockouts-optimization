@@ -1,4 +1,5 @@
 import pickle
+from pprint import pprint
 
 import pandas as pd
 from tabulate import tabulate
@@ -8,7 +9,7 @@ from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
-    evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io
+    evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io, find_ko_activity_dependencies
 from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 '''
@@ -56,11 +57,12 @@ class KnockoutRedesignAdviser(object):
         self.redesign_options = {}
 
     def compute_redesign_options(self):
-        dependencies, proposed_relocations = evaluate_knockout_relocation_io(self.knockout_analyzer)
-        self.redesign_options["relocation"] = proposed_relocations
+        dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
 
-        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
-                                                                              dependencies=dependencies)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer, dependencies)
+        self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer, dependencies,
+                                                                              optimal_ko_order=self.redesign_options[
+                                                                                  "reordering"]["optimal_ko_order"])
         self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
                                                                                               self.attribute_range_confidence_interval)
 
@@ -68,8 +70,10 @@ class KnockoutRedesignAdviser(object):
             print(f"\n** Redesign options **\n")
 
             # TODO: cleaner printing/reporting method...
-            if "relocation" in self.redesign_options:
-                print("> Knock-out Re-location")
+            # TODO: make a distinction; dependencies, and actual relocation proposal per variant
+            print_dependencies = True
+            if print_dependencies:
+                print("\n> Dependencies of KO activities\n")
                 entries = []
                 attribute_dependencies_dict = dependencies
                 for activity in attribute_dependencies_dict.keys():
@@ -94,7 +98,7 @@ class KnockoutRedesignAdviser(object):
             if "reordering" in self.redesign_options:
                 print("\n\n> Knock-out Re-ordering\n")
                 optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
-                                 enumerate(self.redesign_options['reordering']['optimal_order_names'])]
+                                 enumerate(self.redesign_options['reordering']['optimal_ko_order'])]
                 observed_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
                                   enumerate(self.redesign_options['reordering']['observed_ko_order'])]
                 cases_respecting_order = self.redesign_options['reordering']['cases_respecting_order']
@@ -104,6 +108,17 @@ class KnockoutRedesignAdviser(object):
                     "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
                 print(
                     "Optimal Order of Knock-out checks (taking into account attribute dependencies):\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it.")
+
+            if "relocation" in self.redesign_options:
+                print("\n\n> Knock-out Re-location\n")
+                entries = []
+                for item in self.redesign_options["relocation"].items():
+                    entries.append({"Variant": " -> ".join(item[0]),
+                                    "Relocation Suggestion": " -> ".join(item[1])})
+
+                df = pd.DataFrame(entries)
+                # TODO: for printing, sort by variant case count
+                print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
             if "rule_change" in self.redesign_options:
                 print("\n\n> Knock-out rule value ranges\n")

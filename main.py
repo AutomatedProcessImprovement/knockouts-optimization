@@ -12,7 +12,7 @@ if __name__ == "__main__":
                                 config_file_name="synthetic_example_ko_order_io.json",
                                 config_dir="config_examples",
                                 cache_dir="test/knockout_ios/cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=True,
                                 custom_log_preprocessing_function=enrich_log_for_synthetic_example_validation)
 
