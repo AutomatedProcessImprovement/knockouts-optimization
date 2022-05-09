@@ -9,6 +9,47 @@ from knockout_ios.utils.constants import *
 from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_producers
 
 
+def get_relocated_kos(current_order, ko_activities, dependencies):
+    relocated = get_sorted_with_dependencies(dependencies=dependencies, optimal_order_names=current_order)
+
+    return relocated
+
+
+def test_pure_relocation_1():
+    order = ["ko_1", "normal_1", "normal_2", "ko_2", "normal_3", "ko_3"]
+
+    dependencies = {k: [] for k in order}
+
+    # ko_2 depends on normal_1
+    dependencies["ko_2"].append(("attr1", "normal_1"))
+
+    # ko_3 depends on ko_2 and normal_3
+
+    dependencies["ko_3"].append(("attr2", "ko_2"))
+    dependencies["ko_3"].append(("attr3", "normal_3"))
+
+    # ko_3 has no dependencies
+
+    proposed_order = get_relocated_kos(current_order=order,
+                                       ko_activities=["ko_1", "ko_2", "ko_3"],
+                                       dependencies=dependencies)
+
+    assert proposed_order == ["ko_1", "normal_1", "ko_2", "normal_2", "normal_3", "ko_3"]
+
+
+def test_pure_relocation_2():
+    order = ["ko_1", "normal_1", "normal_2", "normal_3", "ko_2", "ko_3"]
+
+    dependencies = {k: [] for k in order}
+
+    proposed_order = get_relocated_kos(current_order=order,
+                                       ko_activities=["ko_1", "ko_2", "ko_3"],
+                                       dependencies=dependencies)
+
+    # we expect to see all the KO activities placed as early as possible because they have no dependencies
+    assert proposed_order == ["ko_1", "ko_2", "ko_3", "normal_1", "normal_2", "normal_3"]
+
+
 def test_get_sorted_with_dependencies_1():
     order = ["A", "C", "B"]
     dependencies = {k: [] for k in order}
