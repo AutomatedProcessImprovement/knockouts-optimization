@@ -1,7 +1,6 @@
-import itertools
 from collections import Counter
 from copy import deepcopy
-from typing import List, Dict
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -75,37 +74,39 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
 def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[str, List[tuple[str, str]]],
                                  current_activity_order: List[str],
                                  efforts=None):
+    optimal_order_names = current_activity_order.copy()
+
     if efforts is not None:
         efforts.set_index(REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
 
     for knockout_activity in ko_activities:
-        if knockout_activity not in current_activity_order:
+        if knockout_activity not in optimal_order_names:
             continue
 
         _dependencies = dependencies[knockout_activity]
-        if not all(map(lambda x: x[1] in current_activity_order, _dependencies)):
+        if not all(map(lambda x: x[1] in optimal_order_names, _dependencies)):
             continue
 
         while len(_dependencies) > 0:
             # Sort deps by the index of every second element of the tuples in current_activity_order
-            _dependencies = sorted(_dependencies, key=lambda x: current_activity_order.index(x[1]))
+            _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
             _, attribute_producer = _dependencies.pop(0)
 
             # Remove knockout_activity from current_activity_order to insert it in the right place
-            current_activity_order.remove(knockout_activity)
+            optimal_order_names.remove(knockout_activity)
 
             # Find where is attribute_value_producer in current_activity_order,
             # then insert knockout_activity after attribute_value_producer
-            idx = current_activity_order.index(attribute_producer)
-            current_activity_order.insert(idx + 1, knockout_activity)
+            idx = optimal_order_names.index(attribute_producer)
+            optimal_order_names.insert(idx + 1, knockout_activity)
 
             # Sort by effort everything after the producer
             if efforts is not None:
-                idx = current_activity_order.index(attribute_producer)
-                current_activity_order[idx + 1:] = sorted(current_activity_order[idx + 1:],
-                                                          key=lambda x: efforts.loc[x].values[0])
+                idx = optimal_order_names.index(attribute_producer)
+                optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
+                                                       key=lambda x: efforts.loc[x].values[0])
 
-    return current_activity_order
+    return optimal_order_names
 
 
 def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
@@ -261,7 +262,6 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
 
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: dict[str, List[tuple[str, str]]],
                                     optimal_ko_order=None) -> dict[tuple[str], List[str]]:
-    # TODO: return KO activity relocation w.r.t other non-KO ko_activities, based on computed dependencies
     # TODO: get min_coverage_percentage or K as a parameter in config file
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(

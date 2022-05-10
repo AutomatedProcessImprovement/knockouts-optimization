@@ -5,6 +5,8 @@ from sys import stdout
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
+
 from knockout_ios.utils.constants import *
 
 # TODO: Excessive wittgenstein frame.append deprecation warnings
@@ -57,7 +59,7 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
     except FileNotFoundError:
         rulesets = {}
 
-        for activity in ko_activities:
+        for activity in tqdm(ko_activities, desc='Finding rules of Knockout Activities'):
             # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
             _by_case = deepcopy(log_df)
             _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)

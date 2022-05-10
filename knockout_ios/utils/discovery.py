@@ -65,6 +65,7 @@ def get_sorted_variants(df, caseid_col=PM4PY_CASE_ID_COLUMN_NAME, activity_col=P
 
     variants_count = sorted(variants_count, key=lambda x: x[caseid_col], reverse=True)
 
+    # TODO: fix this; issue appeared after updating pm4py...
     variants = list(map(lambda entry: {'prefix': entry['variant'].split(","), 'case_count': entry[caseid_col],
                                        'prefix_len': len(entry['variant'].split(","))}, variants_count))
 

@@ -12,14 +12,14 @@ from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_produ
 def test_pure_relocation_1():
     activities = ["ko_1", "normal_1", "normal_2", "ko_2", "normal_3", "ko_3"]
 
-    dependencies = {k: [] for k in activities}
+    dependencies = {k: [] for k in ["ko_1", "ko_2", "ko_3"]}
 
     # ko_2 depends on normal_1
     dependencies["ko_2"].append(("attr1", "normal_1"))
 
     # ko_3 depends on ko_2 and normal_3
     dependencies["ko_3"].append(("attr2", "ko_2"))
-    dependencies["ko_3"].append(("attr3", "normal_3"))
+    dependencies["ko_3"].append(("attr3", "normal_2"))
 
     # ko_3 has no dependencies
 
@@ -27,20 +27,40 @@ def test_pure_relocation_1():
                                        ko_activities=["ko_1", "ko_2", "ko_3"],
                                        dependencies=dependencies)
 
-    assert proposed_order == ["ko_1", "normal_1", "ko_2", "normal_2", "normal_3", "ko_3"]
+    assert proposed_order == ["ko_1", "normal_1", "ko_2", "normal_2", "ko_3", "normal_3"]
 
 
 def test_pure_relocation_2():
-    activities = ["ko_1", "normal_1", "normal_2", "normal_3", "ko_2", "ko_3"]
+    activities = ["start", "normal_1", "normal_2", "ko_1", "normal_3", "ko_2", "ko_3"]
 
-    dependencies = {k: [] for k in activities}
+    dependencies = {k: [] for k in ["ko_1", "ko_2", "ko_3"]}
 
     proposed_order = get_relocated_kos(current_order_all_activities=activities,
                                        ko_activities=["ko_1", "ko_2", "ko_3"],
-                                       dependencies=dependencies)
+                                       dependencies=dependencies,
+                                       start_activity_constraint="start",
+                                       optimal_ko_order_constraint=["ko_3", "ko_1", "ko_2"])
 
     # we expect to see all the KO ko_activities placed as early as possible because they have no dependencies
-    assert proposed_order == ["ko_1", "ko_2", "ko_3", "normal_1", "normal_2", "normal_3"]
+    assert proposed_order == ["start", "ko_3", "ko_1", "ko_2", "normal_1", "normal_2", "normal_3"]
+
+
+def test_pure_relocation_3():
+    activities = ["start", "normal_1", "normal_2", "ko_1", "normal_3", "ko_2", "ko_3"]
+
+    dependencies = {k: [] for k in ["ko_1", "ko_2", "ko_3"]}
+
+    dependencies["ko_3"].append(("attr3", "normal_3"))
+
+    proposed_order = get_relocated_kos(current_order_all_activities=activities,
+                                       ko_activities=["ko_1", "ko_2", "ko_3"],
+                                       dependencies=dependencies,
+                                       start_activity_constraint="start",
+                                       optimal_ko_order_constraint=["ko_3", "ko_2", "ko_1"])
+
+    # only ko_3 has a dependency on a non-ko activity
+    # the rest can be placed as early as possible, given a precomputed optimal order as a constraint
+    assert proposed_order == ["start", "ko_2", "ko_1", "normal_1", "normal_2", "normal_3", "ko_3"]
 
 
 def test_get_sorted_with_dependencies_1():

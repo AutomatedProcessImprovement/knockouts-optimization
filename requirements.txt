@@ -48,7 +48,7 @@ Pillow==9.0.1
 platformdirs==2.5.1
 plotly==5.6.0
 pluggy==1.0.0
-pm4py==2.2.19.2
+pm4py==2.2.20.1
 prompt-toolkit==3.0.28
 PuLP==2.1
 pure-eval==0.2.2

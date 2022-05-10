@@ -36,7 +36,7 @@ On Mac/Linux or Windows with git bash, it can be launched with `bash ./test.sh`.
 
 The flag `-n auto` is used by pytest-xdist to run tests in parallel.
 
-## Notes:
+## Notes
 
 ### About wittgenstein
 
@@ -49,14 +49,3 @@ yield too small training sets or sets with no positive examples.
 
 This can be safely ignored as long as the grid contains at least one parameter combination that results in a valid
 dataset, and the rule discovery module is able to return meaningful rules.
-
-### About pm4py
-
-A bug was found in the `pm4py/filtering.py` module and the maintainers were informed.
-
-At the time of writing, the bugfix is not yet available in the pm4py version published on pypy.
-
-If you get an error along the lines of "`Unbound local variable EventLog...`", refer
-to [this commit](https://github.com/pm4py/pm4py-core/commit/65e1f1b0bbd0747fe81eb049780874608a395d6e) (done by a pm4py
-maintainer).
-

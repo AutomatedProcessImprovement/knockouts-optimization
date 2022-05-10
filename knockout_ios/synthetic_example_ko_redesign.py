@@ -6,11 +6,11 @@ def ko_reorder_io():
                                        config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
                                        cache_dir="cache/synthetic_example")
 
-    # assert ko_redesign_adviser.redesign_options['reordering']['current_activity_order'].index("Check Risk") \
-    #        < ko_redesign_adviser.redesign_options['reordering']['current_activity_order'].index("Assess application")
-    #
-    # assert ko_redesign_adviser.redesign_options['reordering']['current_activity_order'].index("Check Liability") \
-    #        == len(ko_redesign_adviser.redesign_options['reordering']['current_activity_order']) - 1
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Check Risk") \
+           < ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Assess application")
+
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Check Liability") \
+           == len(ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order']) - 1
 
 
 if __name__ == "__main__":

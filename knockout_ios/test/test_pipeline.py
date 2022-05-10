@@ -7,8 +7,8 @@ def test_ko_reorder_io():
                                        cache_dir="cache/synthetic_example",
                                        )
 
-    assert ko_redesign_adviser.redesign_options['reordering']['current_activity_order'].index("Check Risk") \
-           < ko_redesign_adviser.redesign_options['reordering']['current_activity_order'].index("Assess application")
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Check Risk") \
+           < ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Assess application")
 
-    assert ko_redesign_adviser.redesign_options['reordering']['current_activity_order'].index("Check Liability") \
-           == len(ko_redesign_adviser.redesign_options['reordering']['current_activity_order']) - 1
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Check Liability") \
+           == len(ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order']) - 1
