@@ -13,7 +13,7 @@ from tabulate import tabulate
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
-from knockout_ios.utils.format import seconds_to_hms
+from knockout_ios.utils.postprocessing import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
     calc_processing_waste, calc_waiting_time_waste_v2
 
