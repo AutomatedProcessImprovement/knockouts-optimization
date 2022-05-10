@@ -3,6 +3,7 @@ import pickle
 from itertools import chain
 
 import pandas as pd
+import pm4py
 from pm4py import filter_eventually_follows_relation
 from pm4py.objects.log.obj import EventLog, EventStream
 from pm4py.statistics.traces.generic.pandas import case_statistics
@@ -51,24 +52,19 @@ def dump_variants_cache(config_file_name, variants, cache_dir):
     binary_file.close()
 
 
-def get_sorted_variants(df, caseid_col=PM4PY_CASE_ID_COLUMN_NAME, activity_col=PM4PY_ACTIVITY_COLUMN_NAME,
-                        end_timestamp_col=PM4PY_END_TIMESTAMP_COLUMN_NAME):
+def get_sorted_variants(df):
     # Find variants & sort by prefix length
 
-    variants_count = case_statistics.get_variant_statistics(df,
-                                                            parameters=
-                                                            {
-                                                                case_statistics.Parameters.CASE_ID_KEY: caseid_col,
-                                                                case_statistics.Parameters.ACTIVITY_KEY: activity_col,
-                                                                case_statistics.Parameters.TIMESTAMP_KEY: end_timestamp_col
-                                                            })
+    df = df.sort_values(
+        by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
 
-    variants_count = sorted(variants_count, key=lambda x: x[caseid_col], reverse=True)
+    variants = pm4py.get_variants_as_tuples(df)
+    entries = []
+    for item in variants.items():
+        entry = {'prefix': list(item[0]), 'case_count': item[1], 'prefix_len': len(item[0])}
+        entries.append(entry)
 
-    # TODO: fix this; issue appeared after updating pm4py...
-    variants = list(map(lambda entry: {'prefix': entry['variant'].split(","), 'case_count': entry[caseid_col],
-                                       'prefix_len': len(entry['variant'].split(","))}, variants_count))
-
+    variants = sorted(entries, key=lambda e: e['case_count'], reverse=True)
     variants = sorted(variants, key=lambda e: e['prefix_len'])
 
     return variants
