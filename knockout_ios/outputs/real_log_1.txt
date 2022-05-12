@@ -1,0 +1,83 @@
+Knockouts Redesign Pipeline started @ 2022-05-13 00:18:09.164941
+
+Input parameters:
+
+{'always_force_recompute': True,
+ 'cache_dir': 'cache/real_log_1',
+ 'confidence_threshold': 0.5,
+ 'config_dir': None,
+ 'config_file_name': None,
+ 'config_path': None,
+ 'custom_log_preprocessing_function': None,
+ 'dl_allowance': 1,
+ 'exclude_from_ko_activities': ['End'],
+ 'grid_search': False,
+ 'k': 2,
+ 'known_ko_activities': [],
+ 'ko_count_threshold': None,
+ 'log_path': WindowsPath('inputs/BPI Challenge 2017_1K_filtered.xes'),
+ 'max_rule_conds': 1,
+ 'max_rules': 3,
+ 'n_discretize_bins': 10,
+ 'negative_outcomes': ['A_Denied'],
+ 'output': WindowsPath('outputs'),
+ 'positive_outcomes': [],
+ 'print_rule_discovery_stats': True,
+ 'prune_size': 0.8,
+ 'read_options': {'column_names': {'Activity': 'task',
+                                   'Case ID': 'caseid',
+                                   'Resource': 'user',
+                                   'lifecycle:transition': 'event_type'},
+                  'filter_d_attrib': True,
+                  'one_timestamp': False,
+                  'timeformat': '%Y-%m-%dT%H:%M:%S.%f'},
+ 'redesign_results_file_path': 'outputs/real_log_1.txt',
+ 'rule_discovery_algorithm': 'RIPPER',
+ 'start_activity': 'A_Create Application',
+ 'support_threshold': 0.1}
+
+
+Starting Knockout Analyzer with pipeline_config file "real_log_1.json"
+
+Cache for real_log_1.json variants not found
+
+Possible knockout sequences:
+
+                                A_Denied -> End                            | outcome: A_Denied                           
+                                     End -> A_Denied                       | outcome: A_Denied                           
+                              A_Complete -> A_Denied                       | outcome: O_Refused                          
+                               O_Refused -> W_Complete application         | outcome: W_Complete application             
+                    A_Create Application -> A_Concept                      | outcome: O_Refused                          
+                               A_Concept -> A_Accepted                     | outcome: O_Refused                          
+                O_Sent (mail and online) -> A_Complete                     | outcome: O_Refused                          
+                              O_Returned -> A_Denied                       | outcome: O_Refused                          
+                             A_Submitted -> W_Handle leads                 | outcome: O_Refused                          
+                          W_Handle leads -> A_Concept                      | outcome: O_Refused                          
+                            A_Validating -> A_Denied                       | outcome: W_Validate application             
+                            A_Incomplete -> A_Denied                       | outcome: O_Refused                          
+                               O_Created -> A_Denied                       | outcome: W_Call after offers                
+                W_Assess potential fraud -> A_Denied                       | outcome: O_Refused                          
+                             O_Cancelled -> O_Create Offer                 | outcome: O_Refused                          
+                          O_Create Offer -> O_Created                      | outcome: O_Refused                          
+                 W_Call incomplete files -> A_Validating                   | outcome: O_Refused                          
+                  W_Validate application -> A_Denied                       | outcome: W_Assess potential fraud           
+                     W_Call after offers -> A_Validating                   | outcome: W_Validate application             
+                    O_Sent (online only) -> W_Complete application         | outcome: W_Validate application             
+
+Negative outcomes to search in log: ['A_Denied']
+Potential K.O. ko_activities in log: ['A_Submitted', 'O_Created', 'A_Validating', 'O_Create Offer', 'O_Returned', 'A_Incomplete', 'A_Create Application', 'W_Call incomplete files', 'O_Sent (online only)', 'O_Sent (mail and online)', 'A_Complete', 'A_Concept', 'O_Cancelled', 'W_Call after offers', 'W_Validate application', 'O_Refused', 'W_Assess potential fraud', 'W_Handle leads']
+
+Negative outcomes found in log: ['A_Denied']
+K.O. ko_activities found in log: ['O_Created', 'A_Validating', 'W_Validate application', 'O_Sent (mail and online)', 'O_Cancelled', 'W_Assess potential fraud', 'O_Returned', 'A_Complete', 'A_Incomplete']
+
+K.O. rejection rates:
+
+{'A_Complete': 0.008,
+ 'A_Incomplete': 0.009,
+ 'A_Validating': 0.029,
+ 'O_Cancelled': 0.009,
+ 'O_Created': 0.001,
+ 'O_Returned': 0.126,
+ 'O_Sent (mail and online)': 0.002,
+ 'W_Assess potential fraud': 0.429,
+ 'W_Validate application': 0.001}

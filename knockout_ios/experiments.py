@@ -19,5 +19,5 @@ def real_log_1():
 
 
 if __name__ == "__main__":
-    ko_reorder_io()
-    # real_log_1()
+    # ko_reorder_io()
+    real_log_1()

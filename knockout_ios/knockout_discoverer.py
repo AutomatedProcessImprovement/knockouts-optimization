@@ -154,7 +154,7 @@ class KnockoutDiscoverer:
                         if outcome in case_activities and (case_activities.index(outcome) < len(case_activities)):
                             case_activities = case_activities[:case_activities.index(outcome) + 1]
 
-                    # reverse case activities
+                    # reverse case activities and return the first knockout activity that appears
                     case_activities.reverse()
                     for activity in case_activities:
                         if activity in _ko_activities:
