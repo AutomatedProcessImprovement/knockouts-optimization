@@ -72,6 +72,8 @@ class KnockoutAnalyzer:
         if not self.quiet:
             print(f"Starting Knockout Analyzer with pipeline_config file \"{config_file_name}\"\n")
 
+        log_df = log_df.sort_values(by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
+
         self.discoverer = KnockoutDiscoverer(log_df=log_df,
                                              config=config,
                                              config_file_name=config_file_name,
@@ -170,6 +172,8 @@ class KnockoutAnalyzer:
                              PM4PY_END_TIMESTAMP_COLUMN_NAME,
                              DURATION_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
                              SIMOD_START_TIMESTAMP_COLUMN_NAME,
+                             "@@index",
+                             "@@startevent_EventID",
                              'knockout_activity',
                              'knockout_prefix']
 
@@ -190,28 +194,12 @@ class KnockoutAnalyzer:
             log[attr] = \
                 pd.to_numeric(log[attr], errors='ignore')
 
-        # Fill Nan values of non-numerical columns, but drop rows with Nan values in numerical columns
-        non_numerical = log.select_dtypes([object]).columns
-        log = log.fillna(
-            value={c: EMPTY_NON_NUMERICAL_VALUE for c in non_numerical})
+        # Aggregate attribute values by case
+        # Select the last non-null value of each column
+        log = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, as_index=False).last()
 
-        # TODO: maybe need to remove this
-        numerical = log.select_dtypes([np.number]).columns
-        log = log.fillna(value={c: 0 for c in numerical})
-
-        # Method 1: group by case id and aggregate grouped_df selecting the most frequent value of each column
-        # grouped_df = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
-        # log = grouped_df.agg(lambda x: x.value_counts().index[0])
-
-        # Method 2: aggregate grouped_df selecting the last value of each column
-        # TODO: find a more robust way for aggregating. This may be too fragile.
-        # TODO: with BPI 2017, only 1 event contains values and it's not the last one... This will fail
-        # drop all rows which contain Nan values
-        # log = log.dropna(how='any')
-
-        log = log.sort_values(by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
-        grouped_df = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
-        log = grouped_df.agg("last")
+        # Drop any remaining rows with nan values
+        log = log.dropna(how='any')
 
         return log, columns_to_ignore
 

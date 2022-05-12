@@ -199,9 +199,6 @@ def read_log_and_config(config_dir, config_file_name, cache_dir):
                                 cache_dir=cache_dir,
                                 add_intercase_and_context=False, add_only_context=False)
 
-    # replace empty strings in log_df with NaN
-    log_df = log_df.replace("", np.nan)
-
     pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
                                                     activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
                                                     timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
