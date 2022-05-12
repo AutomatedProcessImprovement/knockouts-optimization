@@ -99,13 +99,9 @@ class KnockoutRedesignAdviser(object):
                 print("\n\n> Knock-out Re-ordering\n")
                 optimal_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
                                  enumerate(self.redesign_options['reordering']['optimal_ko_order'])]
-                observed_order = [f'{i + 1}. {ko}' + '\n' for i, ko in
-                                  enumerate(self.redesign_options['reordering']['observed_ko_order'])]
                 cases_respecting_order = self.redesign_options['reordering']['cases_respecting_order']
                 total_cases = self.redesign_options['reordering']['total_cases']
 
-                print(
-                    "Observed Order of Knock-out checks:\n" + f"{''.join(observed_order)}")
                 print(
                     "Optimal Order of Knock-out checks (taking into account attribute dependencies):\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it.")
 

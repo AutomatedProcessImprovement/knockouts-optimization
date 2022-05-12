@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-05-12 02:54:15.002259
+Knockouts Redesign Pipeline started @ 2022-05-12 03:08:27.164121
 
 Input parameters:
 
@@ -8,7 +8,7 @@ Input parameters:
  'config_dir': None,
  'config_file_name': None,
  'config_path': None,
- 'custom_log_preprocessing_function': <function enrich_log_for_synthetic_example_validation at 0x000002127F0EA310>,
+ 'custom_log_preprocessing_function': <function enrich_log_for_synthetic_example_validation at 0x000001BB795DA310>,
  'dl_allowance': 1,
  'grid_search': False,
  'k': 2,
@@ -68,12 +68,6 @@ Input parameters:
 
 > Knock-out Re-ordering
 
-Observed Order of Knock-out checks:
-1. Check Liability
-2. Check Risk
-3. Check Monthly Income
-4. Assess application
-
 Optimal Order of Knock-out checks (taking into account attribute dependencies):
 1. Check Monthly Income
 2. Check Risk
@@ -130,6 +124,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                      │ - Monthly Income: 624.30 - 640.43                                                               │
 ╘══════════════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-12 02:54:34.013313
+Knockouts Redesign Pipeline ended @ 2022-05-12 03:08:46.732941
 
-Wall-clock execution time:  0:00:19.011156
+Wall-clock execution time:  0:00:19.568722
