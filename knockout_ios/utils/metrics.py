@@ -312,6 +312,9 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
 
 
 def dump_metric_cache(filename, metric_result):
+    if os.environ.get('RUNNING_TESTS'):
+        return
+    
     binary_file = open(f"temp/{filename}.pkl", 'wb')
     pickle.dump(metric_result, binary_file)
     binary_file.close()

@@ -1,3 +1,4 @@
+import os
 from multiprocessing import Process
 
 from knockout_ios.utils.metrics import calc_overprocessing_waste, calc_processing_waste, calc_waiting_time_waste_v2, \
@@ -5,6 +6,15 @@ from knockout_ios.utils.metrics import calc_overprocessing_waste, calc_processin
 
 
 def parallel_metrics_calc(ko_activities, log_df):
+    # Fall back to sequential version when testing
+    if os.environ.get('RUNNING_TESTS'):
+        freqs = calc_available_cases_before_ko(ko_activities, log_df)
+        overprocessing_waste = calc_overprocessing_waste(ko_activities, log_df)
+        processing_waste = calc_processing_waste(ko_activities, log_df)
+        waiting_time_waste = calc_waiting_time_waste_v2(ko_activities, log_df)
+
+        return freqs, overprocessing_waste, processing_waste, waiting_time_waste
+
     tasks = [calc_available_cases_before_ko, calc_overprocessing_waste, calc_processing_waste,
              calc_waiting_time_waste_v2]
     running_tasks = [Process(target=task, args=(ko_activities, log_df)) for task in tasks]
