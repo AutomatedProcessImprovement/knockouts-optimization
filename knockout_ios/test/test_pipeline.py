@@ -12,3 +12,8 @@ def test_ko_reorder_io():
 
     assert ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'].index("Check Liability") \
            == len(ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order']) - 1
+
+    assert ko_redesign_adviser.redesign_options['reordering']['optimal_ko_order'] == ["Check Monthly Income",
+                                                                                      "Check Risk",
+                                                                                      "Assess application",
+                                                                                      "Check Liability"]

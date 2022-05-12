@@ -13,6 +13,7 @@ from tabulate import tabulate
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
+from knockout_ios.utils.parallel import parallel_metrics_calc
 from knockout_ios.utils.postprocessing import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
     calc_processing_waste, calc_waiting_time_waste_v2
@@ -45,6 +46,7 @@ class KnockoutAnalyzer:
         # TODO: refactor the need for config_dir, cache_dir...
 
         os.makedirs(cache_dir, exist_ok=True)
+        os.makedirs("temp", exist_ok=True)
 
         self.quiet = quiet
         self.start_activity = config.start_activity
@@ -196,9 +198,15 @@ class KnockoutAnalyzer:
         numerical = log.select_dtypes([np.number]).columns
         log = log.fillna(value={c: 0 for c in numerical})
 
-        # group by case id and aggregate grouped_df selecting the most frequent value of each column
+        # Method 1: group by case id and aggregate grouped_df selecting the most frequent value of each column
+        # grouped_df = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
+        # log = grouped_df.agg(lambda x: x.value_counts().index[0])
+
+        # Method 2: aggregate grouped_df selecting the last value of each column
+        # TODO: find a more robust way for aggregating. This may be too fragile.
+        log = log.sort_values(by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
         grouped_df = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
-        log = grouped_df.agg(lambda x: x.value_counts().index[0])
+        log = grouped_df.agg("last")
 
         return log, columns_to_ignore
 
@@ -209,8 +217,8 @@ class KnockoutAnalyzer:
                          max_total_conds=None,
                          k=2,
                          n_discretize_bins=10,
-                         dl_allowance=16,
-                         prune_size=0.95,
+                         dl_allowance=2,
+                         prune_size=0.8,
                          grid_search=False,
                          param_grid=None,
                          confidence_threshold=0.5,
@@ -241,7 +249,7 @@ class KnockoutAnalyzer:
 
         if grid_search & (param_grid is None):
             if algorithm == "RIPPER":
-                param_grid = {"prune_size": [0.5, 0.7, 0.95], "k": [2, 4, 8], "dl_allowance": [8, 16],
+                param_grid = {"prune_size": [0.5, 0.8, 0.9], "k": [2], "dl_allowance": [2, 4, 8],
                               "n_discretize_bins": [10, 20]}
             elif algorithm == "IREP":
                 param_grid = {"prune_size": [0.5, 0.7, 0.95], "n_discretize_bins": [10, 20, 30]}
@@ -334,13 +342,10 @@ class KnockoutAnalyzer:
                 rulesets = self.IREP_rulesets
 
             _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
-            freqs = calc_available_cases_before_ko(self.discoverer.ko_activities, self.discoverer.log_df)
 
-            overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities,
-                                                             self.discoverer.log_df)
-            processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
-            waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
-                                                            self.discoverer.log_df)
+            freqs, overprocessing_waste, processing_waste, waiting_time_waste = parallel_metrics_calc(
+                self.discoverer.ko_activities,
+                self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
             total_non_ko_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
@@ -374,19 +379,21 @@ class KnockoutAnalyzer:
 
 
 if __name__ == "__main__":
-    log, configuration = read_log_and_config("config", "synthetic_example.json",
-                                             "cache/synthetic_example")
-    analyzer = KnockoutAnalyzer(log_df=log,
+    _log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io_pipeline_test.json",
+                                              "cache/synthetic_example")
+    analyzer = KnockoutAnalyzer(log_df=_log,
                                 config=configuration,
-                                config_file_name="synthetic_example.json",
+                                config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=True,
-                                custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
+                                custom_log_preprocessing_function=enrich_log_for_synthetic_example_validation)
 
-    analyzer.discover_knockouts(
-        expected_kos=['Check Liability', 'Check Risk', 'Check Monthly Income', 'Assess application'])
+    analyzer.discover_knockouts()
 
-    analyzer.compute_ko_rules(grid_search=True, algorithm="IREP", confidence_threshold=0.1, support_threshold=0.5,
-                              print_rule_discovery_stats=True)
+    analyzer.compute_ko_rules(grid_search=False, algorithm="RIPPER", confidence_threshold=0.1, support_threshold=0.5,
+                              print_rule_discovery_stats=False, dl_allowance=configuration.dl_allowance,
+                              k=configuration.k,
+                              n_discretize_bins=configuration.n_discretize_bins,
+                              prune_size=configuration.prune_size)

@@ -57,7 +57,12 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                                           print_rule_discovery_stats=pipeline_config.print_rule_discovery_stats,
                                           max_rules=pipeline_config.max_rules,
                                           max_rule_conds=pipeline_config.max_rule_conds,
-                                          grid_search=pipeline_config.grid_search)
+                                          grid_search=pipeline_config.grid_search,
+                                          dl_allowance=pipeline_config.dl_allowance,
+                                          k=pipeline_config.k,
+                                          n_discretize_bins=pipeline_config.n_discretize_bins,
+                                          prune_size=pipeline_config.prune_size
+                                          )
 
                 dump_analyzer_cache(cache_dir="test/test_fixtures",
                                     cache_name=config_file_name.split('.')[0],

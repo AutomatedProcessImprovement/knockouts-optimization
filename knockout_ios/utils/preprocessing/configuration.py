@@ -50,6 +50,10 @@ class Configuration:
         ['KnockoutAnalyzer', pd.DataFrame, Optional[str], ...], pd.DataFrame]] = None
     max_rules: Optional[int] = None
     max_rule_conds: Optional[int] = None
+    k: Optional[int] = 2
+    n_discretize_bins: Optional[int] = 10
+    dl_allowance: Optional[int] = 1
+    prune_size: Optional[float] = 0.8
 
     read_options: ReadOptions = ReadOptions(
         column_names=ReadOptions.column_names_default()

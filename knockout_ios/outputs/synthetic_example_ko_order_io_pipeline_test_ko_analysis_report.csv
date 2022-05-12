@@ -1,5 +1,5 @@
-Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (IREP),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
-Check Risk,2395,79.83 %,1:08:30,30.1 %,[[Loan_Ammount=>16590.47] V [Loan_Ammount=11820.12-16590.47] V [Loan_Ammount=9356.07-11820.12^External_Risk_Score=<0.11]],121.86,"143 days, 1:12:30","141 days, 18:10:49",0:00:00,0:00:00
-Check Liability,3000,100.0 %,1:08:10,20.2 %,[[Total_Debt=>5213.55] V [Owns_Vehicle=False]],202.49,"55 days, 18:56:43","55 days, 5:47:58",0:00:00,0:00:00
-Check Monthly Income,1674,55.8 %,0:35:56,50.1 %,[[Monthly_Income=<565.64] V [Monthly_Income=816.45-1019.61^External_Risk_Score=<0.1] V [Monthly_Income=565.64-816.45]],41.7,"139 days, 4:24:46","126 days, 8:02:21",0:00:00,0:00:00
-Assess application,836,27.87 %,1:06:57,80.0 %,[[External_Risk_Score=>0.64] V [External_Risk_Score=0.36-0.64] V [Total_Debt=3865.87-4157.04^External_Risk_Score=0.22-0.36^Owns_Vehicle=True]],49.64,"178 days, 0:35:06","172 days, 22:02:40",0:00:00,0:00:00
+Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+Check Risk,2395,79.83 %,1:08:30,30.1 %,[[Loan_Ammount=11878.65-16708.95] V [Loan_Ammount=>16708.95] V [Loan_Ammount=9393.53-11878.65]],110.75,"143 days, 1:12:30","141 days, 18:10:49",0:00:00,0:00:00
+Assess application,836,27.87 %,1:06:57,80.0 %,[[External_Risk_Score=>0.66] V [External_Risk_Score=0.37-0.66]],50.21,"178 days, 0:35:06","172 days, 22:02:40",0:00:00,0:00:00
+Check Liability,3000,100.0 %,1:08:10,20.2 %,[[Total_Debt=>5098.19] V [Owns_Vehicle=False]],202.49,"55 days, 18:56:43","55 days, 5:47:58",0:00:00,0:00:00
+Check Monthly Income,1674,55.8 %,0:35:56,50.1 %,[[Monthly_Income=588.28-830.84] V [Monthly_Income=<588.28] V [Monthly_Income=830.84-1020.35]],39.95,"139 days, 4:24:46","126 days, 8:02:21",0:00:00,0:00:00

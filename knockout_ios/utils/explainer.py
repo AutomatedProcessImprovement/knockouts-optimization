@@ -41,8 +41,8 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                      max_total_conds=None,
                      k=2,
                      n_discretize_bins=7,
-                     dl_allowance=64,
-                     prune_size=0.33,
+                     dl_allowance=2,
+                     prune_size=0.8,
                      grid_search=True,
                      param_grid=None
                      ):
@@ -70,7 +70,7 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
             _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
 
             train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
-                                           test_size=.33, stratify=_by_case["knocked_out_case"])
+                                           test_size=.33)
 
             if algorithm == "RIPPER":
                 ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
@@ -151,7 +151,7 @@ def RIPPER_wrapper(train, activity, max_rules=None,
                               k=k,
                               n_discretize_bins=n_discretize_bins,
                               dl_allowance=dl_allowance,
-                              prune_size=prune_size,
+                              prune_size=prune_size
                               )
 
     ruleset_model.fit(train, class_feat='knocked_out_case')

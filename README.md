@@ -16,17 +16,15 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ## Usage example
 
-- **Method 1**: create a config file (see `config_examples` directory), and then simply run:
+Create a config file (see `config_examples` directory), and then simply run:
 
   ```python
-  from knockout_ios.pipeline_wrapper import run_pipeline
-  
-  ko_redesign_adviser = run_pipeline(config_dir="config",
-                                     config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
-                                     cache_dir="cache/synthetic_example")
-  ```
+from knockout_ios.pipeline_wrapper import run_pipeline
 
-- **Method 2**: see [`main.py`](./main.py)
+ko_redesign_adviser = run_pipeline(config_dir="config_examples",
+                                   config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
+                                   cache_dir="cache/synthetic_example")
+  ```
 
 ## Running tests
 

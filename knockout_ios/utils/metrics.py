@@ -1,3 +1,5 @@
+import os
+import pickle
 from typing import List
 
 import numpy as np
@@ -136,6 +138,7 @@ def calc_available_cases_before_ko(ko_activities: List[str], log_df: pd.DataFram
         counts[activity] = log_df[log_df[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity].groupby(
             SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
 
+    dump_metric_cache("available_cases_before_ko", counts)
     return counts
 
 
@@ -149,6 +152,7 @@ def calc_processing_waste(ko_activities: List[str], log_df: pd.DataFrame):
         total_duration = filtered_df[DURATION_COLUMN_NAME].sum()
         counts[activity] = total_duration
 
+    dump_metric_cache("processing_waste", counts)
     return counts
 
 
@@ -164,6 +168,7 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
 
         counts[activity] = total_duration.sum().total_seconds()
 
+    dump_metric_cache("overprocessing_waste", counts)
     return counts
 
 
@@ -302,4 +307,19 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
             waste[activity] = overlaps.sum()
             continue
 
+    dump_metric_cache("waiting_time_waste", waste)
     return waste
+
+
+def dump_metric_cache(filename, metric_result):
+    binary_file = open(f"temp/{filename}.pkl", 'wb')
+    pickle.dump(metric_result, binary_file)
+    binary_file.close()
+
+
+def read_metric_cache(filename):
+    binary_file = open(f"temp/{filename}", 'rb')
+    config_cache = pickle.load(binary_file)
+    binary_file.close()
+    os.remove(f"temp/{filename}")
+    return config_cache
