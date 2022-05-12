@@ -1,18 +1,14 @@
-# Knockout ko_activities source:
+# Knockout ko_activities discovery modes:
 #
-# - automatically discovered: program considers characteristic ko_activities of top available_cases_before_ko shortest variants as
+# - automatic: program considers characteristic ko_activities of top available_cases_before_ko shortest variants as
 #                             knock-out-check ko_activities
 #
-# - semi-automatically discovered: user provides activity name(s) associated to negative case outcome(s),
+# - semi-automatic: user provides activity name(s) associated to negative case outcome(s),
 #                                  program uses that info to refine analysis and find knock-out-check ko_activities.
 #
-# - manual: user provides names of knock-out-check ko_activities  (utility?)
+# - manual: user provides names of knock-out-check ko_activities
 
-# Ideas:
-#
-# - user gives negative outcome; program finds activity where they diverge & rules for that -> suggestion for ko check?
-# - bring back dtreeviz: make a DT for every knockout activity; if there is a condition that allows to decide faster,
-#   implement it as a separate KO check before!
+
 import os
 import pprint
 
@@ -93,20 +89,28 @@ class KnockoutDiscoverer:
         else:
             ko_count_threshold = self.config.ko_count_threshold
 
-        self.ko_activities, self.ko_outcomes, self.ko_seqs = discover_ko_sequences(self.log_df,
-                                                                                   self.config_file_name,
-                                                                                   cache_dir=self.cache_dir,
-                                                                                   start_activity_name=self.config.start_activity,
-                                                                                   known_ko_activities=self.config.known_ko_activities,
-                                                                                   negative_outcomes=self.config.negative_outcomes,
-                                                                                   positive_outcomes=self.config.positive_outcomes,
-                                                                                   limit=ko_count_threshold,
-                                                                                   quiet=self.quiet,
-                                                                                   force_recompute=self.force_recompute)
+        # TODO: simpler implementation idea; if negative outcome(s) are known,
+        #       simply get all the activities that directly-follow them
 
-        # Do not consider known negative outcomes as ko ko_activities
+        self.ko_activities, self.ko_outcomes, _ = discover_ko_sequences(self.log_df,
+                                                                        self.config_file_name,
+                                                                        cache_dir=self.cache_dir,
+                                                                        start_activity_name=self.config.start_activity,
+                                                                        known_ko_activities=self.config.known_ko_activities,
+                                                                        negative_outcomes=self.config.negative_outcomes,
+                                                                        positive_outcomes=self.config.positive_outcomes,
+                                                                        limit=ko_count_threshold,
+                                                                        quiet=self.quiet,
+                                                                        force_recompute=self.force_recompute)
+
+        # Do not consider known negative outcomes as ko_activities
         if len(self.config.negative_outcomes) > 0:
             self.ko_activities = list(filter(lambda act: not (act in self.config.negative_outcomes),
+                                             self.ko_activities))
+
+        # Exclude any activities that are explicitly indicated
+        if (not (self.config.exclude_from_ko_activities is None)) and (len(self.config.exclude_from_ko_activities) > 0):
+            self.ko_activities = list(filter(lambda act: not (act in self.config.exclude_from_ko_activities),
                                              self.ko_activities))
 
         if (len(self.ko_outcomes) == 0) or (len(self.ko_activities) == 0):
@@ -128,6 +132,7 @@ class KnockoutDiscoverer:
         except FileNotFoundError:
 
             if len(self.config.negative_outcomes) > 0:
+                self.ko_outcomes = self.config.negative_outcomes
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
             else:
@@ -143,19 +148,19 @@ class KnockoutDiscoverer:
             def find_ko_activity(_ko_activities, _sorted_case):
                 case_activities = list(_sorted_case[PM4PY_ACTIVITY_COLUMN_NAME].values)
 
-                idxs = []
-                for ko_act in _ko_activities:
-                    for i, act in enumerate(case_activities):
-                        if ko_act == act:
-                            idxs.append((i, ko_act))
-                            break
+                try:
+                    # drop activites after the known negative outcomes
+                    for outcome in self.ko_outcomes:
+                        if outcome in case_activities and (case_activities.index(outcome) < len(case_activities)):
+                            case_activities = case_activities[:case_activities.index(outcome) + 1]
 
-                if len(idxs) > 0:
-                    idxs = sorted(idxs, key=lambda e: e[0], reverse=True)
-                    last = idxs[0]
-                    return last[1]
-
-                return False
+                    # reverse case activities
+                    case_activities.reverse()
+                    for activity in case_activities:
+                        if activity in _ko_activities:
+                            return activity
+                except:
+                    return False
 
             gr = rejected.groupby(PM4PY_CASE_ID_COLUMN_NAME)
 
@@ -163,7 +168,7 @@ class KnockoutDiscoverer:
 
             for group in tqdm(gr.groups.keys(), desc="Marking knocked-out cases in log"):
                 case_df = gr.get_group(group)
-                sorted_case = case_df.sort_values("start_timestamp")
+                sorted_case = case_df.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
                 knockout_activity = find_ko_activity(self.ko_activities, sorted_case)
 
                 self.log_df.at[group, 'knocked_out_case'] = True

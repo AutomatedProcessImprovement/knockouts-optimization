@@ -46,7 +46,7 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                                             config_dir=config_dir,
                                             cache_dir=cache_dir,
                                             always_force_recompute=pipeline_config.always_force_recompute,
-                                            quiet=True,
+                                            quiet=False,
                                             custom_log_preprocessing_function=pipeline_config.custom_log_preprocessing_function)
 
                 analyzer.discover_knockouts()

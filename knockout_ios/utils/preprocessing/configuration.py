@@ -39,10 +39,11 @@ class Configuration:
     output: Optional[Path] = None
 
     # KO discovery
-    negative_outcomes: Optional[str] = None
-    positive_outcomes: Optional[str] = None
-    known_ko_activities: Optional[str] = None
+    negative_outcomes: Optional[list[str]] = None
+    positive_outcomes: Optional[list[str]] = None
+    known_ko_activities: Optional[list[str]] = None
     start_activity: Optional[str] = "Start"
+    exclude_from_ko_activities: Optional[list[str]] = None
     ko_count_threshold: Optional[int] = None
 
     # Rule discovery (optionals)

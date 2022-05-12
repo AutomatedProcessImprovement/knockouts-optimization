@@ -128,9 +128,18 @@ def get_possible_ko_sequences(variants, limit):
     return ko_ac
 
 
-def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_outcomes=[], positive_outcomes=[],
-                          known_ko_activities=[],
+def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_outcomes=None, positive_outcomes=None,
+                          known_ko_activities=None,
                           quiet=False, start_activity_name="Start", force_recompute=False):
+    if positive_outcomes is None:
+        positive_outcomes = []
+
+    if negative_outcomes is None:
+        negative_outcomes = []
+
+    if known_ko_activities is None:
+        known_ko_activities = []
+
     try:
 
         if force_recompute:
@@ -146,9 +155,6 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_out
 
         if not quiet:
             print(f"Cache for {config_file_name} variants not found")
-
-        if not isinstance(df, (pd.DataFrame, EventLog, EventStream)):
-            raise Exception("the method can be applied only to a traditional event log!")
 
         if len(negative_outcomes) > 0:
             relations = list(map(lambda ca: (start_activity_name, ca), negative_outcomes))
@@ -179,7 +185,7 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_out
                             present = True
                             break
                     if not present:
-                        diffs[f"{v_j}"].append((e1, e2))  # transition was nor present, add to detected differences
+                        diffs[f"{v_j}"].append((e1, e2))  # transition was not present, add to detected differences
 
             variants[v_i]['diffs'] = diffs
             variants[v_i]['most_frequent_differentiating_transition'] = find_most_frequent_tuple(diffs)
@@ -208,6 +214,9 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_out
 
     if len(known_ko_activities) > 0:
         ko_activities.extend(known_ko_activities)
+
+    # remove possible duplicates
+    ko_activities = list(set(ko_activities))
 
     if len(negative_outcomes) > 0:
         return ko_activities, negative_outcomes, ko_sequences

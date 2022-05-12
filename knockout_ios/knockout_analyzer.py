@@ -195,6 +195,7 @@ class KnockoutAnalyzer:
         log = log.fillna(
             value={c: EMPTY_NON_NUMERICAL_VALUE for c in non_numerical})
 
+        # TODO: maybe need to remove this
         numerical = log.select_dtypes([np.number]).columns
         log = log.fillna(value={c: 0 for c in numerical})
 
@@ -204,6 +205,10 @@ class KnockoutAnalyzer:
 
         # Method 2: aggregate grouped_df selecting the last value of each column
         # TODO: find a more robust way for aggregating. This may be too fragile.
+        # TODO: with BPI 2017, only 1 event contains values and it's not the last one... This will fail
+        # drop all rows which contain Nan values
+        # log = log.dropna(how='any')
+
         log = log.sort_values(by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
         grouped_df = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME)
         log = grouped_df.agg("last")
@@ -249,10 +254,10 @@ class KnockoutAnalyzer:
 
         if grid_search & (param_grid is None):
             if algorithm == "RIPPER":
-                param_grid = {"prune_size": [0.5, 0.8, 0.9], "k": [2], "dl_allowance": [2, 4, 8],
+                param_grid = {"prune_size": [0.5, 0.8, 0.9], "k": [2], "dl_allowance": [1, 2, 4, 8],
                               "n_discretize_bins": [10, 20]}
             elif algorithm == "IREP":
-                param_grid = {"prune_size": [0.5, 0.7, 0.95], "n_discretize_bins": [10, 20, 30]}
+                param_grid = {"prune_size": [0.5, 0.8, 0.9], "n_discretize_bins": [10, 20]}
 
         try:
             rulesets = find_ko_rulesets(self.rule_discovery_log_df,
