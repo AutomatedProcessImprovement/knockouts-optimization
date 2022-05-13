@@ -76,7 +76,7 @@ def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[st
                                  efforts=None):
     optimal_order_names = current_activity_order.copy()
 
-    if efforts is not None:
+    if (not (efforts is None)) and (REPORT_COLUMN_KNOCKOUT_CHECK in efforts.columns):
         efforts.set_index(REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
 
     for knockout_activity in ko_activities:
@@ -101,12 +101,20 @@ def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[st
             optimal_order_names.insert(idx + 1, knockout_activity)
 
             # Sort by effort everything after the producer
-            if efforts is not None:
+
+            def position_effort(x):
+                # source: https://stackoverflow.com/a/52545309/8522453
+                try:
+                    return efforts.loc[x].values[0]
+                except KeyError:
+                    return len(optimal_order_names) - 1
+
+            if not (efforts is None):
+                # Sort the rest of the list by effort (ascending)
+                # TODO: by rejection rate (descending)?
                 idx = optimal_order_names.index(attribute_producer)
-                optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
-                                                       key=lambda x: efforts.loc[x].values[1])
-                optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
-                                                       key=lambda x: efforts.loc[x].values[0])
+                optimal_order_names[idx + 1:-1] = sorted(optimal_order_names[idx + 1:-1],
+                                                         key=position_effort)
 
     return optimal_order_names
 
@@ -195,7 +203,7 @@ def confidence_intervals_t_student(x, confidence=0.95):
 
 
 def get_relocated_kos(current_order_all_activities, ko_activities, dependencies, start_activity_constraint=None,
-                      optimal_ko_order_constraint=None):
+                      optimal_ko_order_constraint=None, efforts=None):
     trace_start_slice = []
     if not (start_activity_constraint is None):
         try:
@@ -219,7 +227,7 @@ def get_relocated_kos(current_order_all_activities, ko_activities, dependencies,
         current_order_all_activities.sort(key=position)
 
     relocated = get_sorted_with_dependencies(ko_activities=ko_activities, dependencies=dependencies,
-                                             current_activity_order=current_order_all_activities)
+                                             current_activity_order=current_order_all_activities, efforts=efforts)
 
     trace_start_slice.extend(relocated)
     return trace_start_slice
@@ -268,7 +276,7 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
 
 
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: dict[str, List[tuple[str, str]]],
-                                    optimal_ko_order=None) -> dict[tuple[str], List[str]]:
+                                    optimal_ko_order=None, efforts: pd.DataFrame = None) -> dict[tuple[str], List[str]]:
     # TODO: get min_coverage_percentage or K as a parameter in config file
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
@@ -285,13 +293,14 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
                                                           ko_activities=analyzer.discoverer.ko_activities,
                                                           dependencies=dependencies,
                                                           start_activity_constraint=analyzer.start_activity,
-                                                          optimal_ko_order_constraint=optimal_ko_order)
+                                                          optimal_ko_order_constraint=optimal_ko_order,
+                                                          efforts=efforts)
 
     return proposed_relocations
 
 
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
-                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> dict:
+                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> tuple[dict, pd.DataFrame]:
     '''
     - Returns the observed ko-checks ordering (AS-IS)
     - Returns optimal ordering by KO effort
@@ -308,11 +317,11 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].astype(float)
 
     # Added this in case efforts are equal (for instance, instantaneous activities)
-    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_REJECTION_RATE],
-                                             ascending=False, inplace=False)
+    # sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_REJECTION_RATE],
+    #                                         ascending=False, inplace=False)
 
-    sorted_by_effort = sorted_by_effort.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO],
-                                                    ascending=True, inplace=False)
+    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO],
+                                             ascending=True, inplace=False)
 
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
     efforts = report_df[[REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE]]
@@ -322,19 +331,19 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     filtered = log[log['knocked_out_case'] == False]
     total_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
-    if dependencies is not None:
+    if not (dependencies is None):
         # TODO: make it more flexible / generic, to include other sorting criteria
         optimal_order_names = get_sorted_with_dependencies(
             ko_activities=list(optimal_order_names), dependencies=dependencies,
             current_activity_order=list(optimal_order_names), efforts=efforts)
-        pass
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
         .groupby([PM4PY_CASE_ID_COLUMN_NAME])
 
+    efforts.reset_index(inplace=True)
     return {"optimal_ko_order": list(optimal_order_names),
             "cases_respecting_order": cases_respecting_order.ngroups,
-            "total_cases": total_cases}
+            "total_cases": total_cases}, efforts
 
 
 def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95):

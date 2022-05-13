@@ -59,10 +59,15 @@ class KnockoutRedesignAdviser(object):
     def compute_redesign_options(self):
         dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
 
-        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer, dependencies)
-        self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer, dependencies,
-                                                                              optimal_ko_order=self.redesign_options[
-                                                                                  "reordering"]["optimal_ko_order"])
+        self.redesign_options["reordering"], efforts = evaluate_knockout_reordering_io(self.knockout_analyzer,
+                                                                                       dependencies)
+        self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer,
+                                                                              dependencies,
+                                                                              optimal_ko_order=
+                                                                              self.redesign_options[
+                                                                                  "reordering"][
+                                                                                  "optimal_ko_order"],
+                                                                              efforts=efforts)
         self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
                                                                                               self.attribute_range_confidence_interval)
 
@@ -85,7 +90,7 @@ class KnockoutRedesignAdviser(object):
 
                     dependencies_str = ""
                     for pair in attribute_dependencies_dict[activity]:
-                        dependencies_str += f"'{pair[0]}', available after activity '{pair[1]}'" + "\n"
+                        dependencies_str += f"'{pair[0]}' available after activity '{pair[1]}'" + "\n"
 
                     entries.append(
                         {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
@@ -109,8 +114,8 @@ class KnockoutRedesignAdviser(object):
                 print("\n\n> Knock-out Re-location\n")
                 entries = []
                 for item in self.redesign_options["relocation"].items():
-                    entries.append({"Variant": " -> ".join(item[0]),
-                                    "Relocation Suggestion": " -> ".join(item[1])})
+                    entries.append(
+                        {"Variant / Relocation Suggestion": " -> ".join(item[0]) + '\n' + " -> ".join(item[1])})
 
                 df = pd.DataFrame(entries)
                 # TODO: for printing, sort by variant case count

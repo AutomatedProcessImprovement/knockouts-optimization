@@ -76,7 +76,7 @@ def test_get_sorted_with_dependencies_1():
 
 
 def test_get_sorted_with_dependencies_2():
-    order = ["A", "C", "B"]
+    order = ["A", "C", "B", "End"]
     dependencies = {k: [] for k in order}
     dependencies["C"].append(("attr_from_B", "B"))
     dependencies["A"].append(("attr_from_C", "C"))
@@ -85,11 +85,11 @@ def test_get_sorted_with_dependencies_2():
     optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
                                                  current_activity_order=order)
 
-    assert optimal_order == ["B", "C", "A"]
+    assert optimal_order == ["B", "C", "A", "End"]
 
 
 def test_get_sorted_with_dependencies_3():
-    order = ["B", "C", "A"]
+    order = ["B", "C", "A", "End"]
     dependencies = {k: [] for k in order}
     dependencies["B"].append(("attr_from_A", "A"))
     dependencies["C"].append(("attr_from_A", "A"))
@@ -102,7 +102,7 @@ def test_get_sorted_with_dependencies_3():
                                                  current_activity_order=order,
                                                  efforts=pd.DataFrame(efforts))
 
-    assert optimal_order == ["A", "B", "C"]
+    assert optimal_order == ["A", "B", "C", "End"]
 
 
 def test_find_producer_activity_simple():
