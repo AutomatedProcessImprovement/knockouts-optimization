@@ -126,7 +126,7 @@ class KnockoutRedesignAdviser(object):
                     confidence_intervals_string = f"Rule:\n{raw_rulesets[activity]}"
                     if not (len(raw_rulesets[activity]) > 0):
                         continue
-                    confidence_intervals_string += f"\n\nfor {self.attribute_range_confidence_interval * 100:.0f}% of knocked out cases, these attributes fall within the ranges:"
+                    confidence_intervals_string += f"\n\nValue ranges of knocked-out cases:"
                     for attribute in rule_attribute_ranges_dict[activity]:
                         confidence_intervals_string += f"\n- {attribute}: {rule_attribute_ranges_dict[activity][attribute][0]:.2f} - {rule_attribute_ranges_dict[activity][attribute][1]:.2f}"
 

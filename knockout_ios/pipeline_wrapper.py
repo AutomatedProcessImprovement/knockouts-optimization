@@ -61,7 +61,7 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                                           dl_allowance=pipeline_config.dl_allowance,
                                           k=pipeline_config.k,
                                           n_discretize_bins=pipeline_config.n_discretize_bins,
-                                          prune_size=pipeline_config.prune_size
+                                          prune_size=pipeline_config.prune_size,
                                           )
 
                 dump_analyzer_cache(cache_dir="test/test_fixtures",

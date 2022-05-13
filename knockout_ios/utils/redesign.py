@@ -243,6 +243,10 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
 
     for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
         ruleset = rule_discovery_dict[ko_activity][0]
+
+        if len(ruleset.ruleset_) == 0:
+            continue
+
         required_attributes = get_attribute_names_from_ruleset(ruleset)
 
         for attribute in required_attributes:
@@ -296,9 +300,19 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
         by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
-    sorted_by_effort = analyzer.report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO], ascending=True, inplace=False)
+    report_df = deepcopy(analyzer.report_df)
+    report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].str.replace('%', '')
+    report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].astype(float)
+
+    # Added this in case efforts are equal (for instance, instantaneous activities)
+    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_REJECTION_RATE],
+                                             ascending=False, inplace=False)
+
+    sorted_by_effort = sorted_by_effort.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO],
+                                                    ascending=True, inplace=False)
+
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
-    efforts = analyzer.report_df[[REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO]]
+    efforts = report_df[[REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE]]
 
     # Determine how many cases respect this order in the log
     # TODO: for the moment, keeping only non knocked out cases to analyze order. Could be useful to see also partial (ko-d) cases
@@ -315,18 +329,15 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
         .groupby([PM4PY_CASE_ID_COLUMN_NAME])
 
-    observed_ko_order = get_observed_ko_checks_order(log, analyzer.discoverer.ko_activities)
-
     return {"optimal_ko_order": list(optimal_order_names),
             "cases_respecting_order": cases_respecting_order.ngroups,
-            "total_cases": total_cases,
-            "observed_ko_order": observed_ko_order}
+            "total_cases": total_cases}
 
 
 def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95):
     """
-        - Returns dependencies between log ko_activities and attributes required by knockout checks
-        """
+    # TODO: consider this, for parsing the rules https://stackoverflow.com/a/6405461/8522453
+    """
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
     elif analyzer.ruleset_algorithm == "RIPPER":
@@ -336,9 +347,9 @@ def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95
 
     adjusted_values = {k: [] for k in rule_discovery_dict.keys()}
     raw_rulesets = {k: [] for k in rule_discovery_dict.keys()}
-    log = analyzer.discoverer.log_df
+    log = analyzer.rule_discovery_log_df
 
-    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Analyzing KO rule values ranges"):
+    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Analyzing KO rule value ranges"):
         log_subset = log[log['knockout_activity'] == ko_activity]
 
         ruleset = rule_discovery_dict[ko_activity][0]
@@ -351,7 +362,6 @@ def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95
             if column.dtype.kind not in ['i', 'f']:
                 continue
             column = column.dropna()
-            low_ci, up_ci = confidence_intervals_t_student(column, confidence)
-            adjusted_values[ko_activity][attribute] = (low_ci, up_ci)
+            adjusted_values[ko_activity][attribute] = (np.min(column), np.max(column))
 
     return adjusted_values, raw_rulesets

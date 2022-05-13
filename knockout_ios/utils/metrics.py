@@ -90,22 +90,18 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
             }}
 
 
-def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
+def calc_knockout_ruleset_support(ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
                                   available_cases_before_ko: int,
                                   processed_with_pandas_dummies=False):
-    predicted_ko = ruleset_model.predict(log)
-    log['predicted_ko'] = predicted_ko
+    # Source: https://christophm.github.io/interpretable-ml-book/rules.html#rules
 
-    if processed_with_pandas_dummies:
-        correct_predictions = \
-            log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
-    else:
-        correct_predictions = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+    predicted_ko = ruleset_model.predict(log)
+    covered_cases = sum(predicted_ko)
 
     if available_cases_before_ko == 0:
         return 0
 
-    support = correct_predictions / available_cases_before_ko
+    support = covered_cases / available_cases_before_ko
 
     return support
 
@@ -314,7 +310,7 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
 def dump_metric_cache(filename, metric_result):
     if os.environ.get('RUNNING_TESTS'):
         return
-    
+
     binary_file = open(f"temp/{filename}.pkl", 'wb')
     pickle.dump(metric_result, binary_file)
     binary_file.close()

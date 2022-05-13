@@ -45,6 +45,7 @@ class Configuration:
     start_activity: Optional[str] = "Start"
     exclude_from_ko_activities: Optional[list[str]] = None
     ko_count_threshold: Optional[int] = None
+    attributes_to_ignore: Optional[list[str]] = None
 
     # Rule discovery (optionals)
     custom_log_preprocessing_function: Optional[Callable[
@@ -111,7 +112,6 @@ def config_data_with_datastructures(data: dict) -> dict:
     else:
         data["known_ko_activities"] = []
 
-    # TODO: preprocessing of new rule discovery & redesign fields...
     return data
 
 

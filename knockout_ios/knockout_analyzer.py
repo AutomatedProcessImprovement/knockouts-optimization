@@ -1,5 +1,4 @@
 import glob
-import itertools
 import os
 import pprint
 import sys
@@ -7,7 +6,6 @@ import sys
 from copy import deepcopy
 from typing import Callable, Optional
 
-import numpy as np
 from tabulate import tabulate
 
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
@@ -15,8 +13,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.parallel import parallel_metrics_calc
 from knockout_ios.utils.postprocessing import seconds_to_hms
-from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
-    calc_processing_waste, calc_waiting_time_waste_v2
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
 
 from knockout_ios.utils.constants import *
 
@@ -71,6 +68,11 @@ class KnockoutAnalyzer:
 
         if not self.quiet:
             print(f"Starting Knockout Analyzer with pipeline_config file \"{config_file_name}\"\n")
+
+        if config.attributes_to_ignore is None:
+            self.attributes_to_ignore = []
+        else:
+            self.attributes_to_ignore = config.attributes_to_ignore
 
         log_df = log_df.sort_values(by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
 
@@ -157,8 +159,7 @@ class KnockoutAnalyzer:
 
         return deepcopy(self.ko_discovery_metrics)
 
-    @staticmethod
-    def preprocess_for_rule_discovery(log, compute_columns_only=False):
+    def preprocess_for_rule_discovery(self, log, compute_columns_only=False):
 
         if log is None:
             raise Exception("log not yet loaded")
@@ -172,15 +173,17 @@ class KnockoutAnalyzer:
                              PM4PY_END_TIMESTAMP_COLUMN_NAME,
                              DURATION_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
                              SIMOD_START_TIMESTAMP_COLUMN_NAME,
-                             "@@index",
-                             "@@startevent_EventID",
                              'knockout_activity',
-                             'knockout_prefix']
+                             'knockout_prefix'
+                             ]
 
-        columns_to_ignore = list(itertools.chain(columns_to_ignore, list(filter(
+        columns_to_ignore.extend(self.attributes_to_ignore)
+
+        columns_to_ignore.extend(list(filter(
             lambda c: ('@' in c) | ('id' in c.lower()) | ('daytime' in c) | ('weekday' in c) | ('month' in c) | (
                     'activity' in c.lower()),
-            log.columns))))
+            log.columns)))
+        columns_to_ignore = list(set(columns_to_ignore))
 
         # skip the rest of pre-proc in case it has been already done
         if compute_columns_only:
@@ -195,11 +198,21 @@ class KnockoutAnalyzer:
                 pd.to_numeric(log[attr], errors='ignore')
 
         # Aggregate attribute values by case
+
+        # If some column only has nan values, drop it from log dataframe
+        log = log.dropna(axis=1, how='all')
+
+        if len(log.columns) == 0:
+            raise Exception("Log empty during pre-processing for rule discovery: all columns have nan values")
+
         # Select the last non-null value of each column
         log = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, as_index=False).last()
 
         # Drop any remaining rows with nan values
         log = log.dropna(how='any')
+
+        if log.shape[0] == 0:
+            raise Exception("Log is empty after pre-processing for rule discovery: all rows have nan values")
 
         return log, columns_to_ignore
 
@@ -266,11 +279,10 @@ class KnockoutAnalyzer:
                                         grid_search=grid_search,
                                         param_grid=param_grid
                                         )
-
-        # TODO: cleaner way to catch this
-        # TODO: also iterate and report if for some ko activity the ruleset found is []
-        except Exception:
-            print(f"Error in rule discovery, try adjusting the parameters")
+        except Exception as e:
+            # TODO recover gracefully?
+            print(f"Error: {e}")
+            print("\nDuring rule discovery. Try adjusting the parameters or balancing the data.")
             sys.exit(1)
 
         if algorithm == "RIPPER":
@@ -284,11 +296,11 @@ class KnockoutAnalyzer:
         self.report_df = self.build_report(omit=omit_report)
 
         if print_rule_discovery_stats:
-            self.print_ko_rulesets_stats(algorithm=algorithm, compact=True)
+            self.print_ko_rulesets_stats(algorithm=algorithm)
 
         return self.report_df, self
 
-    def print_ko_rulesets_stats(self, algorithm, compact=False):
+    def print_ko_rulesets_stats(self, algorithm):
 
         rulesets = None
         if algorithm == "RIPPER":
@@ -307,22 +319,16 @@ class KnockoutAnalyzer:
             params = entry[1]
             metrics = entry[2]
 
-            if compact:
-                print(f"\n\"{key}\"")
-                print(f'# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
-                print(
-                    f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
-                    f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
-                )
-            else:
-                print(f"\n\"{key}\":")
-                model.out_model()
-                print(f'\n# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
-                print(
-                    f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
-                    f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
-                )
-                print(f"rule discovery params: {params}")
+            if len(model.ruleset_) == 0:
+                continue
+
+            print(f"\n\"{key}\"")
+            print(f'# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
+            print(
+                f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
+                f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
+            )
+            # print(f"{algorithm} parameters: ", params)
 
     def build_report(self, omit=False, use_cache=False):
         if (not use_cache) or (self.report_df is None):
