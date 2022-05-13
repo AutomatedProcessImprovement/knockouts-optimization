@@ -36,7 +36,7 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                 if pipeline_config.always_force_recompute:
                     raise FileNotFoundError
 
-                analyzer = read_analyzer_cache('test/test_fixtures',
+                analyzer = read_analyzer_cache(cache_dir,
                                                config_file_name.split('.')[0])
                 analyzer.build_report(use_cache=True)
 
@@ -66,7 +66,7 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                                           prune_size=pipeline_config.prune_size,
                                           )
 
-                dump_analyzer_cache(cache_dir="test/test_fixtures",
+                dump_analyzer_cache(cache_dir=cache_dir,
                                     cache_name=config_file_name.split('.')[0],
                                     ko_analyzer=analyzer)
 
