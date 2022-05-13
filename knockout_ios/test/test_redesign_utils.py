@@ -94,9 +94,9 @@ def test_get_sorted_with_dependencies_3():
     dependencies["B"].append(("attr_from_A", "A"))
     dependencies["C"].append(("attr_from_A", "A"))
 
-    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10},
-               {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1},
-               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5}]
+    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5, REPORT_COLUMN_REJECTION_RATE: 10}]
 
     optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
                                                  current_activity_order=order,
