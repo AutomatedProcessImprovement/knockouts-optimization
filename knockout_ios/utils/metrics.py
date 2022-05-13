@@ -228,8 +228,8 @@ def calc_overlapping_time_ko_and_non_ko(ko_activities: List[str], log_df: pd.Dat
 def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {activity: 0 for activity in ko_activities}
 
-    # dump_metric_cache("waiting_time_waste", waste)
-    # return waste
+    dump_metric_cache("waiting_time_waste", waste)
+    return waste
 
     if not (PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
         print(f"The log does not contain column {PM4PY_RESOURCE_COLUMN_NAME} (to identify resources)")

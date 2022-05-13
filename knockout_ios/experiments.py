@@ -18,6 +18,13 @@ def real_log_1():
                                        cache_dir="cache/real_log_1")
 
 
+def real_log_2():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="real_log_2.json",
+                                       cache_dir="cache/real_log_2")
+
+
 if __name__ == "__main__":
     # ko_reorder_io()
     real_log_1()
+    # real_log_2()

@@ -101,13 +101,17 @@ def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[st
             optimal_order_names.insert(idx + 1, knockout_activity)
 
             # Sort by effort everything after the producer
+            # def position_rejection(x):
+            #     try:
+            #         return efforts.loc[x].values[1]
+            #     except KeyError:
+            #         return len(optimal_order_names) - 1
 
             def position_effort(x):
-                # source: https://stackoverflow.com/a/52545309/8522453
                 try:
-                    return efforts.loc[x].values[0]
+                    return efforts.loc[x].values[0], (100 - efforts.loc[x].values[1])
                 except KeyError:
-                    return len(optimal_order_names) - 1
+                    return len(optimal_order_names) - 1, len(optimal_order_names) - 1
 
             if not (efforts is None):
                 # Sort the rest of the list by effort (ascending)
@@ -316,15 +320,12 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].str.replace('%', '')
     report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].astype(float)
 
-    # Added this in case efforts are equal (for instance, instantaneous activities)
-    # sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_REJECTION_RATE],
-    #                                         ascending=False, inplace=False)
-
-    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO],
-                                             ascending=True, inplace=False)
+    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE],
+                                             ascending=[True, False], inplace=False)
 
     optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
-    efforts = report_df[[REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE]]
+    efforts = sorted_by_effort[
+        [REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE]]
 
     # Determine how many cases respect this order in the log
     # TODO: for the moment, keeping only non knocked out cases to analyze order. Could be useful to see also partial (ko-d) cases
