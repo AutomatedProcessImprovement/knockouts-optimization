@@ -176,9 +176,10 @@ def test_find_producer_activity_simple():
 
     log = pd.DataFrame(events)
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME, inplace=True)
+    log = log.rename_axis('case_id_idx').sort_values(by=['case_id_idx', SIMOD_END_TIMESTAMP_COLUMN_NAME],
+                                                     ascending=[True, True])
 
-    producers = find_producers(attribute_key, ko_activity, log)
+    producers = find_producers(attribute_key, log[log["knockout_activity"] == ko_activity])
 
     assert len(producers) > 0
     assert Counter(producers).most_common(1)[0][0] == "B"
@@ -275,9 +276,10 @@ def test_find_producer_activity_advanced():
 
     log = pd.DataFrame(events)
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
+    log = log.rename_axis('case_id_idx').sort_values(by=['case_id_idx', SIMOD_END_TIMESTAMP_COLUMN_NAME],
+                                                     ascending=[True, True])
 
-    producers = find_producers(attribute_key, ko_activity, log)
+    producers = find_producers(attribute_key, log[log["knockout_activity"] == ko_activity])
 
     assert len(producers) > 0
     assert Counter(producers).most_common(1)[0][0] == "D"

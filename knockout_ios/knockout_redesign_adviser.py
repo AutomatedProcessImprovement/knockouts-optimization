@@ -85,7 +85,7 @@ class KnockoutRedesignAdviser(object):
 
                     dependencies_str = ""
                     for pair in attribute_dependencies_dict[activity]:
-                        dependencies_str += f"'{pair[0]}', available after activity '{pair[1]}'"
+                        dependencies_str += f"'{pair[0]}', available after activity '{pair[1]}'" + "\n"
 
                     entries.append(
                         {REPORT_COLUMN_KNOCKOUT_CHECK: activity,

@@ -104,22 +104,22 @@ def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[st
             if efforts is not None:
                 idx = optimal_order_names.index(attribute_producer)
                 optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
+                                                       key=lambda x: efforts.loc[x].values[1])
+                optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
                                                        key=lambda x: efforts.loc[x].values[0])
 
     return optimal_order_names
 
 
-def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
+def find_producers(attribute: str, log: pd.DataFrame):
     """ Assumes log has case id as index and is sorted by end timestamp"""
 
     producers = []
+    log = log.sort_values(by=['case_id_idx', SIMOD_END_TIMESTAMP_COLUMN_NAME],
+                          ascending=[True, True], inplace=False)
+
     for caseid in log.index.unique():
         case = log.loc[caseid]
-        knockout_activity_column_values = case['knockout_activity']
-        if not (len(knockout_activity_column_values.values) > 0):
-            continue
-        if knockout_activity_column_values.values[0] != ko_activity:
-            continue
 
         activities_where_unavailable = case[pd.isnull(case[attribute].values)][
             SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME].values
@@ -132,6 +132,8 @@ def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
             log.loc[caseid, "next_attribute_value"] = (case[attribute]).shift(-1)
             # refresh view after adding column to log
             case = log.loc[caseid]
+            # added ffill to handle the case where attribute is null in any subsequent events
+            case = case.fillna(method="ffill")
 
             # find after which row, the attribute value stopped changing
             last_valid_value = case[attribute].values[-1]
@@ -143,7 +145,8 @@ def find_producers(attribute: str, ko_activity: str, log: pd.DataFrame):
 
             producers.append(producer_activity)
 
-        except Exception:
+        except Exception as e:
+            print(e)
             continue
 
     return producers
@@ -239,7 +242,7 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
 
     log = deepcopy(analyzer.discoverer.log_df)
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME, inplace=True)
+    log = log.rename_axis('case_id_idx')
 
     for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
         ruleset = rule_discovery_dict[ko_activity][0]
@@ -252,7 +255,7 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
         for attribute in required_attributes:
             # Find after which activity the attribute is available in the log
             # (a list is returned; we then consider the most frequent activity as the producer)
-            producers = find_producers(attribute, ko_activity, log)
+            producers = find_producers(attribute, log[log["knockout_activity"] == ko_activity])
 
             if len(producers) > 0:
                 # get most frequent producer activity

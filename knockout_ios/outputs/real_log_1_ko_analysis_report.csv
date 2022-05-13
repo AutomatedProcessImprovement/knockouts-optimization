@@ -1,10 +1,10 @@
 Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+O_Created,1977,137.01 %,0:00:00,0.1 %,[],0.0,"4 days, 19:04:40",4:14:30,0:00:00,0:00:00
+O_Returned,1510,104.64 %,0:00:00,12.6 %,[[CreditScore=<686.0^EventOrigin=Workflow] V [CreditScore=<686.0^OfferedAmount=<6000.0]],0.0,"2384 days, 5:29:57","420 days, 18:02:16",0:00:00,0:00:00
 W_Validate application,1063,73.67 %,"2 days, 2:51:47",0.1 %,[],1831078.54,"9 days, 1:53:31","3 days, 0:08:52",0:00:00,0:00:00
+A_Validating,2356,163.27 %,0:00:00,2.9 %,[[CreditScore=<721.6^NumberOfTerms=60.0-68.0^OfferedAmount=<6500.0]],0.0,"620 days, 10:55:34","163 days, 4:55:45",0:00:00,0:00:00
+O_Cancelled,459,31.81 %,0:00:00,0.9 %,[[FirstWithdrawalAmount=500.0-1500.0^OfferedAmount=6500.0-7500.0] V [FirstWithdrawalAmount=7000.0-8707.2^MonthlyCost=<98.03]],0.0,"50 days, 12:10:03","12 days, 5:55:23",0:00:00,0:00:00
 O_Sent (mail and online),1823,126.33 %,0:00:00,0.2 %,[],0.0,"65 days, 16:16:55",0:29:57,0:00:00,0:00:00
-A_Incomplete,1071,74.22 %,0:00:00,0.9 %,[[OfferedAmount=14900.0-15000.0^NumberOfTerms=58.0-60.0^EventOrigin=Offer]],0.0,"82 days, 8:07:14","15 days, 18:03:59",0:00:00,0:00:00
-W_Assess potential fraud,7,0.49 %,15:39:51,42.9 %,[[MonthlyCost=150.0-158.98^FirstWithdrawalAmount=12030.0-15000.0^CreditScore=<677.0]],1314.49,"28 days, 11:37:19","5 days, 8:31:00",0:00:00,0:00:00
-O_Created,1977,137.01 %,0:00:00,0.1 %,[[MonthlyCost=157.59-185.0^NumberOfTerms=90.0-104.0]],0.0,"4 days, 19:04:40",4:14:30,0:00:00,0:00:00
-A_Validating,2356,163.27 %,0:00:00,2.9 %,[[CreditScore=<695.2^NumberOfTerms=60.0-69.0^MonthlyCost=91.68-100.0]],0.0,"620 days, 10:55:34","163 days, 4:55:45",0:00:00,0:00:00
-A_Complete,1441,99.86 %,0:00:00,0.8 %,[[MonthlyCost=150.0-160.0^EventOrigin=Workflow]],0.0,"61 days, 0:05:27",0:54:42,0:00:00,0:00:00
-O_Cancelled,459,31.81 %,0:00:00,0.9 %,[[FirstWithdrawalAmount=7000.0-8000.0^MonthlyCost=<87.6]],0.0,"50 days, 12:10:03","12 days, 5:55:23",0:00:00,0:00:00
-O_Returned,1510,104.64 %,0:00:00,12.6 %,[[CreditScore=<682.6^EventOrigin=Workflow]],0.0,"2384 days, 5:29:57","420 days, 18:02:16",0:00:00,0:00:00
+A_Incomplete,1071,74.22 %,0:00:00,0.9 %,[[OfferedAmount=12000.0-15000.0^NumberOfTerms=58.0-60.0^EventOrigin=Offer]],0.0,"82 days, 8:07:14","15 days, 18:03:59",0:00:00,0:00:00
+W_Assess potential fraud,7,0.49 %,15:39:51,42.9 %,[[MonthlyCost=157.59-176.59^EventOrigin=Offer^FirstWithdrawalAmount=12000.0-15000.0]],1314.49,"28 days, 11:37:19","5 days, 8:31:00",0:00:00,0:00:00
+A_Complete,1441,99.86 %,0:00:00,0.8 %,[[OfferedAmount=15000.0-17000.0^NumberOfTerms=77.0-81.0]],0.0,"61 days, 0:05:27",0:54:42,0:00:00,0:00:00
