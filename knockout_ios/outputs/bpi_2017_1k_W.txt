@@ -1,0 +1,220 @@
+Knockouts Redesign Pipeline started @ 2022-05-13 13:18:24.244478
+
+Input parameters:
+
+{'always_force_recompute': True,
+ 'attributes_to_ignore': ['Action', 'EventOrigin'],
+ 'cache_dir': 'cache/bpi_2017_1k_W',
+ 'confidence_threshold': 0.5,
+ 'config_dir': None,
+ 'config_file_name': None,
+ 'config_path': None,
+ 'custom_log_preprocessing_function': None,
+ 'dl_allowance': 1,
+ 'exclude_from_ko_activities': ['End', 'A_Accepted'],
+ 'grid_search': False,
+ 'k': 2,
+ 'known_ko_activities': [],
+ 'ko_count_threshold': None,
+ 'log_path': WindowsPath('inputs/BPI Challenge 2017_1K_W.xes'),
+ 'max_rule_conds': None,
+ 'max_rules': 3,
+ 'n_discretize_bins': 20,
+ 'negative_outcomes': ['A_Denied'],
+ 'output': WindowsPath('outputs'),
+ 'positive_outcomes': [],
+ 'print_rule_discovery_stats': True,
+ 'prune_size': 0.5,
+ 'read_options': {'column_names': {'Activity': 'task',
+                                   'Case ID': 'caseid',
+                                   'Resource': 'user',
+                                   'lifecycle:transition': 'event_type'},
+                  'filter_d_attrib': True,
+                  'one_timestamp': False,
+                  'timeformat': '%Y-%m-%dT%H:%M:%S.%f'},
+ 'redesign_results_file_path': 'outputs/bpi_2017_1k_W.txt',
+ 'rule_discovery_algorithm': 'RIPPER',
+ 'start_activity': 'A_Create Application',
+ 'support_threshold': 0.1}
+
+
+
+Error: Only one class present in y_true. ROC AUC score is not defined in that case.
+During rule discovery for activity: W_Assess potential fraud
+Positive examples :1
+
+╒══════════════════════════╤═══════════════════╤══════════════════╤═════════════════╤══════════════════╤══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╤════════════════════════╤══════════════════════════════╤════════════════════╤════════════════════════════╤═══════════════════════════╕
+│ Knockout Check           │   Total frequency │ Case frequency   │ Mean Duration   │ Rejection rate   │ Rejection rule (RIPPER)                                                                                                                                          │   Effort per rejection │ Total Overprocessing Waste   │ Total PT Waste     │ Total Waiting Time Waste   │ Mean Waiting Time Waste   │
+╞══════════════════════════╪═══════════════════╪══════════════════╪═════════════════╪══════════════════╪══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╪════════════════════════╪══════════════════════════════╪════════════════════╪════════════════════════════╪═══════════════════════════╡
+│ W_Call after offers      │              1314 │ 99.92 %          │ 0:04:23         │ 6.1 %            │ [[CreditScore=<724.0^ApplicationType=Newcredit^Selected=true^LoanGoal=Homeimprovement] V [CreditScore=<724.0^Accepted=false^MonthlyCost=387.62-448.25]]          │                  43.23 │ 901 days, 11:29:34           │ 196 days, 20:03:35 │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ W_Complete application   │              1261 │ 95.89 %          │ 5:12:32         │ 0.2 %            │ [[LoanGoal=Notspeficied^RequestedAmount=15000.0-17500.0]]                                                                                                        │               93763.6  │ 38 days, 4:18:52             │ 21 days, 6:57:17   │ 4 days, 14:22:47           │ 0:06:03                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ W_Validate application   │              2196 │ 167.0 %          │ 22:19:30        │ 6.9 %            │ [[CreditScore=<693.6^ApplicationType=Newcredit^Selected=true^MonthlyCost=<98.28] V [CreditScore=<693.6^ApplicationType=Newcredit^OfferedAmount=14000.0-15000.0]] │               11647.9  │ 1189 days, 3:26:45           │ 172 days, 12:53:05 │ 2:28:59                    │ 0:00:08                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ W_Call incomplete files  │               984 │ 74.83 %          │ 6:52:42         │ 2.9 %            │ [[RequestedAmount=12000.0-15000.0^NumberOfTerms=58.0-60.0^LoanGoal=Car]]                                                                                         │                8538.9  │ 275 days, 4:32:19            │ 58 days, 19:28:36  │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ W_Assess potential fraud │                 8 │ 0.61 %           │ 10:19:46        │ 16.7 %           │ []                                                                                                                                                               │                2226.72 │ 9 days, 1:53:31              │ 3 days, 0:08:52    │ 0:40:48                    │ 0:00:02                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ O_Created                │              1807 │ 137.41 %         │ 0:00:00         │ 2.1 %            │ [[CreditScore=<727.6^ApplicationType=Newcredit^LoanGoal=Homeimprovement^RequestedAmount=17290.0-20000.0^Selected=false]]                                         │                   0    │ 450 days, 14:08:31           │ 76 days, 22:24:54  │ 6 days, 1:21:12            │ 0:07:58                   │
+╘══════════════════════════╧═══════════════════╧══════════════════╧═════════════════╧══════════════════╧══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════╧══════════════════════════════╧════════════════════╧════════════════════════════╧═══════════════════════════╛
+
+RIPPER
+
+"W_Call after offers"
+# conditions: 7, # rules: 2
+support: 0.04, confidence: 0.40 
+roc_auc score: 0.54, f1 score: 0.14, accuracy: 0.92, precision: 0.17, recall: 0.12
+
+"W_Complete application"
+# conditions: 2, # rules: 1
+support: 0.00, confidence: 1.00 
+roc_auc score: 0.50, f1 score: 0.00, accuracy: 1.00, precision: 0.00, recall: 0.00
+
+"W_Validate application"
+# conditions: 7, # rules: 2
+support: 0.03, confidence: 0.42 
+roc_auc score: 0.58, f1 score: 0.23, accuracy: 0.92, precision: 0.28, recall: 0.19
+
+"W_Call incomplete files"
+# conditions: 3, # rules: 1
+support: 0.01, confidence: 0.25 
+roc_auc score: 0.55, f1 score: 0.13, accuracy: 0.97, precision: 0.17, recall: 0.11
+
+"O_Created"
+# conditions: 5, # rules: 1
+support: 0.00, confidence: 1.00 
+roc_auc score: 0.50, f1 score: 0.00, accuracy: 0.98, precision: 0.00, recall: 0.00
+
+** Redesign options **
+
+
+> Dependencies of KO activities
+
+╒══════════════════════════╤═══════════════════════════════════════════════════════════╕
+│ Knockout Check           │ Dependencies                                              │
+╞══════════════════════════╪═══════════════════════════════════════════════════════════╡
+│ W_Call incomplete files  │ 'NumberOfTerms' available after activity 'A_Accepted'     │
+│                          │ 'RequestedAmount' available after activity 'Start'        │
+│                          │ 'LoanGoal' available after activity 'Start'               │
+├──────────────────────────┼───────────────────────────────────────────────────────────┤
+│ W_Complete application   │ 'RequestedAmount' available after activity 'Start'        │
+│                          │ 'LoanGoal' available after activity 'Start'               │
+├──────────────────────────┼───────────────────────────────────────────────────────────┤
+│ W_Call after offers      │ 'Selected' available after activity 'A_Accepted'          │
+│                          │ 'Accepted' available after activity 'A_Accepted'          │
+│                          │ 'LoanGoal' available after activity 'Start'               │
+│                          │ 'MonthlyCost' available after activity 'A_Accepted'       │
+│                          │ 'CreditScore' available after activity 'A_Accepted'       │
+│                          │ 'ApplicationType' available after activity 'Start'        │
+├──────────────────────────┼───────────────────────────────────────────────────────────┤
+│ W_Validate application   │ 'Selected' available after activity 'A_Accepted'          │
+│                          │ 'OfferedAmount' available after activity 'A_Accepted'     │
+│                          │ 'MonthlyCost' available after activity 'A_Accepted'       │
+│                          │ 'CreditScore' available after activity 'A_Accepted'       │
+│                          │ 'ApplicationType' available after activity 'Start'        │
+├──────────────────────────┼───────────────────────────────────────────────────────────┤
+│ O_Created                │ 'Selected' available after activity 'W_Call after offers' │
+│                          │ 'RequestedAmount' available after activity 'Start'        │
+│                          │ 'LoanGoal' available after activity 'Start'               │
+│                          │ 'CreditScore' available after activity 'A_Accepted'       │
+│                          │ 'ApplicationType' available after activity 'Start'        │
+├──────────────────────────┼───────────────────────────────────────────────────────────┤
+│ W_Assess potential fraud │ required attributes are available from the start.         │
+╘══════════════════════════╧═══════════════════════════════════════════════════════════╛
+
+
+> Knock-out Re-ordering
+
+Optimal Order of Knock-out checks (taking into account attribute dependencies):
+1. O_Created
+2. W_Call after offers
+3. W_Assess potential fraud
+4. W_Call incomplete files
+5. W_Validate application
+6. W_Complete application
+
+0/1093 non-knocked-out case(s) follow it.
+
+
+> Knock-out Re-location
+
+╒═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Variant / Relocation Suggestion                                                                                                                                                                                                 │
+╞═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> O_Accepted -> W_Validate application -> End                                                      │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End                                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Created -> W_Call after offers -> W_Validate application -> O_Accepted -> End                                                      │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End                                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> W_Validate application -> O_Accepted -> End                                                      │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End                                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Created -> W_Call after offers -> W_Validate application -> W_Call incomplete files -> W_Validate application -> O_Accepted -> End │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Call incomplete files -> W_Validate application -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> W_Validate application -> A_Denied -> End                                                        │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> A_Denied -> End                                                        │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> W_Validate application -> W_Call incomplete files -> O_Accepted -> W_Validate application -> End │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Call incomplete files -> W_Validate application -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> W_Validate application -> W_Call incomplete files -> W_Validate application -> O_Accepted -> End │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Call incomplete files -> W_Validate application -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> A_Denied -> W_Validate application -> End                                                        │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> A_Denied -> End                                                        │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Accepted -> O_Create Offer -> O_Created -> W_Complete application -> W_Call after offers -> W_Validate application -> W_Call incomplete files -> O_Accepted -> End                           │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Call incomplete files -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End                           │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Created -> W_Call after offers -> O_Accepted -> W_Validate application -> End                                                      │
+│ Start -> A_Create Application -> O_Created -> W_Call after offers -> W_Validate application -> W_Complete application -> A_Accepted -> O_Create Offer -> O_Accepted -> End                                                      │
+╘═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+
+
+> Knock-out rule value ranges
+
+╒═════════════════════════╤══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Knockout Check          │ Observation                                                                                                                                                      │
+╞═════════════════════════╪══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ W_Call after offers     │ Rule:                                                                                                                                                            │
+│                         │ [[CreditScore=<724.0^ApplicationType=Newcredit^Selected=true^LoanGoal=Homeimprovement] V [CreditScore=<724.0^Accepted=false^MonthlyCost=387.62-448.25]]          │
+│                         │                                                                                                                                                                  │
+│                         │ Value ranges of knocked-out cases:                                                                                                                               │
+│                         │ - MonthlyCost: 65.00 - 1500.00                                                                                                                                   │
+│                         │ - CreditScore: 0.00 - 0.00                                                                                                                                       │
+├─────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ W_Complete application  │ Rule:                                                                                                                                                            │
+│                         │ [[LoanGoal=Notspeficied^RequestedAmount=15000.0-17500.0]]                                                                                                        │
+│                         │                                                                                                                                                                  │
+│                         │ Value ranges of knocked-out cases:                                                                                                                               │
+│                         │ - RequestedAmount: 0.00 - 45800.00                                                                                                                               │
+├─────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ W_Validate application  │ Rule:                                                                                                                                                            │
+│                         │ [[CreditScore=<693.6^ApplicationType=Newcredit^Selected=true^MonthlyCost=<98.28] V [CreditScore=<693.6^ApplicationType=Newcredit^OfferedAmount=14000.0-15000.0]] │
+│                         │                                                                                                                                                                  │
+│                         │ Value ranges of knocked-out cases:                                                                                                                               │
+│                         │ - OfferedAmount: 5000.00 - 50000.00                                                                                                                              │
+│                         │ - MonthlyCost: 50.00 - 1000.00                                                                                                                                   │
+│                         │ - CreditScore: 0.00 - 0.00                                                                                                                                       │
+├─────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ W_Call incomplete files │ Rule:                                                                                                                                                            │
+│                         │ [[RequestedAmount=12000.0-15000.0^NumberOfTerms=58.0-60.0^LoanGoal=Car]]                                                                                         │
+│                         │                                                                                                                                                                  │
+│                         │ Value ranges of knocked-out cases:                                                                                                                               │
+│                         │ - NumberOfTerms: 23.00 - 127.00                                                                                                                                  │
+│                         │ - RequestedAmount: 0.00 - 30000.00                                                                                                                               │
+├─────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ O_Created               │ Rule:                                                                                                                                                            │
+│                         │ [[CreditScore=<727.6^ApplicationType=Newcredit^LoanGoal=Homeimprovement^RequestedAmount=17290.0-20000.0^Selected=false]]                                         │
+│                         │                                                                                                                                                                  │
+│                         │ Value ranges of knocked-out cases:                                                                                                                               │
+│                         │ - RequestedAmount: 0.00 - 50000.00                                                                                                                               │
+│                         │ - CreditScore: 0.00 - 0.00                                                                                                                                       │
+╘═════════════════════════╧══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+
+Knockouts Redesign Pipeline ended @ 2022-05-13 13:21:52.574249
+
+Wall-clock execution time:  0:03:28.329465

@@ -147,7 +147,7 @@ def read_config_file(config_file):
         raise Exception("Invalid File exception. Must be .yml or .json")
 
     config = Configuration(**config_data)
-    options = ReadOptions(column_names=ReadOptions.column_names_default())
+    options = ReadOptions(column_names=ReadOptions.column_names_default(), filter_d_attrib=False)
 
     return config, options
 
@@ -165,6 +165,9 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
         add_only_context = False
 
     try:
+        if config.always_force_recompute:
+            raise FileNotFoundError
+
         log_df = pd.read_pickle(cache_filename)
         return log_df, config
 

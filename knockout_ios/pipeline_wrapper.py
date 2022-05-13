@@ -13,6 +13,8 @@ from knockout_ios.utils.synthetic_example.preprocessors import preprocessors_dic
 
 
 def run_pipeline(config_file_name, cache_dir, config_dir):
+    # TODO: in BPI2017 Case Attributes are being dropped!
+    #       current workaround: export to csv and re-import as event attributes in apromore...
     log_df, pipeline_config = read_log_and_config(config_dir, config_file_name, cache_dir)
 
     preprocessor_name = pipeline_config.custom_log_preprocessing_function
