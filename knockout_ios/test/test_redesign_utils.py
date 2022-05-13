@@ -76,7 +76,7 @@ def test_get_sorted_with_dependencies_1():
 
 
 def test_get_sorted_with_dependencies_2():
-    order = ["A", "C", "B"]
+    order = ["A", "C", "B", "End"]
     dependencies = {k: [] for k in order}
     dependencies["C"].append(("attr_from_B", "B"))
     dependencies["A"].append(("attr_from_C", "C"))
@@ -85,24 +85,24 @@ def test_get_sorted_with_dependencies_2():
     optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
                                                  current_activity_order=order)
 
-    assert optimal_order == ["B", "C", "A"]
+    assert optimal_order == ["B", "C", "A", "End"]
 
 
 def test_get_sorted_with_dependencies_3():
-    order = ["B", "C", "A"]
+    order = ["B", "C", "A", "End"]
     dependencies = {k: [] for k in order}
     dependencies["B"].append(("attr_from_A", "A"))
     dependencies["C"].append(("attr_from_A", "A"))
 
-    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10},
-               {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1},
-               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5}]
+    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5, REPORT_COLUMN_REJECTION_RATE: 10}]
 
     optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
                                                  current_activity_order=order,
                                                  efforts=pd.DataFrame(efforts))
 
-    assert optimal_order == ["A", "B", "C"]
+    assert optimal_order == ["A", "B", "C", "End"]
 
 
 def test_find_producer_activity_simple():
@@ -176,9 +176,10 @@ def test_find_producer_activity_simple():
 
     log = pd.DataFrame(events)
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME, inplace=True)
+    log = log.rename_axis('case_id_idx').sort_values(by=['case_id_idx', SIMOD_END_TIMESTAMP_COLUMN_NAME],
+                                                     ascending=[True, True])
 
-    producers = find_producers(attribute_key, ko_activity, log)
+    producers = find_producers(attribute_key, log[log["knockout_activity"] == ko_activity])
 
     assert len(producers) > 0
     assert Counter(producers).most_common(1)[0][0] == "B"
@@ -275,9 +276,10 @@ def test_find_producer_activity_advanced():
 
     log = pd.DataFrame(events)
     log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
+    log = log.rename_axis('case_id_idx').sort_values(by=['case_id_idx', SIMOD_END_TIMESTAMP_COLUMN_NAME],
+                                                     ascending=[True, True])
 
-    producers = find_producers(attribute_key, ko_activity, log)
+    producers = find_producers(attribute_key, log[log["knockout_activity"] == ko_activity])
 
     assert len(producers) > 0
     assert Counter(producers).most_common(1)[0][0] == "D"

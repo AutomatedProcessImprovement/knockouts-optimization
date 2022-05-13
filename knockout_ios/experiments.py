@@ -1,7 +1,7 @@
 from knockout_ios.pipeline_wrapper import run_pipeline
 
 
-def ko_reorder_io():
+def synthetic_example():
     ko_redesign_adviser = run_pipeline(config_dir="config",
                                        config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
                                        cache_dir="cache/synthetic_example")
@@ -12,12 +12,40 @@ def ko_reorder_io():
                                                                                       "Check Liability"]
 
 
-def real_log_1():
+def bpi_2017_1k():
     ko_redesign_adviser = run_pipeline(config_dir="config",
-                                       config_file_name="real_log_1.json",
-                                       cache_dir="cache/real_log_1")
+                                       config_file_name="bpi_2017_1k.json",
+                                       cache_dir="cache/bpi_2017_1k")
+
+
+def bpi_2017_8k():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2017_8k.json",
+                                       cache_dir="cache/bpi_2017_8k")
+
+
+def bpi_2017_21k():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2017_21k.json",
+                                       cache_dir="cache/bpi_2017_21k")
+
+
+def bpi_2013():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2013.json",
+                                       cache_dir="cache/bpi_2013")
+
+
+def bpi_2017_1k_W():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2017_1k_W.json",
+                                       cache_dir="cache/bpi_2017_1k_W")
 
 
 if __name__ == "__main__":
-    # ko_reorder_io()
-    real_log_1()
+    # synthetic_example()
+    # bpi_2017_1k()
+    # bpi_2017_8k()
+    # bpi_2017_21k()
+    # bpi_2013()
+    bpi_2017_1k_W()
