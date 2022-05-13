@@ -45,6 +45,7 @@ class Configuration:
     start_activity: Optional[str] = "Start"
     exclude_from_ko_activities: Optional[list[str]] = None
     ko_count_threshold: Optional[int] = None
+    attributes_to_ignore: Optional[list[str]] = None
 
     # Rule discovery (optionals)
     custom_log_preprocessing_function: Optional[Callable[
@@ -111,7 +112,6 @@ def config_data_with_datastructures(data: dict) -> dict:
     else:
         data["known_ko_activities"] = []
 
-    # TODO: preprocessing of new rule discovery & redesign fields...
     return data
 
 
@@ -147,7 +147,7 @@ def read_config_file(config_file):
         raise Exception("Invalid File exception. Must be .yml or .json")
 
     config = Configuration(**config_data)
-    options = ReadOptions(column_names=ReadOptions.column_names_default())
+    options = ReadOptions(column_names=ReadOptions.column_names_default(), filter_d_attrib=False)
 
     return config, options
 
@@ -165,6 +165,9 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
         add_only_context = False
 
     try:
+        if config.always_force_recompute:
+            raise FileNotFoundError
+
         log_df = pd.read_pickle(cache_filename)
         return log_df, config
 
@@ -198,9 +201,6 @@ def read_log_and_config(config_dir, config_file_name, cache_dir):
                                 config_dir=config_dir,
                                 cache_dir=cache_dir,
                                 add_intercase_and_context=False, add_only_context=False)
-
-    # replace empty strings in log_df with NaN
-    log_df = log_df.replace("", np.nan)
 
     pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
                                                     activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,

@@ -13,6 +13,8 @@ from knockout_ios.utils.synthetic_example.preprocessors import preprocessors_dic
 
 
 def run_pipeline(config_file_name, cache_dir, config_dir):
+    # TODO: in BPI2017 Case Attributes are being dropped!
+    #       current workaround: export to csv and re-import as event attributes in apromore...
     log_df, pipeline_config = read_log_and_config(config_dir, config_file_name, cache_dir)
 
     preprocessor_name = pipeline_config.custom_log_preprocessing_function
@@ -34,7 +36,7 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                 if pipeline_config.always_force_recompute:
                     raise FileNotFoundError
 
-                analyzer = read_analyzer_cache('test/test_fixtures',
+                analyzer = read_analyzer_cache(cache_dir,
                                                config_file_name.split('.')[0])
                 analyzer.build_report(use_cache=True)
 
@@ -46,7 +48,7 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                                             config_dir=config_dir,
                                             cache_dir=cache_dir,
                                             always_force_recompute=pipeline_config.always_force_recompute,
-                                            quiet=False,
+                                            quiet=True,
                                             custom_log_preprocessing_function=pipeline_config.custom_log_preprocessing_function)
 
                 analyzer.discover_knockouts()
@@ -61,10 +63,10 @@ def run_pipeline(config_file_name, cache_dir, config_dir):
                                           dl_allowance=pipeline_config.dl_allowance,
                                           k=pipeline_config.k,
                                           n_discretize_bins=pipeline_config.n_discretize_bins,
-                                          prune_size=pipeline_config.prune_size
+                                          prune_size=pipeline_config.prune_size,
                                           )
 
-                dump_analyzer_cache(cache_dir="test/test_fixtures",
+                dump_analyzer_cache(cache_dir=cache_dir,
                                     cache_name=config_file_name.split('.')[0],
                                     ko_analyzer=analyzer)
 

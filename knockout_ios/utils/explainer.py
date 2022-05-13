@@ -106,29 +106,51 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                     errors='ignore')
                 _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
 
-            support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
+            support = calc_knockout_ruleset_support(ruleset_model, _by_case,
                                                     available_cases_before_ko=available_cases_before_ko[activity],
                                                     processed_with_pandas_dummies=grid_search)
             confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case,
                                                           processed_with_pandas_dummies=grid_search)
+            try:
+                rulesets[activity] = (
+                    ruleset_model,
+                    ruleset_params,
+                    {
+                        'support': support,
+                        'confidence': confidence,
+                        'condition_count': ruleset_model.ruleset_.count_conds(),
+                        'rule_count': ruleset_model.ruleset_.count_rules(),
+                        'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
+                        'precision': ruleset_model.score(x_test, y_test, precision_score),
+                        'recall': ruleset_model.score(x_test, y_test, recall_score),
+                        'f1_score': ruleset_model.score(x_test, y_test, f1_score),
+                        'roc_auc_score': ruleset_model.score(x_test, y_test, roc_auc_score),
+                    }
+                )
 
-            rulesets[activity] = (
-                ruleset_model,
-                ruleset_params,
-                {
-                    'support': support,
-                    'confidence': confidence,
-                    'condition_count': ruleset_model.ruleset_.count_conds(),
-                    'rule_count': ruleset_model.ruleset_.count_rules(),
-                    'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
-                    'precision': ruleset_model.score(x_test, y_test, precision_score),
-                    'recall': ruleset_model.score(x_test, y_test, recall_score),
-                    'f1_score': ruleset_model.score(x_test, y_test, f1_score),
-                    'roc_auc_score': ruleset_model.score(x_test, y_test, roc_auc_score),
-                }
-            )
+            except Exception as e:
+                print("\n" + f"Error: {e}")
+                print(f"During rule discovery for activity: {activity}")
+                print(f"Positive examples :{_by_case[_by_case['knocked_out_case'] == True].shape[0]}" + "\n")
 
-            stdout.flush()
+                rulesets[activity] = (
+                    ruleset_model,
+                    ruleset_params,
+                    {
+                        'support': support,
+                        'confidence': confidence,
+                        'condition_count': ruleset_model.ruleset_.count_conds(),
+                        'rule_count': ruleset_model.ruleset_.count_rules(),
+                        'accuracy': 0,
+                        'precision': 0,
+                        'recall': 0,
+                        'f1_score': 0,
+                        'roc_auc_score': 0,
+                    }
+                )
+
+            finally:
+                stdout.flush()
 
         dump_rule_discovery_result(rulesets, f"{config_file_name}_{algorithm}", cache_dir=cache_dir)
 
