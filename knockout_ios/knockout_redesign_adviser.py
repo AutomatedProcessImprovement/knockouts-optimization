@@ -5,6 +5,7 @@ import pandas as pd
 from tabulate import tabulate
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.formatting import get_edits_string
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
 
@@ -118,7 +119,9 @@ class KnockoutRedesignAdviser(object):
                 entries = []
                 for item in self.redesign_options["relocation"].items():
                     entries.append(
-                        {"Variant / Relocation Suggestion": " -> ".join(item[0]) + '\n' + " -> ".join(item[1])})
+                        {"Variant / Relocation Suggestion": " -> ".join(item[0]) + '\n'
+                                                            + get_edits_string(" -> ".join(item[0]),
+                                                                               " -> ".join(item[1]))})
 
                 df = pd.DataFrame(entries)
                 # TODO: for printing, sort by variant case count
@@ -157,7 +160,7 @@ if __name__ == "__main__":
                                 config_file_name="synthetic_example_ko_order_io.json",
                                 config_dir="config",
                                 cache_dir="test/knockout_ios/cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=True,
                                 custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
 

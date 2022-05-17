@@ -20,7 +20,7 @@ from knockout_ios.utils.constants import *
 from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache, \
     discover_ko_sequences
 from knockout_ios.utils.metrics import get_ko_discovery_metrics
-from knockout_ios.utils.postprocessing import format_for_post_proc, plot_cycle_times_per_ko_activity, \
+from knockout_ios.utils.formatting import format_for_post_proc, plot_cycle_times_per_ko_activity, \
     plot_ko_activities_count
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config, Configuration
 
