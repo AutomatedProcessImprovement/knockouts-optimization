@@ -100,13 +100,6 @@ def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[st
             idx = optimal_order_names.index(attribute_producer)
             optimal_order_names.insert(idx + 1, knockout_activity)
 
-            # Sort by effort everything after the producer
-            # def position_rejection(x):
-            #     try:
-            #         return efforts.loc[x].values[1]
-            #     except KeyError:
-            #         return len(optimal_order_names) - 1
-
             def position_effort(x):
                 try:
                     return efforts.loc[x].values[0], (100 - efforts.loc[x].values[1])
@@ -114,8 +107,7 @@ def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[st
                     return len(optimal_order_names) - 1, len(optimal_order_names) - 1
 
             if not (efforts is None):
-                # Sort the rest of the list by effort (ascending)
-                # TODO: by rejection rate (descending)?
+                # Sort the rest of the list by effort and 100 - rejection rate
                 idx = optimal_order_names.index(attribute_producer)
                 optimal_order_names[idx + 1:-1] = sorted(optimal_order_names[idx + 1:-1],
                                                          key=position_effort)
@@ -164,79 +156,6 @@ def find_producers(attribute: str, log: pd.DataFrame):
     return producers
 
 
-def bootstrap_ci(
-        data,
-        statfunction=np.average,
-        alpha=0.05,
-        n_samples=100):
-    # source: https://stackoverflow.com/a/66008548/8522453
-    import warnings
-
-    def bootstrap_ids(data, n_samples=100):
-        for _ in range(n_samples):
-            yield np.random.randint(data.shape[0], size=(data.shape[0],))
-
-    alphas = np.array([alpha / 2, 1 - alpha / 2])
-    nvals = np.round((n_samples - 1) * alphas).astype(int)
-    if np.any(nvals < 10) or np.any(nvals >= n_samples - 10):
-        warnings.warn("Some values used extremal samples; results are probably unstable. "
-                      "Try to increase n_samples")
-
-    data = np.array(data)
-    if np.prod(data.shape) != max(data.shape):
-        raise ValueError("Data must be 1D")
-    data = data.ravel()
-
-    boot_indexes = bootstrap_ids(data, n_samples)
-    stat = np.asarray([statfunction(data[_ids]) for _ids in boot_indexes])
-    stat.sort(axis=0)
-
-    return stat[nvals]
-
-
-def confidence_intervals_t_student(x, confidence=0.95):
-    # source: https://towardsdatascience.com/how-to-calculate-confidence-intervals-in-python-a8625a48e62b
-
-    m = x.mean()
-    s = x.std()
-    dof = len(x) - 1
-
-    t_crit = np.abs(t.ppf((1 - confidence) / 2, dof))
-
-    return m - s * t_crit / np.sqrt(len(x)), m + s * t_crit / np.sqrt(len(x))
-
-
-def get_relocated_kos(current_order_all_activities, ko_activities, dependencies, start_activity_constraint=None,
-                      optimal_ko_order_constraint=None, efforts=None):
-    trace_start_slice = []
-    if not (start_activity_constraint is None):
-        try:
-            # get a slice of the list right before the start activity, so that re-location does not interfere with the process semantics
-            trace_start_slice = current_order_all_activities[
-                                0:current_order_all_activities.index(start_activity_constraint) + 1]
-            current_order_all_activities = current_order_all_activities[
-                                           current_order_all_activities.index(start_activity_constraint) + 1:]
-        except Exception:
-            return current_order_all_activities
-
-    if not (optimal_ko_order_constraint is None):
-        # reorder current_order_all_activities to match the relative orders in optimal_ko_order_constraint (potentially shorter list, as it only contains ko activities)
-        def position(value):
-            # source: https://stackoverflow.com/a/52545309/8522453
-            try:
-                return optimal_ko_order_constraint.index(value)
-            except ValueError:
-                return len(optimal_ko_order_constraint)
-
-        current_order_all_activities.sort(key=position)
-
-    relocated = get_sorted_with_dependencies(ko_activities=ko_activities, dependencies=dependencies,
-                                             current_activity_order=current_order_all_activities, efforts=efforts)
-
-    trace_start_slice.extend(relocated)
-    return trace_start_slice
-
-
 def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
     """
     - Returns dependencies between log ko_activities and attributes required by knockout checks
@@ -279,8 +198,87 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
     return dependencies
 
 
+def get_relocated_kos(current_order_all_activities, optimal_ko_order, dependencies, start_activity_constraint=None):
+    """
+    NOTE: This assumes optimal_ko_order is already sorted taking into account attribute dependencies BETWEEN ko activities!
+    """
+    # drop all activities that are in the optimal order
+    ko_activities_in_trace = [x for x in optimal_ko_order if x in current_order_all_activities]
+    current_order_all_activities = [x for x in current_order_all_activities if x not in optimal_ko_order]
+    previous_knockout_activity = None
+
+    # insert ko activities after their dependencies, and respecting the optimal order
+    for i, knockout_activity in enumerate(optimal_ko_order):
+        if knockout_activity not in ko_activities_in_trace:
+            continue
+
+        dependency_indexes = [current_order_all_activities.index(t[1]) for t in dependencies[knockout_activity]]
+        if len(dependency_indexes) > 0:
+            idx = max(dependency_indexes)
+        else:
+            # To allow for potentially inserting at the very begginning (insertion index gets added 1 later)
+            idx = -1
+
+        if previous_knockout_activity in current_order_all_activities:
+            idx = max(idx, current_order_all_activities.index(previous_knockout_activity))
+
+        # To accomodate additional information about the start activity; an activity that MUST be performed before any Ko checks,
+        # but may not be reflected in case attribute dependencies
+        if not (start_activity_constraint is None):
+            idx = max(idx, current_order_all_activities.index(start_activity_constraint))
+
+        current_order_all_activities.insert(idx + 1, knockout_activity)
+
+        previous_knockout_activity = knockout_activity
+
+    return current_order_all_activities
+
+
+def bootstrap_ci(
+        data,
+        statfunction=np.average,
+        alpha=0.05,
+        n_samples=100):
+    # source: https://stackoverflow.com/a/66008548/8522453
+    import warnings
+
+    def bootstrap_ids(data, n_samples=100):
+        for _ in range(n_samples):
+            yield np.random.randint(data.shape[0], size=(data.shape[0],))
+
+    alphas = np.array([alpha / 2, 1 - alpha / 2])
+    nvals = np.round((n_samples - 1) * alphas).astype(int)
+    if np.any(nvals < 10) or np.any(nvals >= n_samples - 10):
+        warnings.warn("Some values used extremal samples; results are probably unstable. "
+                      "Try to increase n_samples")
+
+    data = np.array(data)
+    if np.prod(data.shape) != max(data.shape):
+        raise ValueError("Data must be 1D")
+    data = data.ravel()
+
+    boot_indexes = bootstrap_ids(data, n_samples)
+    stat = np.asarray([statfunction(data[_ids]) for _ids in boot_indexes])
+    stat.sort(axis=0)
+
+    return stat[nvals]
+
+
+def confidence_intervals_t_student(x, confidence=0.95):
+    # source: https://towardsdatascience.com/how-to-calculate-confidence-intervals-in-python-a8625a48e62b
+
+    m = x.mean()
+    s = x.std()
+    dof = len(x) - 1
+
+    t_crit = np.abs(t.ppf((1 - confidence) / 2, dof))
+
+    return m - s * t_crit / np.sqrt(len(x)), m + s * t_crit / np.sqrt(len(x))
+
+
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: dict[str, List[tuple[str, str]]],
-                                    optimal_ko_order=None, efforts: pd.DataFrame = None) -> dict[tuple[str], List[str]]:
+                                    optimal_ko_order=None, start_activity_constraint=None) -> dict[
+    tuple[str], List[str]]:
     # TODO: get min_coverage_percentage or K as a parameter in config file
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
@@ -294,17 +292,15 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
     proposed_relocations = {}
     for variant in variants.keys():
         proposed_relocations[variant] = get_relocated_kos(current_order_all_activities=list(variant),
-                                                          ko_activities=analyzer.discoverer.ko_activities,
+                                                          optimal_ko_order=optimal_ko_order,
                                                           dependencies=dependencies,
-                                                          start_activity_constraint=analyzer.start_activity,
-                                                          optimal_ko_order_constraint=optimal_ko_order,
-                                                          efforts=efforts)
+                                                          start_activity_constraint=start_activity_constraint)
 
     return proposed_relocations
 
 
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
-                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> tuple[dict, pd.DataFrame]:
+                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> dict:
     '''
     - Returns the observed ko-checks ordering (AS-IS)
     - Returns optimal ordering by KO effort
@@ -320,11 +316,12 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
     report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].str.replace('%', '')
     report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].astype(float)
 
-    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE],
-                                             ascending=[True, False], inplace=False)
+    sorted_by_effort_and_rejection_rate = report_df.sort_values(
+        by=[REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE],
+        ascending=[True, False], inplace=False)
 
-    optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
-    efforts = sorted_by_effort[
+    optimal_order_names = sorted_by_effort_and_rejection_rate[REPORT_COLUMN_KNOCKOUT_CHECK].values
+    sorted_efforts = sorted_by_effort_and_rejection_rate[
         [REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE]]
 
     # Determine how many cases respect this order in the log
@@ -336,15 +333,16 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
         # TODO: make it more flexible / generic, to include other sorting criteria
         optimal_order_names = get_sorted_with_dependencies(
             ko_activities=list(optimal_order_names), dependencies=dependencies,
-            current_activity_order=list(optimal_order_names), efforts=efforts)
+            current_activity_order=list(optimal_order_names), efforts=sorted_efforts)
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
         .groupby([PM4PY_CASE_ID_COLUMN_NAME])
 
-    efforts.reset_index(inplace=True)
+    sorted_efforts.reset_index(inplace=True)
     return {"optimal_ko_order": list(optimal_order_names),
             "cases_respecting_order": cases_respecting_order.ngroups,
-            "total_cases": total_cases}, efforts
+            "total_cases": total_cases,
+            "sorted_efforts": sorted_efforts}
 
 
 def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95):

@@ -6,7 +6,8 @@ from pandas import Timestamp
 from collections import Counter
 
 from knockout_ios.utils.constants import *
-from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_producers, get_relocated_kos
+from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_producers, get_relocated_kos, \
+    find_ko_activity_dependencies, evaluate_knockout_reordering_io
 
 
 def test_pure_relocation_1():
@@ -24,7 +25,7 @@ def test_pure_relocation_1():
     # ko_3 has no dependencies
 
     proposed_order = get_relocated_kos(current_order_all_activities=activities,
-                                       ko_activities=["ko_1", "ko_2", "ko_3"],
+                                       optimal_ko_order=["ko_1", "ko_2", "ko_3"],
                                        dependencies=dependencies)
 
     assert proposed_order == ["ko_1", "normal_1", "ko_2", "normal_2", "ko_3", "normal_3"]
@@ -34,15 +35,14 @@ def test_pure_relocation_2():
     activities = ["start", "normal_1", "normal_2", "ko_1", "normal_3", "ko_2", "ko_3"]
 
     dependencies = {k: [] for k in ["ko_1", "ko_2", "ko_3"]}
+    dependencies["ko_1"].append(("attr1", "start"))
 
     proposed_order = get_relocated_kos(current_order_all_activities=activities,
-                                       ko_activities=["ko_1", "ko_2", "ko_3"],
-                                       dependencies=dependencies,
-                                       start_activity_constraint="start",
-                                       optimal_ko_order_constraint=["ko_3", "ko_1", "ko_2"])
+                                       optimal_ko_order=["ko_1", "ko_2", "ko_3"],
+                                       dependencies=dependencies)
 
-    # we expect to see all the KO ko_activities placed as early as possible because they have no dependencies
-    assert proposed_order == ["start", "ko_3", "ko_1", "ko_2", "normal_1", "normal_2", "normal_3"]
+    # we expect to see all the KO ko_activities placed as early as possible because they have no dependencies, apart from "start"
+    assert proposed_order == ["start", "ko_1", "ko_2", "ko_3", "normal_1", "normal_2", "normal_3"]
 
 
 def test_pure_relocation_3():
@@ -50,17 +50,55 @@ def test_pure_relocation_3():
 
     dependencies = {k: [] for k in ["ko_1", "ko_2", "ko_3"]}
 
+    dependencies["ko_1"].append(("attr1", "start"))
+
     dependencies["ko_3"].append(("attr3", "normal_3"))
 
     proposed_order = get_relocated_kos(current_order_all_activities=activities,
-                                       ko_activities=["ko_1", "ko_2", "ko_3"],
-                                       dependencies=dependencies,
-                                       start_activity_constraint="start",
-                                       optimal_ko_order_constraint=["ko_3", "ko_2", "ko_1"])
+                                       optimal_ko_order=["ko_1", "ko_2", "ko_3"],
+                                       dependencies=dependencies, )
 
     # only ko_3 has a dependency on a non-ko activity
     # the rest can be placed as early as possible, given a precomputed optimal order as a constraint
-    assert proposed_order == ["start", "ko_2", "ko_1", "normal_1", "normal_2", "normal_3", "ko_3"]
+    assert proposed_order == ["start", "ko_1", "ko_2", "normal_1", "normal_2", "normal_3", "ko_3"]
+
+
+def test_relocation_BPI():
+    bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
+    dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
+    reordering = evaluate_knockout_reordering_io(bpi_knockout_analyzer,
+                                                 dependencies)
+
+    optimal_ko_order = reordering["optimal_ko_order"]
+    sorted_efforts = reordering["sorted_efforts"]
+
+    current_order = ["Start",
+                     'A_Create Application',
+                     "A_Accepted",
+                     "O_Create Offer",
+                     'O_Created',
+                     'W_Complete application',
+                     'W_Call after offers',
+                     'O_Accepted',
+                     'W_Validate application',
+                     'End']
+
+    proposed_order = get_relocated_kos(current_order,
+                                       optimal_ko_order,
+                                       dependencies
+                                       )
+    expected_order = ['Start',
+                      'A_Create Application',
+                      'A_Accepted',
+                      'O_Created',
+                      'W_Call after offers',
+                      'W_Validate application',
+                      'W_Complete application',
+                      'O_Create Offer',
+                      'O_Accepted',
+                      'End']
+
+    assert proposed_order == expected_order
 
 
 def test_get_sorted_with_dependencies_1():
