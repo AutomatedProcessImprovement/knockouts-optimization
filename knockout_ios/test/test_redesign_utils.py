@@ -6,7 +6,7 @@ from pandas import Timestamp
 from collections import Counter
 
 from knockout_ios.utils.constants import *
-from knockout_ios.utils.redesign import get_sorted_with_dependencies, find_producers, get_relocated_kos, \
+from knockout_ios.utils.redesign import get_ko_activities_sorted_with_dependencies, find_producers, get_relocated_kos, \
     find_ko_activity_dependencies, evaluate_knockout_reordering_io
 
 
@@ -64,7 +64,11 @@ def test_pure_relocation_3():
 
 
 def test_relocation_BPI():
-    bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
+    try:
+        bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
+    except FileNotFoundError:
+        bpi_knockout_analyzer = pd.read_pickle("bpi_2017_1k_W")
+
     dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
     reordering = evaluate_knockout_reordering_io(bpi_knockout_analyzer,
                                                  dependencies)
@@ -101,46 +105,92 @@ def test_relocation_BPI():
     assert proposed_order == expected_order
 
 
+def test_relocation_BPI_2():
+    try:
+        bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W_2")
+    except FileNotFoundError:
+        bpi_knockout_analyzer = pd.read_pickle("bpi_2017_1k_W_2")
+
+    dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
+    reordering = evaluate_knockout_reordering_io(bpi_knockout_analyzer,
+                                                 dependencies)
+
+    optimal_ko_order = reordering["optimal_ko_order"]
+
+    assert optimal_ko_order == ["W_Call after offers",
+                                "O_Created",
+                                "W_Assess potential fraud",
+                                "W_Call incomplete files",
+                                "W_Validate application",
+                                "W_Complete application"]
+
+    current_order = ["Start",
+                     'A_Create Application',
+                     "A_Accepted",
+                     "O_Create Offer",
+                     'O_Created',
+                     'W_Complete application',
+                     'W_Call after offers',
+                     'O_Accepted',
+                     'W_Validate application',
+                     'End']
+
+    proposed_order = get_relocated_kos(current_order,
+                                       optimal_ko_order,
+                                       dependencies
+                                       )
+    expected_order = ['Start',
+                      'A_Create Application',
+                      'A_Accepted',
+                      'W_Call after offers',
+                      'O_Created',
+                      'W_Validate application',
+                      'W_Complete application',
+                      'O_Create Offer',
+                      'O_Accepted',
+                      'End']
+
+    assert proposed_order == expected_order
+
+
 def test_get_sorted_with_dependencies_1():
     order = ["A", "C", "B"]
     dependencies = {k: [] for k in order}
     dependencies["A"].append(("attr_from_C", "C"))
     dependencies["A"].append(("attr_from_B", "B"))
 
-    optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
-                                                 current_activity_order=order)
+    optimal_order = get_ko_activities_sorted_with_dependencies(dependencies=dependencies, current_activity_order=order)
 
     assert optimal_order == ["C", "B", "A"]
 
 
 def test_get_sorted_with_dependencies_2():
-    order = ["A", "C", "B", "End"]
+    order = ["A", "C", "B"]
     dependencies = {k: [] for k in order}
     dependencies["C"].append(("attr_from_B", "B"))
     dependencies["A"].append(("attr_from_C", "C"))
     dependencies["A"].append(("attr_from_B", "B"))
 
-    optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
-                                                 current_activity_order=order)
+    optimal_order = get_ko_activities_sorted_with_dependencies(dependencies=dependencies, current_activity_order=order)
 
-    assert optimal_order == ["B", "C", "A", "End"]
+    assert optimal_order == ["B", "C", "A"]
 
 
 def test_get_sorted_with_dependencies_3():
-    order = ["B", "C", "A", "End"]
+    order = ["B", "C", "D", "A"]
     dependencies = {k: [] for k in order}
     dependencies["B"].append(("attr_from_A", "A"))
     dependencies["C"].append(("attr_from_A", "A"))
 
-    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10, REPORT_COLUMN_REJECTION_RATE: 10},
-               {REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1, REPORT_COLUMN_REJECTION_RATE: 10},
-               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5, REPORT_COLUMN_REJECTION_RATE: 10}]
+    efforts = [{REPORT_COLUMN_KNOCKOUT_CHECK: "B", REPORT_COLUMN_EFFORT_PER_KO: 0.1, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "C", REPORT_COLUMN_EFFORT_PER_KO: 5, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "D", REPORT_COLUMN_EFFORT_PER_KO: 8, REPORT_COLUMN_REJECTION_RATE: 10},
+               {REPORT_COLUMN_KNOCKOUT_CHECK: "A", REPORT_COLUMN_EFFORT_PER_KO: 10, REPORT_COLUMN_REJECTION_RATE: 10}]
 
-    optimal_order = get_sorted_with_dependencies(ko_activities=order, dependencies=dependencies,
-                                                 current_activity_order=order,
-                                                 efforts=pd.DataFrame(efforts))
+    optimal_order = get_ko_activities_sorted_with_dependencies(dependencies=dependencies, current_activity_order=order,
+                                                               efforts=pd.DataFrame(efforts))
 
-    assert optimal_order == ["A", "B", "C", "End"]
+    assert optimal_order == ["D", "A", "B", "C"]
 
 
 def test_find_producer_activity_simple():

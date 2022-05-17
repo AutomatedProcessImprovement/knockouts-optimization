@@ -12,7 +12,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.parallel import parallel_metrics_calc
-from knockout_ios.utils.postprocessing import seconds_to_hms
+from knockout_ios.utils.formatting import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
 
 from knockout_ios.utils.constants import *

@@ -1,0 +1,7 @@
+Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+O_Created,1807,137.41 %,0:00:00,2.1 %,[[CreditScore=<606.0^NumberOfTerms=100.4-120.0^FirstWithdrawalAmount=3000.0-4480.65]],0.0,"450 days, 14:08:31","76 days, 22:24:54","6 days, 1:21:12",0:07:58
+W_Call incomplete files,984,74.83 %,6:52:42,2.9 %,[[RequestedAmount=12500.0-15000.0^CreditScore=<683.6^NumberOfTerms=57.0-60.0]],8538.9,"275 days, 4:32:19","58 days, 19:28:36",0:00:00,0:00:00
+W_Call after offers,1314,99.92 %,0:04:23,6.1 %,[[CreditScore=<740.6^Accepted=false^OfferedAmount=>40000.0^ApplicationType=Newcredit]],43.23,"901 days, 11:29:34","196 days, 20:03:35",0:00:00,0:00:00
+W_Complete application,1261,95.89 %,5:12:32,0.2 %,[],93763.64,"38 days, 4:18:52","21 days, 6:57:17","4 days, 14:22:47",0:06:03
+W_Validate application,2196,167.0 %,22:19:30,6.9 %,[[CreditScore=<603.2^ApplicationType=Newcredit^Selected=true] V [RequestedAmount=>38025.0^FirstWithdrawalAmount=985.0-2000.0]],11647.91,"1189 days, 3:26:45","172 days, 12:53:05",2:28:59,0:00:08
+W_Assess potential fraud,8,0.61 %,10:19:46,16.7 %,[],2226.72,"9 days, 1:53:31","3 days, 0:08:52",0:40:48,0:00:02

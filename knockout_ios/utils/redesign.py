@@ -71,46 +71,55 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
     return list(res)
 
 
-def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[str, List[tuple[str, str]]],
-                                 current_activity_order: List[str],
-                                 efforts=None):
-    optimal_order_names = current_activity_order.copy()
+def get_ko_activities_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]],
+                                               current_activity_order: List[str],
+                                               efforts: pd.DataFrame = None):
+    """ Assumes ko_activities are already sorted by effort """
 
+    # TODO: Works but needs refactor. Consider Topological Sort:
+    # https://stackoverflow.com/questions/4106862/how-to-sort-depended-objects-by-dependency
+    # https://www.geeksforgeeks.org/topological-sorting/
+    # https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.topological_sort.html
+
+    optimal_order_names = deepcopy(current_activity_order)
+
+    # First, sort by index of the dependency that appears last in the current "optimal ko order
+    max_dependency_indexes = []
+    for i, activity in enumerate(current_activity_order):
+        filtered_deps = list(filter(lambda a: a[1] in current_activity_order, dependencies[activity]))
+        dependency_indexes = [optimal_order_names.index(t[1]) for t in filtered_deps]
+
+        if len(dependency_indexes) > 0:
+            max_dependency_indexes.append((activity, max(dependency_indexes)))
+        else:
+            max_dependency_indexes.append((activity, 0))
+
+    optimal_order_names = sorted(max_dependency_indexes, key=lambda x: x[1])
+    optimal_order_names = [t[0] for t in optimal_order_names]
+
+    # Then rearrange the list if needed, making sure no activity is before its dependency
     if (not (efforts is None)) and (REPORT_COLUMN_KNOCKOUT_CHECK in efforts.columns):
         efforts.set_index(REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
 
-    for knockout_activity in ko_activities:
-        if knockout_activity not in optimal_order_names:
-            continue
+    for i, activity in enumerate(current_activity_order):
+        filtered_deps = list(filter(lambda a: a[1] in current_activity_order, dependencies[activity]))
+        dependency_indexes = [optimal_order_names.index(t[1]) for t in filtered_deps]
 
-        _dependencies = dependencies[knockout_activity]
-        if not all(map(lambda x: x[1] in optimal_order_names, _dependencies)):
-            continue
+        if len(dependency_indexes) > 0:
+            last_dependency = optimal_order_names[max(dependency_indexes)]
 
-        while len(_dependencies) > 0:
-            # Sort deps by the index of every second element of the tuples in current_activity_order
-            _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
-            _, attribute_producer = _dependencies.pop(0)
+            if (activity in optimal_order_names) and (last_dependency in optimal_order_names):
+                optimal_order_names.remove(activity)
+                optimal_order_names.insert(optimal_order_names.index(last_dependency) + 1, activity)
 
-            # Remove knockout_activity from current_activity_order to insert it in the right place
-            optimal_order_names.remove(knockout_activity)
-
-            # Find where is attribute_value_producer in current_activity_order,
-            # then insert knockout_activity after attribute_value_producer
-            idx = optimal_order_names.index(attribute_producer)
-            optimal_order_names.insert(idx + 1, knockout_activity)
-
-            def position_effort(x):
-                try:
-                    return efforts.loc[x].values[0], (100 - efforts.loc[x].values[1])
-                except KeyError:
-                    return len(optimal_order_names) - 1, len(optimal_order_names) - 1
-
-            if not (efforts is None):
                 # Sort the rest of the list by effort and 100 - rejection rate
-                idx = optimal_order_names.index(attribute_producer)
-                optimal_order_names[idx + 1:-1] = sorted(optimal_order_names[idx + 1:-1],
-                                                         key=position_effort)
+                if not (efforts is None):
+                    def position_effort(x):
+                        return efforts.loc[x].values[0], (100 - efforts.loc[x].values[1])
+
+                    idx = optimal_order_names.index(last_dependency)
+                    optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
+                                                           key=position_effort)
 
     return optimal_order_names
 
@@ -286,6 +295,8 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
         inplace=True)
 
     # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df, min_coverage_percentage=0.01)
+    # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df,
+    # min_coverage_percentage=analyzer.config.relocation_variants_min_coverage_percentage)
     flt = pm4py.filter_variants_top_k(analyzer.discoverer.log_df, k=10)
     variants = pm4py.get_variants_as_tuples(flt)
 
@@ -331,9 +342,10 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     if not (dependencies is None):
         # TODO: make it more flexible / generic, to include other sorting criteria
-        optimal_order_names = get_sorted_with_dependencies(
-            ko_activities=list(optimal_order_names), dependencies=dependencies,
-            current_activity_order=list(optimal_order_names), efforts=sorted_efforts)
+        optimal_order_names = get_ko_activities_sorted_with_dependencies(dependencies=dependencies,
+                                                                         current_activity_order=list(
+                                                                             optimal_order_names),
+                                                                         efforts=sorted_efforts)
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
         .groupby([PM4PY_CASE_ID_COLUMN_NAME])
