@@ -59,15 +59,18 @@ class KnockoutRedesignAdviser(object):
     def compute_redesign_options(self):
         dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
 
-        self.redesign_options["reordering"], efforts = evaluate_knockout_reordering_io(self.knockout_analyzer,
-                                                                                       dependencies)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
+                                                                              dependencies)
+
         self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer,
                                                                               dependencies,
                                                                               optimal_ko_order=
                                                                               self.redesign_options[
                                                                                   "reordering"][
                                                                                   "optimal_ko_order"],
-                                                                              efforts=efforts)
+                                                                              start_activity_constraint=
+                                                                              self.knockout_analyzer.start_activity)
+
         self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
                                                                                               self.attribute_range_confidence_interval)
 
