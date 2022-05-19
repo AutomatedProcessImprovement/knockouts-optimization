@@ -43,6 +43,7 @@ class Configuration:
     positive_outcomes: Optional[list[str]] = None
     known_ko_activities: Optional[list[str]] = None
     start_activity: Optional[str] = "Start"
+    end_activity: Optional[str] = "End"
     exclude_from_ko_activities: Optional[list[str]] = None
     ko_count_threshold: Optional[int] = None
     attributes_to_ignore: Optional[list[str]] = None

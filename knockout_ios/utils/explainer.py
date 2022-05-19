@@ -130,9 +130,9 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                 )
 
             except Exception as e:
-                print("\n" + f"Error: {e}")
-                print(f"During rule discovery for activity: {activity}")
-                print(f"Positive examples :{_by_case[_by_case['knocked_out_case'] == True].shape[0]}" + "\n")
+                # print("\n" + f"Error: {e}")
+                # print(f"During rule discovery for activity: {activity}")
+                # print(f"Positive examples :{_by_case[_by_case['knocked_out_case'] == True].shape[0]}" + "\n")
 
                 rulesets[activity] = (
                     ruleset_model,

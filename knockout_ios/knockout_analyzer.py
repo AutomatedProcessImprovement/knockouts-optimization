@@ -88,7 +88,12 @@ class KnockoutAnalyzer:
                                              quiet=quiet)
 
     def discover_knockouts(self, expected_kos=None):
-        self.discoverer.find_ko_activities()
+        # TODO: if ko activities are provided, skip ko discovery,
+        #  just mark the cases by which activity knocked it out (last one that appears)
+        if not (self.config.known_ko_activities is None) and (len(self.config.known_ko_activities) > 0):
+            self.discoverer.label_cases_with_known_ko_activities(self.config.known_ko_activities)
+        else:
+            self.discoverer.find_ko_activities()
 
         if not self.quiet:
             self.discoverer.print_basic_stats()
@@ -189,7 +194,7 @@ class KnockoutAnalyzer:
 
         columns_to_ignore.extend(list(filter(
             lambda c: ('@' in c) | ('id' in c.lower()) | ('daytime' in c) | ('weekday' in c) | ('month' in c) | (
-                    'activity' in c.lower()),
+                    'activity' in c.lower()) | ('timestamp' in c.lower()),
             log.columns)))
         columns_to_ignore = list(set(columns_to_ignore))
 

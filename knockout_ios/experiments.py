@@ -56,10 +56,10 @@ def envpermit():
 
 if __name__ == "__main__":
     # synthetic_example()
-    synthetic_example_1_timest()
+    # synthetic_example_1_timest()
     # bpi_2017_1k()
     # bpi_2017_8k()
     # bpi_2017_21k()
     # bpi_2013()
     # bpi_2017_1k_W()
-    # envpermit()
+    envpermit()

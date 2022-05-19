@@ -11,6 +11,7 @@
 
 import os
 import pprint
+import sys
 
 import pandas as pd
 import pm4py
@@ -191,6 +192,88 @@ class KnockoutDiscoverer:
         elif not self.quiet:
             print(f"\nNegative outcomes found in log: {list(self.ko_outcomes)}"
                   f"\nK.O. ko_activities found in log: {list(self.ko_activities)}")
+
+    def label_cases_with_known_ko_activities(self, ko_activities):
+
+        if self.config is None:
+            raise Exception("pipeline_config not yet loaded")
+
+        self.ko_activities = ko_activities
+
+        self.update_should_recompute()
+
+        try:
+            if self.force_recompute:
+                raise FileNotFoundError
+
+            self.log_df = pd.read_pickle(f"./{self.cache_dir}/{self.config_file_name}_with_knockouts.pkl")
+            if not self.quiet:
+                print(f"\nFound cache for {self.config_file_name} knockouts\n")
+
+        except FileNotFoundError:
+
+            if len(self.config.negative_outcomes) > 0:
+                self.ko_outcomes = self.config.negative_outcomes
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
+                rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
+            elif len(self.config.positive_outcomes) > 0:
+                self.ko_outcomes = self.config.positive_outcomes
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.positive_outcomes))
+                rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations, retain=False)
+            else:
+                self.ko_outcomes = [self.config.end_activity]
+                relations = list(map(lambda check: (check, self.config.end_activity), self.ko_activities))
+                rejected = pm4py.filter_directly_follows_relation(self.log_df, relations)
+
+            rejected = pm4py.convert_to_dataframe(rejected)
+
+            # Mark Knocked-out cases & their knock-out activity
+            self.log_df['knocked_out_case'] = False
+            self.log_df['knockout_activity'] = False
+
+            def find_ko_activity(_ko_activities, _sorted_case):
+                case_activities = list(_sorted_case[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME].values)
+
+                try:
+                    # drop activites after the known negative outcomes
+                    for outcome in self.ko_outcomes:
+                        if outcome in case_activities and (case_activities.index(outcome) < len(case_activities)):
+                            case_activities = case_activities[:case_activities.index(outcome) + 1]
+
+                    # reverse case activities and return the first knockout activity that appears
+                    case_activities.reverse()
+                    for activity in case_activities:
+                        if activity in _ko_activities:
+                            return activity
+                except:
+                    return False
+
+            gr = rejected.groupby(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME)
+
+            self.log_df.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+
+            for group in tqdm(gr.groups.keys(), desc="Marking knocked-out cases in log"):
+                case_df = gr.get_group(group)
+                sorted_case = case_df.sort_values(by=globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME)
+                knockout_activity = find_ko_activity(self.ko_activities, sorted_case)
+
+                self.log_df.at[group, 'knocked_out_case'] = True
+                self.log_df.at[group, 'knockout_activity'] = knockout_activity
+
+            self.log_df.reset_index(inplace=True)
+
+            self.log_df.to_pickle(f"./{self.cache_dir}/{self.config_file_name}_with_knockouts.pkl")
+
+        self.ko_activities = list(filter(lambda act: act, set(self.log_df['knockout_activity'])))
+
+        # Throw error when no KOs are distinguished (all cases are considered 'knocked out')
+        # Ask user for more info
+        if self.log_df['knocked_out_case'].all():
+            raise Exception("No K.O. ko_activities could be distinguished."
+                            "\n\nSuggestions:"
+                            "\n- Reduce the ko_count_threshold"
+                            "\n- Provide negative outcome activity name(s)"
+                            "\n- Provide positive outcome activity name(s)")
 
     def print_basic_stats(self):
         # Basic impact assessment
