@@ -136,7 +136,11 @@ class KnockoutRedesignAdviser(object):
                     confidence_intervals_string = f"Rule:\n{raw_rulesets[activity]}"
                     if not (len(raw_rulesets[activity]) > 0):
                         continue
-                    confidence_intervals_string += f"\n\nValue ranges of knocked-out cases:"
+
+                    if len(rule_attribute_ranges_dict[activity]) > 0:
+                        confidence_intervals_string += f"\n\nValue ranges of knocked-out cases:"
+                    else:
+                        confidence_intervals_string += f"\n\nNo numerical attributes found in rule."
                     for attribute in rule_attribute_ranges_dict[activity]:
                         confidence_intervals_string += f"\n- {attribute}: {rule_attribute_ranges_dict[activity][attribute][0]:.2f} - {rule_attribute_ranges_dict[activity][attribute][1]:.2f}"
 
