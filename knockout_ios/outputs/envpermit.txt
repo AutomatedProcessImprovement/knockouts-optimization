@@ -1,0 +1,42 @@
+Knockouts Redesign Pipeline started @ 2022-05-19 21:53:58.536927
+
+Input parameters:
+
+{'always_force_recompute': True,
+ 'attributes_to_ignore': [],
+ 'cache_dir': 'cache/envpermit',
+ 'confidence_threshold': 0.5,
+ 'config_dir': None,
+ 'config_file_name': None,
+ 'config_path': None,
+ 'custom_log_preprocessing_function': None,
+ 'dl_allowance': 1,
+ 'exclude_from_ko_activities': [],
+ 'grid_search': False,
+ 'k': 2,
+ 'known_ko_activities': ['T02 Check confirmation of receipt',
+                         'T06 Determine necessity of stop advice',
+                         'T10 Determine necessity to stop indication'],
+ 'ko_count_threshold': None,
+ 'log_path': WindowsPath('inputs/Envpermit.xes'),
+ 'max_rule_conds': None,
+ 'max_rules': 3,
+ 'n_discretize_bins': 20,
+ 'negative_outcomes': [],
+ 'output': WindowsPath('outputs'),
+ 'positive_outcomes': [],
+ 'print_rule_discovery_stats': True,
+ 'prune_size': 0.5,
+ 'read_options': {'column_names': {'Activity': 'task',
+                                   'Case ID': 'caseid',
+                                   'Resource': 'case (responsible)',
+                                   'lifecycle:transition': 'event_type'},
+                  'filter_d_attrib': True,
+                  'one_timestamp': True,
+                  'timestamp_format': '%Y-%m-%dT%H:%M:%S.%f'},
+ 'redesign_results_file_path': 'outputs/envpermit.txt',
+ 'rule_discovery_algorithm': 'RIPPER',
+ 'start_activity': 'A_Create Application',
+ 'support_threshold': 0.1}
+
+

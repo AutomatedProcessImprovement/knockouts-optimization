@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 # TODO: Excessive wittgenstein frame.append deprecation warnings
 #  currently trying to suppress just with -Wignore
@@ -102,7 +102,8 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                 y_test = y_test.map(lambda x: 1 if x else 0)
 
                 _by_case = _by_case.drop(
-                    columns=[PM4PY_CASE_ID_COLUMN_NAME, SIMOD_LOG_READER_CASE_ID_COLUMN_NAME],
+                    columns=[globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME,
+                             globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME],
                     errors='ignore')
                 _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
 

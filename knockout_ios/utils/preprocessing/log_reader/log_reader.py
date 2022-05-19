@@ -18,7 +18,7 @@ from knockout_ios.utils.preprocessing.log_reader import support_utils as sup
 @dataclass
 class ReadOptions:
     column_names: Dict[str, str]
-    timeformat: str = "%Y-%m-%dT%H:%M:%S.%f"
+    timestamp_format: str = "%Y-%m-%dT%H:%M:%S.%f"
     one_timestamp: bool = False
     filter_d_attrib: bool = True
 
@@ -45,7 +45,7 @@ class LogReader(object):
             self.input = input
         self.file_name, self.file_extension = self.define_ftype()
 
-        self.timeformat = settings.timeformat
+        self.timestamp_format = settings.timestamp_format
         self.column_names = settings.column_names
         self.one_timestamp = settings.one_timestamp  # TODO: remove everywhere, interval log is compulsory
         self.filter_d_attrib = settings.filter_d_attrib
@@ -60,7 +60,7 @@ class LogReader(object):
     def copy_without_data(log: 'LogReader') -> 'LogReader':
         default_options = ReadOptions(column_names=ReadOptions.column_names_default())
         copy = LogReader(input=log.input, settings=default_options, load=False)
-        copy.timeformat = log.timeformat
+        copy.timestamp_format = log.timestamp_format
         copy.column_names = log.column_names
         copy.one_timestamp = log.one_timestamp
         copy.filter_d_attrib = log.filter_d_attrib
@@ -96,10 +96,11 @@ class LogReader(object):
 
         # NOTE: Stripping zone information from the log
         # TODO: is it applicable here: pm4py.objects.log.util.dataframe_utils.convert_timestamp_columns_in_df?
-        temp_data[timestamp_key] = temp_data.apply(lambda x: x[timestamp_key].strftime(self.timeformat), axis=1)
-        temp_data[timestamp_key] = pd.to_datetime(temp_data[timestamp_key], format=self.timeformat)
-        temp_data['start_timestamp'] = temp_data.apply(lambda x: x['start_timestamp'].strftime(self.timeformat), axis=1)
-        temp_data['start_timestamp'] = pd.to_datetime(temp_data['start_timestamp'], format=self.timeformat)
+        temp_data[timestamp_key] = temp_data.apply(lambda x: x[timestamp_key].strftime(self.timestamp_format), axis=1)
+        temp_data[timestamp_key] = pd.to_datetime(temp_data[timestamp_key], format=self.timestamp_format)
+        temp_data['start_timestamp'] = temp_data.apply(lambda x: x['start_timestamp'].strftime(self.timestamp_format),
+                                                       axis=1)
+        temp_data['start_timestamp'] = pd.to_datetime(temp_data['start_timestamp'], format=self.timestamp_format)
 
         # NOTE: Converting all timestamps to UTC
         # temp_data['start_timestamp'] = pd.to_datetime(temp_data['start_timestamp'], utc=True)
@@ -146,7 +147,7 @@ class LogReader(object):
             if self.filter_d_attrib:
                 log = log[['caseid', 'task', 'user', 'end_timestamp']]
             log['end_timestamp'] = pd.to_datetime(log['end_timestamp'],
-                                                  format=self.timeformat)
+                                                  format=self.timestamp_format)
         else:
             self.column_names['Start Timestamp'] = 'start_timestamp'
             self.column_names['Complete Timestamp'] = 'end_timestamp'
@@ -158,9 +159,9 @@ class LogReader(object):
                 log = log[['caseid', 'task', 'user',
                            'start_timestamp', 'end_timestamp']]
             log['start_timestamp'] = pd.to_datetime(log['start_timestamp'],
-                                                    format=self.timeformat)
+                                                    format=self.timestamp_format)
             log['end_timestamp'] = pd.to_datetime(log['end_timestamp'],
-                                                  format=self.timeformat)
+                                                  format=self.timestamp_format)
         self.data = log.to_dict('records')
         self.append_csv_start_end()
         if self.verbose:
