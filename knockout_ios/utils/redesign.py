@@ -221,7 +221,11 @@ def get_relocated_kos(current_order_all_activities, optimal_ko_order, dependenci
         if knockout_activity not in ko_activities_in_trace:
             continue
 
-        dependency_indexes = [current_order_all_activities.index(t[1]) for t in dependencies[knockout_activity]]
+        try:
+            dependency_indexes = [current_order_all_activities.index(t[1]) for t in dependencies[knockout_activity]]
+        except ValueError:
+            continue
+            
         if len(dependency_indexes) > 0:
             idx = max(dependency_indexes)
         else:

@@ -54,6 +54,12 @@ def envpermit():
                                        cache_dir="cache/envpermit")
 
 
+def envpermit_auto():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="envpermit_auto.json",
+                                       cache_dir="cache/envpermit_auto")
+
+
 if __name__ == "__main__":
     # synthetic_example()
     # synthetic_example_1_timest()
@@ -63,3 +69,4 @@ if __name__ == "__main__":
     # bpi_2013()
     # bpi_2017_1k_W()
     envpermit()
+    # envpermit_auto()

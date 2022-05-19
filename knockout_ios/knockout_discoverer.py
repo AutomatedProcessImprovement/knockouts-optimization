@@ -104,6 +104,10 @@ class KnockoutDiscoverer:
                                                                         quiet=self.quiet,
                                                                         force_recompute=self.force_recompute)
 
+        # remove start and end activities from ko activities if present
+        self.ko_activities = [x for x in self.ko_activities if x != self.config.start_activity]
+        self.ko_activities = [x for x in self.ko_activities if x != self.config.end_activity]
+
         # Do not consider known negative outcomes as ko_activities
         if len(self.config.negative_outcomes) > 0:
             self.ko_activities = list(filter(lambda act: not (act in self.config.negative_outcomes),
@@ -137,8 +141,11 @@ class KnockoutDiscoverer:
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
             else:
-                relations = list(map(lambda ca: (self.config.start_activity, ca), self.ko_outcomes))
-                rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
+                # relations = list(map(lambda ca: (self.config.start_activity, ca), self.ko_outcomes))
+                # rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
+                self.ko_outcomes = [self.config.end_activity]
+                relations = list(map(lambda check: (check, self.config.end_activity), self.ko_activities))
+                rejected = pm4py.filter_directly_follows_relation(self.log_df, relations)
 
             rejected = pm4py.convert_to_dataframe(rejected)
 
