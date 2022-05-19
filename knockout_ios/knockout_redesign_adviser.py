@@ -1,5 +1,4 @@
 import pickle
-from pprint import pprint
 
 import pandas as pd
 from tabulate import tabulate
@@ -7,7 +6,7 @@ from tabulate import tabulate
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.formatting import get_edits_string
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config
-from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
+from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io, find_ko_activity_dependencies
@@ -88,7 +87,7 @@ class KnockoutRedesignAdviser(object):
                 for activity in attribute_dependencies_dict.keys():
                     if not (len(attribute_dependencies_dict[activity]) > 0):
                         entries.append(
-                            {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                            {globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK: activity,
                              "Dependencies": "required attributes are available from the start."})
                         continue
 
@@ -97,7 +96,7 @@ class KnockoutRedesignAdviser(object):
                         dependencies_str += f"'{pair[0]}' available after activity '{pair[1]}'" + "\n"
 
                     entries.append(
-                        {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                        {globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK: activity,
                          "Dependencies": dependencies_str})
 
                 df = pd.DataFrame(entries)
@@ -143,7 +142,8 @@ class KnockoutRedesignAdviser(object):
 
                     confidence_intervals_string += "\n"
                     entries.append(
-                        {REPORT_COLUMN_KNOCKOUT_CHECK: activity, "Observation": confidence_intervals_string})
+                        {globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                         "Observation": confidence_intervals_string})
 
                 df = pd.DataFrame(entries)
                 print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))

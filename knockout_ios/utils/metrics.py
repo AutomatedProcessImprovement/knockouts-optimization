@@ -8,7 +8,7 @@ from datetimerange import DateTimeRange
 from numpy import nan
 from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 import swifter
 
@@ -16,16 +16,16 @@ import swifter
 def find_rejection_rates(log_df, ko_activities):
     # for every ko_activity,
     # P = how many cases were knocked out by it / how many cases contain it
-    knock_out_counts_by_activity = log_df.drop_duplicates(subset=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME) \
+    knock_out_counts_by_activity = log_df.drop_duplicates(subset=globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME) \
         .groupby('knockout_activity') \
-        .count()[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME]
+        .count()[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME]
 
     rates = {}
     for activity in ko_activities:
         cases_knocked_out_by_activity = knock_out_counts_by_activity.get(activity)
-        cases_containing_activity = log_df[log_df[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity] \
-            .drop_duplicates(subset=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME) \
-            .count()[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME]
+        cases_containing_activity = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity] \
+            .drop_duplicates(subset=globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME) \
+            .count()[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME]
 
         rates[activity] = round(cases_knocked_out_by_activity / cases_containing_activity, 3)
 
@@ -131,8 +131,8 @@ def calc_available_cases_before_ko(ko_activities: List[str], log_df: pd.DataFram
 
     # group log_df by caseid and for each activity count how many groups (i.e. cases) contain that activity
     for activity in ko_activities:
-        counts[activity] = log_df[log_df[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity].groupby(
-            SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
+        counts[activity] = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity].groupby(
+            globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
 
     dump_metric_cache("available_cases_before_ko", counts)
     return counts
@@ -145,7 +145,7 @@ def calc_processing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     # does not take into account idle time due to resource timetables
     for activity in ko_activities:
         filtered_df = log_df[log_df['knockout_activity'] == activity]
-        total_duration = filtered_df[DURATION_COLUMN_NAME].sum()
+        total_duration = filtered_df[globalColumnNames.DURATION_COLUMN_NAME].sum()
         counts[activity] = total_duration
 
     dump_metric_cache("processing_waste", counts)
@@ -158,9 +158,11 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     # Basic Cycle time calculation: end time of last activity of a case - start time of first activity of a case
     for activity in ko_activities:
         filtered_df = log_df[log_df['knockout_activity'] == activity]
-        aggr = filtered_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
-            {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max'})
-        total_duration = aggr[PM4PY_END_TIMESTAMP_COLUMN_NAME] - aggr[PM4PY_START_TIMESTAMP_COLUMN_NAME]
+        aggr = filtered_df.groupby(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME).agg(
+            {globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min',
+             globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max'})
+        total_duration = aggr[globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME] - aggr[
+            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME]
 
         counts[activity] = total_duration.sum().total_seconds()
 
@@ -193,21 +195,21 @@ def calc_overlapping_time_ko_and_non_ko(ko_activities: List[str], log_df: pd.Dat
             # Get the overlapping time between non_ko_case_event and every knocked_out_case by the current activity
             # that shares the same resource
 
-            resource = non_ko_case_event[PM4PY_RESOURCE_COLUMN_NAME]
+            resource = non_ko_case_event[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME]
 
             knocked_out = knocked_out_case_events[
-                (knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME] == resource)]
+                (knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource)]
 
             total_overlap = 0
             time_range1 = DateTimeRange(
-                non_ko_case_event[PM4PY_START_TIMESTAMP_COLUMN_NAME],
-                non_ko_case_event[PM4PY_END_TIMESTAMP_COLUMN_NAME]
+                non_ko_case_event[globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                non_ko_case_event[globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME]
             )
 
             for knocked_out_case_event in knocked_out.iterrows():
                 time_range2 = DateTimeRange(
-                    knocked_out_case_event[1][PM4PY_START_TIMESTAMP_COLUMN_NAME],
-                    knocked_out_case_event[1][PM4PY_END_TIMESTAMP_COLUMN_NAME]
+                    knocked_out_case_event[1][globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME],
+                    knocked_out_case_event[1][globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME]
                 )
 
                 try:
@@ -231,16 +233,16 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
     # dump_metric_cache("waiting_time_waste", waste)
     # return waste
 
-    if not (PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
-        print(f"The log does not contain column {PM4PY_RESOURCE_COLUMN_NAME} (to identify resources)")
+    if not (globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
+        print(f"The log does not contain column {globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME} (to identify resources)")
         return waste
 
-    log_df = log_df.sort_values(by=[PM4PY_END_TIMESTAMP_COLUMN_NAME])
-    log_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+    log_df = log_df.sort_values(by=[globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME])
+    log_df.set_index(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
 
     for caseid in log_df.index.unique():
         log_df.loc[caseid, "next_activity_start"] = \
-            (log_df.loc[caseid][PM4PY_START_TIMESTAMP_COLUMN_NAME]).shift(-1)
+            (log_df.loc[caseid][globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME]).shift(-1)
 
     log_df.reset_index(inplace=True)
 
@@ -252,22 +254,23 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
         # consider only events knocked out by the current activity
         knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
 
-        for resource in knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME].unique():
+        for resource in knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME].unique():
             if pd.isnull(resource):
                 continue
 
             # consider only events that share the same resource
-            knocked_out = knocked_out_case_events[knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME] == resource]
+            knocked_out = knocked_out_case_events[
+                knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource]
             non_knocked_out = non_knocked_out_case_events[
-                non_knocked_out_case_events[PM4PY_RESOURCE_COLUMN_NAME] == resource]
+                non_knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource]
 
             # find indexes of columns in non_knocked_out, for an apply() call later using the 'raw' flag
-            end_timestamp_index = non_knocked_out.columns.get_loc(PM4PY_END_TIMESTAMP_COLUMN_NAME)
+            end_timestamp_index = non_knocked_out.columns.get_loc(globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME)
             next_activity_start_index = non_knocked_out.columns.get_loc("next_activity_start")
 
             # find indexes of columns in knocked_out, for an apply() call later using the 'raw' flag
-            start_timestamp_index = knocked_out.columns.get_loc(PM4PY_START_TIMESTAMP_COLUMN_NAME)
-            ko_end_timestamp_index = knocked_out.columns.get_loc(PM4PY_END_TIMESTAMP_COLUMN_NAME)
+            start_timestamp_index = knocked_out.columns.get_loc(globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME)
+            ko_end_timestamp_index = knocked_out.columns.get_loc(globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME)
 
             def compute_overlaps(non_ko_case_event):
 

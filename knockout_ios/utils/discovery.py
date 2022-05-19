@@ -2,13 +2,10 @@ import collections
 import pickle
 from itertools import chain
 
-import pandas as pd
 import pm4py
 from pm4py import filter_eventually_follows_relation
-from pm4py.objects.log.obj import EventLog, EventStream
-from pm4py.statistics.traces.generic.pandas import case_statistics
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 
 def extract_ko_config_fields(config):
@@ -56,7 +53,7 @@ def get_sorted_variants(df):
     # Find variants & sort by prefix length
 
     df = df.sort_values(
-        by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
+        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME])
 
     variants = pm4py.get_variants_as_tuples(df)
     entries = []

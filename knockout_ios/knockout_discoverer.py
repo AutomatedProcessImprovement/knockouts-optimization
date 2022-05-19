@@ -16,7 +16,7 @@ import pandas as pd
 import pm4py
 from tqdm import tqdm
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache, \
     discover_ko_sequences
 from knockout_ios.utils.metrics import get_ko_discovery_metrics
@@ -85,7 +85,7 @@ class KnockoutDiscoverer:
 
         if self.config.ko_count_threshold is None:
             # count the unique values in the activity column of log_df
-            ko_count_threshold = len(self.log_df[PM4PY_ACTIVITY_COLUMN_NAME].unique())
+            ko_count_threshold = len(self.log_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME].unique())
         else:
             ko_count_threshold = self.config.ko_count_threshold
 
@@ -146,7 +146,7 @@ class KnockoutDiscoverer:
             self.log_df['knockout_activity'] = False
 
             def find_ko_activity(_ko_activities, _sorted_case):
-                case_activities = list(_sorted_case[PM4PY_ACTIVITY_COLUMN_NAME].values)
+                case_activities = list(_sorted_case[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME].values)
 
                 try:
                     # drop activites after the known negative outcomes
@@ -162,13 +162,13 @@ class KnockoutDiscoverer:
                 except:
                     return False
 
-            gr = rejected.groupby(PM4PY_CASE_ID_COLUMN_NAME)
+            gr = rejected.groupby(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME)
 
-            self.log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+            self.log_df.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
 
             for group in tqdm(gr.groups.keys(), desc="Marking knocked-out cases in log"):
                 case_df = gr.get_group(group)
-                sorted_case = case_df.sort_values(by=SIMOD_END_TIMESTAMP_COLUMN_NAME)
+                sorted_case = case_df.sort_values(by=globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME)
                 knockout_activity = find_ko_activity(self.ko_activities, sorted_case)
 
                 self.log_df.at[group, 'knocked_out_case'] = True
@@ -206,7 +206,7 @@ class KnockoutDiscoverer:
         plot_ko_activities_count(aggregated_df)
 
     def get_activities(self):
-        return list(set(self.log_df[PM4PY_ACTIVITY_COLUMN_NAME]))
+        return list(set(self.log_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME]))
 
     def get_discovery_metrics(self, expected_kos):
 

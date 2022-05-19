@@ -7,7 +7,7 @@ import pm4py
 from knockout_ios.utils.preprocessing.log_reader.log_reader import LogReader, ReadOptions
 from knockout_ios.utils.preprocessing.feature_extraction import intercase_and_context
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 import os
 from dataclasses import dataclass
@@ -58,7 +58,9 @@ class Configuration:
     prune_size: Optional[float] = 0.8
 
     read_options: ReadOptions = ReadOptions(
-        column_names=ReadOptions.column_names_default()
+        column_names=ReadOptions.column_names_default(),
+        one_timestamp=False,
+        filter_d_attrib=False
     )
 
 
@@ -112,6 +114,12 @@ def config_data_with_datastructures(data: dict) -> dict:
     else:
         data["known_ko_activities"] = []
 
+    read_options = data.get("read_options")
+    if read_options:
+        if not ("column_names" in read_options):
+            read_options["column_names"] = ReadOptions.column_names_default()
+        data["read_options"] = ReadOptions(**read_options)
+
     return data
 
 
@@ -147,7 +155,8 @@ def read_config_file(config_file):
         raise Exception("Invalid File exception. Must be .yml or .json")
 
     config = Configuration(**config_data)
-    options = ReadOptions(column_names=ReadOptions.column_names_default(), filter_d_attrib=False)
+
+    options = config.read_options
 
     return config, options
 
@@ -174,7 +183,7 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
     except FileNotFoundError:
         # Parse log
 
-        log = LogReader(config.log_path, options)
+        log = LogReader(input=config.log_path, settings=options)
 
         # Add inter-arrival features if requested
         if add_intercase_and_context:
@@ -202,10 +211,22 @@ def read_log_and_config(config_dir, config_file_name, cache_dir):
                                 cache_dir=cache_dir,
                                 add_intercase_and_context=False, add_only_context=False)
 
-    pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-                                                    activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
-                                                    timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
-                                                    start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
+    column_names = config.read_options.column_names
+
+    globalColumnNames.SIMOD_RESOURCE_COLUMN_NAME = column_names["Resource"]
+
+    if config.read_options.one_timestamp:
+        globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME = globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME
+        pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=column_names["Case ID"],
+                                                        activity_key=column_names["Activity"],
+                                                        timestamp_key=globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                                                        timest_format=config.read_options.timestamp_format)
+    else:
+        pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=column_names["Case ID"],
+                                                        activity_key=column_names["Activity"],
+                                                        timestamp_key=globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                                                        start_timestamp_key=globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME,
+                                                        timest_format=config.read_options.timestamp_format)
 
     if set(list(log_df.columns.values)).issubset(set(list(pm4py_formatted_log_df.columns.values))):
         log_df = pm4py_formatted_log_df
