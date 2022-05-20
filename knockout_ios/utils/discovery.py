@@ -11,7 +11,7 @@ from knockout_ios.utils.constants import globalColumnNames
 def extract_ko_config_fields(config):
     return [config.log_path,
             config.start_activity,
-            ",".join(config.negative_outcomes),
+            ",".join(config.post_knockout_activities),
             ",".join(config.known_ko_activities),
             config.ko_count_threshold
             ]
@@ -125,14 +125,15 @@ def get_possible_ko_sequences(variants, limit):
     return ko_ac
 
 
-def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_outcomes=None, positive_outcomes=None,
+def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, post_knockout_activities=None,
+                          success_activities=None,
                           known_ko_activities=None,
                           quiet=False, start_activity_name="Start", force_recompute=False):
-    if positive_outcomes is None:
-        positive_outcomes = []
+    if success_activities is None:
+        success_activities = []
 
-    if negative_outcomes is None:
-        negative_outcomes = []
+    if post_knockout_activities is None:
+        post_knockout_activities = []
 
     if known_ko_activities is None:
         known_ko_activities = []
@@ -153,12 +154,12 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_out
         if not quiet:
             print(f"Cache for {config_file_name} variants not found")
 
-        if len(negative_outcomes) > 0:
-            relations = list(map(lambda ca: (start_activity_name, ca), negative_outcomes))
+        if len(post_knockout_activities) > 0:
+            relations = list(map(lambda ca: (start_activity_name, ca), post_knockout_activities))
             df = filter_eventually_follows_relation(df, relations)
 
-        if len(positive_outcomes) > 0:
-            relations = list(map(lambda ca: (start_activity_name, ca), positive_outcomes))
+        if len(success_activities) > 0:
+            relations = list(map(lambda ca: (start_activity_name, ca), success_activities))
             df = filter_eventually_follows_relation(df, relations, retain=False)
 
         # Find variants & sort by prefix length (less ko_activities start to end: possible indicator of knockout)
@@ -215,7 +216,7 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, negative_out
     # remove possible duplicates
     ko_activities = list(set(ko_activities))
 
-    if len(negative_outcomes) > 0:
-        return ko_activities, negative_outcomes, ko_sequences
+    if len(post_knockout_activities) > 0:
+        return ko_activities, post_knockout_activities, ko_sequences
     else:
         return ko_activities, list(ko_outcomes.keys()), ko_sequences

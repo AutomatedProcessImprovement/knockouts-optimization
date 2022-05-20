@@ -5,7 +5,7 @@
   "redesign_results_file_path": "outputs/bpi_2014_3k.txt",
   "cache_dir": "cache/bpi_2014_3k",
   "start_activity": "Open",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "Caused By CI"
   ],
   "exclude_from_ko_activities": [

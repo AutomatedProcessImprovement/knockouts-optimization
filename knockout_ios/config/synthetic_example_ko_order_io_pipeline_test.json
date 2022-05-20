@@ -5,10 +5,10 @@
   "redesign_results_file_path": "outputs/ko_reorder_io.txt",
   "cache_dir": "cache/synthetic_example",
   "start_activity": "Credit application received",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "Notify rejection"
   ],
-  "positive_outcomes": [],
+  "success_activities": [],
   "known_ko_activities": [],
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,

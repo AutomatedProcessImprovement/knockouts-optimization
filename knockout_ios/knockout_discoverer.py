@@ -98,8 +98,8 @@ class KnockoutDiscoverer:
                                                                         cache_dir=self.cache_dir,
                                                                         start_activity_name=self.config.start_activity,
                                                                         known_ko_activities=self.config.known_ko_activities,
-                                                                        negative_outcomes=self.config.negative_outcomes,
-                                                                        positive_outcomes=self.config.positive_outcomes,
+                                                                        post_knockout_activities=self.config.post_knockout_activities,
+                                                                        success_activities=self.config.success_activities,
                                                                         limit=ko_count_threshold,
                                                                         quiet=self.quiet,
                                                                         force_recompute=self.force_recompute)
@@ -109,8 +109,8 @@ class KnockoutDiscoverer:
         self.ko_activities = [x for x in self.ko_activities if x != self.config.end_activity]
 
         # Do not consider known negative outcomes as ko_activities
-        if len(self.config.negative_outcomes) > 0:
-            self.ko_activities = list(filter(lambda act: not (act in self.config.negative_outcomes),
+        if len(self.config.post_knockout_activities) > 0:
+            self.ko_activities = list(filter(lambda act: not (act in self.config.post_knockout_activities),
                                              self.ko_activities))
 
         # Exclude any activities that are explicitly indicated
@@ -136,13 +136,13 @@ class KnockoutDiscoverer:
 
         except FileNotFoundError:
 
-            if len(self.config.negative_outcomes) > 0:
-                self.ko_outcomes = self.config.negative_outcomes
-                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
+            if len(self.config.post_knockout_activities) > 0:
+                self.ko_outcomes = self.config.post_knockout_activities
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.post_knockout_activities))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
-            elif len(self.config.positive_outcomes) > 0:
-                self.ko_outcomes = self.config.positive_outcomes
-                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.positive_outcomes))
+            elif len(self.config.success_activities) > 0:
+                self.ko_outcomes = self.config.success_activities
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.success_activities))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations, retain=False)
             else:
                 # if no negative outcomes are provided, assume knocked-out cases go directly to the end activity
@@ -222,13 +222,13 @@ class KnockoutDiscoverer:
 
         except FileNotFoundError:
 
-            if len(self.config.negative_outcomes) > 0:
-                self.ko_outcomes = self.config.negative_outcomes
-                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
+            if len(self.config.post_knockout_activities) > 0:
+                self.ko_outcomes = self.config.post_knockout_activities
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.post_knockout_activities))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
-            elif len(self.config.positive_outcomes) > 0:
-                self.ko_outcomes = self.config.positive_outcomes
-                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.positive_outcomes))
+            elif len(self.config.success_activities) > 0:
+                self.ko_outcomes = self.config.success_activities
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.success_activities))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations, retain=False)
             else:
                 # assume knocked-out cases go directly to the end activity

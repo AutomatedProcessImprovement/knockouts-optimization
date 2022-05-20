@@ -2,10 +2,10 @@
   "log_path": "./inputs/LoanApplicationDemo.xes",
   "output": "./outputs",
   "start_activity": "Start",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "Loan application rejected"
   ],
-  "positive_outcomes": [],
+  "success_activities": [],
   "known_ko_activities": []
 }
 
