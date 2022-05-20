@@ -1,0 +1,25 @@
+Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection
+,0,0.0 %,nan %,[],
+External Vendor Assignment,286,8.51 %,12.5 %,[[Assignment_Group=TEAM0052^KM_number=KM0000622]],12.5
+Operator Update,2473,73.62 %,23.0 %,[[KM_number=KM0002059]],23.0
+Contact Change,5,0.15 %,40.0 %,[],40.0
+Quality Indicator,998,29.71 %,34.9 %,[[Assignment_Group=TEAM0023^KM_number=KM0002060] V [Assignment_Group=TEAM0023^KM_number=KM0000741] V [Assignment_Group=TEAM0023^KM_number=KM0000702]],34.9
+Pending vendor,252,7.5 %,4.2 %,[[KM_number=KM0000810] V [KM_number=KM0000938^Assignment_Group=TEAM0008]],4.2
+Analysis/Research,21,0.63 %,31.6 %,[[KM_number=KM0001569] V [KM_number=KM0001724]],31.6
+Assignment,4231,125.96 %,27.9 %,[[KM_number=KM0001026] V [Assignment_Group=TEAM0016] V [KM_number=KM0002055]],27.9
+Reassignment,2193,65.29 %,11.7 %,[[KM_number=KM0001572] V [Assignment_Group=TEAM0003^KM_number=KM0000426]],11.7
+Communication with vendor,62,1.85 %,16.7 %,[[KM_number=KM0001245^Assignment_Group=TEAM0023] V [KM_number=KM0000903]],16.7
+Vendor Reference,78,2.32 %,3.8 %,[[KM_number=KM0000349]],3.8
+Update,1776,52.87 %,16.9 %,[[Assignment_Group=TEAM0075^KM_number=KM0001925]],16.9
+Urgency Change,66,1.96 %,8.2 %,[[KM_number=KM0001274] V [KM_number=KM0001648] V [Assignment_Group=TEAM0036]],8.2
+Service Change,4,0.12 %,25.0 %,[],25.0
+Impact Change,69,2.05 %,4.7 %,[[KM_number=KM0000081]],4.7
+Mail to Customer,17,0.51 %,31.2 %,[[KM_number=KM0000077]],31.2
+Notify By Change,6,0.18 %,66.7 %,[[KM_number=KM0000938^Assignment_Group=TEAM0008]],66.7
+External update,88,2.62 %,20.9 %,[[KM_number=KM0000363] V [KM_number=KM0000480^Assignment_Group=TEAM0087] V [KM_number=KM0000970]],20.9
+Status Change,2854,84.97 %,19.4 %,[[KM_number=KM0000274^Assignment_Group=TEAM0008]],19.4
+Vendor Reference Change,6,0.18 %,16.7 %,[],16.7
+Update from customer,118,3.51 %,19.1 %,[[KM_number=KM0000611^Assignment_Group=TEAM0023] V [KM_number=KM0000297]],19.1
+Resolved,129,3.84 %,4.7 %,[[KM_number=KM0000029]],4.7
+Description Update,280,8.34 %,9.0 %,[[KM_number=KM0000379] V [KM_number=KM0000973]],9.0
+Communication with customer,246,7.32 %,26.4 %,[[Assignment_Group=TEAM0119] V [KM_number=KM0001490]],26.4

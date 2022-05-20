@@ -12,10 +12,10 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.parallel import parallel_metrics_calc
-from knockout_ios.utils.postprocessing import seconds_to_hms
+from knockout_ios.utils.formatting import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.explainer import find_ko_rulesets
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config, Configuration
@@ -26,6 +26,9 @@ from knockout_ios.utils.synthetic_example.preprocessors import *
 def clear_cache(cachedir, config_file_name):
     file_list = glob.glob(f'{cachedir}/{config_file_name}*')
     for filePath in file_list:
+        if "parsed_log" in filePath:
+            continue
+
         try:
             os.remove(filePath)
         except:
@@ -46,6 +49,8 @@ class KnockoutAnalyzer:
         os.makedirs("temp", exist_ok=True)
 
         self.quiet = quiet
+        self.config = config
+        self.one_timestamp = config.read_options.one_timestamp
         self.start_activity = config.start_activity
         self.config_file_name = config_file_name
         self.config_dir = config_dir
@@ -74,7 +79,8 @@ class KnockoutAnalyzer:
         else:
             self.attributes_to_ignore = config.attributes_to_ignore
 
-        log_df = log_df.sort_values(by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME])
+        log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
+                                        globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME])
 
         self.discoverer = KnockoutDiscoverer(log_df=log_df,
                                              config=config,
@@ -85,7 +91,12 @@ class KnockoutAnalyzer:
                                              quiet=quiet)
 
     def discover_knockouts(self, expected_kos=None):
-        self.discoverer.find_ko_activities()
+        # TODO: if ko activities are provided, skip ko discovery,
+        #  just mark the cases by which activity knocked it out (last one that appears)
+        if not (self.config.known_ko_activities is None) and (len(self.config.known_ko_activities) > 0):
+            self.discoverer.label_cases_with_known_ko_activities(self.config.known_ko_activities)
+        else:
+            self.discoverer.find_ko_activities()
 
         if not self.quiet:
             self.discoverer.print_basic_stats()
@@ -127,9 +138,9 @@ class KnockoutAnalyzer:
         # average processing time of the knock-out check activity
         soj_time = soj_time_get.apply(self.discoverer.log_df,
                                       parameters={
-                                          soj_time_get.Parameters.TIMESTAMP_KEY: SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                                          soj_time_get.Parameters.TIMESTAMP_KEY: globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME,
                                           soj_time_get.Parameters.START_TIMESTAMP_KEY:
-                                              SIMOD_START_TIMESTAMP_COLUMN_NAME}
+                                              globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME}
                                       )
 
         # Compute KO rejection rates and efforts
@@ -137,11 +148,15 @@ class KnockoutAnalyzer:
             entry = rulesets[key]
             metrics = entry[2]
 
-            # Mean Processing Time does not depend on rejection rule confidence or support
-            self.ko_stats[key]['mean_pt'] = soj_time[key]
+            if self.one_timestamp:
+                self.ko_stats[key]['mean_pt'] = 0
+                effort = (100 * self.ko_stats[key]['rejection_rate'])
+            else:
+                # Mean Processing Time does not depend on rejection rule confidence or support
+                self.ko_stats[key]['mean_pt'] = soj_time[key]
 
-            # Effort per rejection = Average PT / Rejection rate
-            effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
+                # Effort per rejection = Average PT / Rejection rate
+                effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
             if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold):
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
@@ -165,14 +180,15 @@ class KnockoutAnalyzer:
             raise Exception("log not yet loaded")
 
         # Pre-processing
-        columns_to_ignore = [SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-                             SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
-                             SIMOD_RESOURCE_COLUMN_NAME,
-                             PM4PY_ACTIVITY_COLUMN_NAME,
-                             PM4PY_CASE_ID_COLUMN_NAME,
-                             PM4PY_END_TIMESTAMP_COLUMN_NAME,
-                             DURATION_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME,
-                             SIMOD_START_TIMESTAMP_COLUMN_NAME,
+        columns_to_ignore = [globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
+                             globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
+                             globalColumnNames.SIMOD_RESOURCE_COLUMN_NAME,
+                             globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME,
+                             globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME,
+                             globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME,
+                             globalColumnNames.DURATION_COLUMN_NAME,
+                             globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                             globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME,
                              'knockout_activity',
                              'knockout_prefix'
                              ]
@@ -181,7 +197,7 @@ class KnockoutAnalyzer:
 
         columns_to_ignore.extend(list(filter(
             lambda c: ('@' in c) | ('id' in c.lower()) | ('daytime' in c) | ('weekday' in c) | ('month' in c) | (
-                    'activity' in c.lower()),
+                    'activity' in c.lower()) | ('timestamp' in c.lower()),
             log.columns)))
         columns_to_ignore = list(set(columns_to_ignore))
 
@@ -206,7 +222,7 @@ class KnockoutAnalyzer:
             raise Exception("Log empty during pre-processing for rule discovery: all columns have nan values")
 
         # Select the last non-null value of each column
-        log = log.groupby(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, as_index=False).last()
+        log = log.groupby(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, as_index=False).last()
 
         # Drop any remaining rows with nan values
         log = log.dropna(how='any')
@@ -340,33 +356,48 @@ class KnockoutAnalyzer:
             else:
                 rulesets = self.IREP_rulesets
 
-            _by_case = self.discoverer.log_df.drop_duplicates(subset=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
+            _by_case = self.discoverer.log_df.drop_duplicates(
+                subset=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME])
 
-            freqs, overprocessing_waste, processing_waste, waiting_time_waste = parallel_metrics_calc(
-                self.discoverer.ko_activities,
-                self.discoverer.log_df)
+            freqs = calc_available_cases_before_ko(self.discoverer.ko_activities,
+                                                   self.discoverer.log_df)
+            if not self.one_timestamp:
+                overprocessing_waste, processing_waste, waiting_time_waste = parallel_metrics_calc(
+                    self.discoverer.ko_activities,
+                    self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
-            total_non_ko_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
+            total_non_ko_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
             entries = []
             for ko in self.discoverer.ko_activities:
-                entries.append({("%s" % REPORT_COLUMN_KNOCKOUT_CHECK): ko,
-                                REPORT_COLUMN_TOTAL_FREQ:
+                report_entry = {("%s" % globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK): ko,
+                                globalColumnNames.REPORT_COLUMN_TOTAL_FREQ:
                                     freqs[ko],
-                                REPORT_COLUMN_CASE_FREQ:
+                                globalColumnNames.REPORT_COLUMN_CASE_FREQ:
                                     f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
-                                REPORT_COLUMN_MEAN_PT: seconds_to_hms(self.ko_stats[ko]["mean_pt"]),
-                                REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
-                                f"{REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})": rulesets[ko][0].ruleset_,
-                                REPORT_COLUMN_EFFORT_PER_KO: round(self.ko_stats[ko][self.ruleset_algorithm]["effort"],
-                                                                   ndigits=2),
-                                REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE: seconds_to_hms(overprocessing_waste[ko]),
-                                REPORT_COLUMN_TOTAL_PT_WASTE: seconds_to_hms(processing_waste[ko]),
-                                REPORT_COLUMN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko]),
-                                REPORT_COLUMN_MEAN_WT_WASTE: seconds_to_hms(waiting_time_waste[ko] / total_non_ko_cases)
+                                globalColumnNames.REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
+                                f"{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})":
+                                    rulesets[ko][0].ruleset_,
+                                globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO: round(
+                                    self.ko_stats[ko][self.ruleset_algorithm]["effort"],
+                                    ndigits=2)
                                 }
-                               )
+
+                if self.one_timestamp:
+                    entries.append(report_entry)
+                    continue
+                else:
+                    report_entry[globalColumnNames.REPORT_COLUMN_MEAN_PT] = seconds_to_hms(
+                        self.ko_stats[ko]["mean_pt"])
+                    report_entry[globalColumnNames.REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE] = seconds_to_hms(
+                        overprocessing_waste[ko])
+                    report_entry[globalColumnNames.REPORT_COLUMN_TOTAL_PT_WASTE] = seconds_to_hms(processing_waste[ko])
+                    report_entry[globalColumnNames.REPORT_COLUMN_WT_WASTE] = seconds_to_hms(waiting_time_waste[ko])
+                    report_entry[globalColumnNames.REPORT_COLUMN_MEAN_WT_WASTE] = seconds_to_hms(
+                        waiting_time_waste[ko] / total_non_ko_cases)
+
+                entries.append(report_entry)
 
             self.report_df = pd.DataFrame(entries)
 

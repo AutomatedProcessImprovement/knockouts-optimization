@@ -2,9 +2,9 @@
   "log_path": "./inputs/credit_app_nested_1.xes",
   "output": "./outputs",
   "start_activity": "Start",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "Reject application"
   ],
-  "positive_outcomes": [],
+  "success_activities": [],
   "known_ko_activities": []
 }

@@ -1,0 +1,28 @@
+{
+  "$schema": "../../config_schema.json",
+  "log_path": "inputs/BPI_2014_Detail_Incident_Activity_subset_3K.xes",
+  "output": "./outputs",
+  "redesign_results_file_path": "outputs/bpi_2014_3k.txt",
+  "cache_dir": "cache/bpi_2014_3k",
+  "start_activity": "Open",
+  "post_knockout_activities": [
+    "Caused By CI"
+  ],
+  "exclude_from_ko_activities": [
+    "Closed"
+  ],
+  "rule_discovery_algorithm": "RIPPER",
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "max_rules": 3,
+  "k": 2,
+  "n_discretize_bins": 20,
+  "dl_allowance": 1,
+  "prune_size": 0.5,
+  "always_force_recompute": true,
+  "print_rule_discovery_stats": true,
+  "grid_search": false,
+  "read_options": {
+    "one_timestamp": true
+  }
+}

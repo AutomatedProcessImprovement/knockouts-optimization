@@ -43,12 +43,12 @@ def test_credit_app(config_file, expected_outcomes, expected_kos):
 # Loan Application
 
 loan_app_kos = ['Assess eligibility']
-loan_app_negative_outcomes = ['Loan application rejected']
+loan_app_post_knockout_activities = ['Loan application rejected']
 
 loan_app_scenarios = [
-    ("loan_app.json", loan_app_negative_outcomes, loan_app_kos),
-    ("loan_app_w_positive.json", loan_app_negative_outcomes, loan_app_kos),
-    ("loan_app_w_negative.json", loan_app_negative_outcomes, loan_app_kos),
+    ("loan_app.json", loan_app_post_knockout_activities, loan_app_kos),
+    ("loan_app_w_positive.json", loan_app_post_knockout_activities, loan_app_kos),
+    ("loan_app_w_negative.json", loan_app_post_knockout_activities, loan_app_kos),
 ]
 
 

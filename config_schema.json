@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "log_path": {
+      "type": "string"
+    },
+    "output": {
+      "type": "string"
+    },
+    "redesign_results_file_path": {
+      "type": "string"
+    },
+    "cache_dir": {
+      "type": "string"
+    },
+    "start_activity": {
+      "type": "string"
+    },
+    "end_activity": {
+      "type": "string"
+    },
+    "post_knockout_activities": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "success_activities": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "known_ko_activities": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "exclude_from_ko_activities": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "attributes_to_ignore": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "rule_discovery_algorithm": {
+      "type": "string"
+    },
+    "confidence_threshold": {
+      "type": "number"
+    },
+    "support_threshold": {
+      "type": "number"
+    },
+    "max_rules": {
+      "type": "integer"
+    },
+    "k": {
+      "type": "integer"
+    },
+    "n_discretize_bins": {
+      "type": "integer"
+    },
+    "dl_allowance": {
+      "type": "integer"
+    },
+    "prune_size": {
+      "type": "number"
+    },
+    "always_force_recompute": {
+      "type": "boolean"
+    },
+    "print_rule_discovery_stats": {
+      "type": "boolean"
+    },
+    "grid_search": {
+      "type": "boolean"
+    },
+    "read_options": {
+      "type": "object",
+      "properties": {
+        "column_names": {
+          "type": "object",
+          "properties": {
+            "Activity": {
+              "type": "string"
+            },
+            "Case ID": {
+              "type": "string"
+            },
+            "Resource": {
+              "type": "string"
+            },
+            "lifecycle:transition": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "Activity",
+            "Case ID",
+            "Resource",
+            "lifecycle:transition"
+          ]
+        },
+        "one_timestamp": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "required": [
+    "log_path",
+    "output",
+    "redesign_results_file_path",
+    "cache_dir"
+  ]
+}
+

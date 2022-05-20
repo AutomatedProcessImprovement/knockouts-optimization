@@ -1,12 +1,12 @@
 import pickle
-from pprint import pprint
 
 import pandas as pd
 from tabulate import tabulate
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
+from knockout_ios.utils.formatting import get_edits_string
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config
-from knockout_ios.utils.constants import REPORT_COLUMN_KNOCKOUT_CHECK
+from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io, find_ko_activity_dependencies
@@ -59,15 +59,18 @@ class KnockoutRedesignAdviser(object):
     def compute_redesign_options(self):
         dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
 
-        self.redesign_options["reordering"], efforts = evaluate_knockout_reordering_io(self.knockout_analyzer,
-                                                                                       dependencies)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
+                                                                              dependencies)
+
         self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer,
                                                                               dependencies,
                                                                               optimal_ko_order=
                                                                               self.redesign_options[
                                                                                   "reordering"][
                                                                                   "optimal_ko_order"],
-                                                                              efforts=efforts)
+                                                                              start_activity_constraint=
+                                                                              self.knockout_analyzer.start_activity)
+
         self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
                                                                                               self.attribute_range_confidence_interval)
 
@@ -84,7 +87,7 @@ class KnockoutRedesignAdviser(object):
                 for activity in attribute_dependencies_dict.keys():
                     if not (len(attribute_dependencies_dict[activity]) > 0):
                         entries.append(
-                            {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                            {globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK: activity,
                              "Dependencies": "required attributes are available from the start."})
                         continue
 
@@ -93,7 +96,7 @@ class KnockoutRedesignAdviser(object):
                         dependencies_str += f"'{pair[0]}' available after activity '{pair[1]}'" + "\n"
 
                     entries.append(
-                        {REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                        {globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK: activity,
                          "Dependencies": dependencies_str})
 
                 df = pd.DataFrame(entries)
@@ -115,7 +118,9 @@ class KnockoutRedesignAdviser(object):
                 entries = []
                 for item in self.redesign_options["relocation"].items():
                     entries.append(
-                        {"Variant / Relocation Suggestion": " -> ".join(item[0]) + '\n' + " -> ".join(item[1])})
+                        {"Variant / Relocation Suggestion": " -> ".join(item[0]) + '\n'
+                                                            + get_edits_string(" -> ".join(item[0]),
+                                                                               " -> ".join(item[1]))})
 
                 df = pd.DataFrame(entries)
                 # TODO: for printing, sort by variant case count
@@ -131,13 +136,18 @@ class KnockoutRedesignAdviser(object):
                     confidence_intervals_string = f"Rule:\n{raw_rulesets[activity]}"
                     if not (len(raw_rulesets[activity]) > 0):
                         continue
-                    confidence_intervals_string += f"\n\nValue ranges of knocked-out cases:"
+
+                    if len(rule_attribute_ranges_dict[activity]) > 0:
+                        confidence_intervals_string += f"\n\nValue ranges of knocked-out cases:"
+                    else:
+                        confidence_intervals_string += f"\n\nNo numerical attributes found in rule."
                     for attribute in rule_attribute_ranges_dict[activity]:
                         confidence_intervals_string += f"\n- {attribute}: {rule_attribute_ranges_dict[activity][attribute][0]:.2f} - {rule_attribute_ranges_dict[activity][attribute][1]:.2f}"
 
                     confidence_intervals_string += "\n"
                     entries.append(
-                        {REPORT_COLUMN_KNOCKOUT_CHECK: activity, "Observation": confidence_intervals_string})
+                        {globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK: activity,
+                         "Observation": confidence_intervals_string})
 
                 df = pd.DataFrame(entries)
                 print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
@@ -154,7 +164,7 @@ if __name__ == "__main__":
                                 config_file_name="synthetic_example_ko_order_io.json",
                                 config_dir="config",
                                 cache_dir="test/knockout_ios/cache/synthetic_example",
-                                always_force_recompute=True,
+                                always_force_recompute=False,
                                 quiet=True,
                                 custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
 

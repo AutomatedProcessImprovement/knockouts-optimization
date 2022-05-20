@@ -2,9 +2,9 @@
   "log_path": "inputs/synthetic_example/Improved Synthetic Example (KO Order IO 2).xes",
   "output": "./outputs",
   "start_activity": "Credit application received",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "Notify rejection"
   ],
-  "positive_outcomes": [],
+  "success_activities": [],
   "known_ko_activities": []
 }

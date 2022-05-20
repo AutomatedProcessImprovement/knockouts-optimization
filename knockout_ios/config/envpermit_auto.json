@@ -1,0 +1,31 @@
+{
+  "$schema": "../../config_schema.json",
+  "log_path": "inputs/Envpermit.xes",
+  "output": "./outputs",
+  "redesign_results_file_path": "outputs/envpermit_auto.txt",
+  "cache_dir": "cache/envpermit_auto",
+  "start_activity": "Confirmation of receipt",
+  "attributes_to_ignore": [
+    "concept:instance"
+  ],
+  "rule_discovery_algorithm": "RIPPER",
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "max_rules": 3,
+  "k": 2,
+  "n_discretize_bins": 20,
+  "dl_allowance": 3,
+  "prune_size": 0.5,
+  "always_force_recompute": true,
+  "print_rule_discovery_stats": false,
+  "grid_search": false,
+  "read_options": {
+    "column_names": {
+      "Activity": "task",
+      "Case ID": "caseid",
+      "Resource": "case (responsible)",
+      "lifecycle:transition": "event_type"
+    },
+    "one_timestamp": true
+  }
+}
