@@ -1,0 +1,35 @@
+{
+  "$schema": "../../config_schema.json",
+  "log_path": "inputs/Envpermit.xes",
+  "output": "./outputs",
+  "redesign_results_file_path": "outputs/envpermit.txt",
+  "cache_dir": "cache/envpermit",
+  "start_activity": "Confirmation of receipt",
+  "known_ko_activities": [
+    "T02 Check confirmation of receipt",
+    "T06 Determine necessity of stop advice",
+    "T10 Determine necessity to stop indication"
+  ],
+  "attributes_to_ignore": [
+    "concept:instance"
+  ],
+  "rule_discovery_algorithm": "RIPPER",
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "max_rules": 3,
+  "k": 2,
+  "n_discretize_bins": 20,
+  "dl_allowance": 5,
+  "prune_size": 0.25,
+  "always_force_recompute": true,
+  "print_rule_discovery_stats": false,
+  "read_options": {
+    "column_names": {
+      "Activity": "task",
+      "Case ID": "caseid",
+      "Resource": "case (responsible)",
+      "lifecycle:transition": "event_type"
+    },
+    "one_timestamp": true
+  }
+}

@@ -1,0 +1,4 @@
+Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection
+T06 Determine necessity of stop advice,1223,90.86 %,1.2 %,[[(case)_responsible=Resource03^(case)_channel=e-mail] V [(case)_responsible=Resource01^org:group=Group1]],1.2
+T02 Check confirmation of receipt,1228,91.23 %,0.4 %,[[org:group=EMPTY^(case)_responsible=Resource23] V [org:group=Group4]],0.4
+T10 Determine necessity to stop indication,1200,89.15 %,66.2 %,[[org:group=Group1]],64.52

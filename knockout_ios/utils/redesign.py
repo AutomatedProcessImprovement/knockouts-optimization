@@ -12,7 +12,7 @@ from ruleset.base import Ruleset
 from tqdm import tqdm
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 
 def chained_eventually_follows(log, activities):
@@ -33,7 +33,7 @@ def get_observed_ko_checks_order(log, ko_activities):
 
     # Idea: for every ko activity, get a list of the index of appearance in every case of the log
 
-    cases = log.groupby(PM4PY_CASE_ID_COLUMN_NAME)
+    cases = log.groupby(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME)
     for ko_activity in observed_ko_order.keys():
 
         for group in cases.groups.keys():
@@ -47,11 +47,11 @@ def get_observed_ko_checks_order(log, ko_activities):
                 continue
 
             # Necessary to get the index of the activity in the case (starting from 0 at the beggining of THIS case)
-            case.set_index(pd.Index([i for i in range(len(case[PM4PY_ACTIVITY_COLUMN_NAME]))]),
-                           PM4PY_ACTIVITY_COLUMN_NAME,
+            case.set_index(pd.Index([i for i in range(len(case[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME]))]),
+                           globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME,
                            inplace=True)
 
-            idx = case[case[PM4PY_ACTIVITY_COLUMN_NAME] == ko_activity].index.item()
+            idx = case[case[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME] == ko_activity].index.item()
             observed_ko_order[ko_activity].append(idx)
 
         observed_ko_order[ko_activity] = int(np.mean(observed_ko_order[ko_activity]))
@@ -71,54 +71,55 @@ def get_attribute_names_from_ruleset(ruleset: Ruleset):
     return list(res)
 
 
-def get_sorted_with_dependencies(ko_activities: List[str], dependencies: dict[str, List[tuple[str, str]]],
-                                 current_activity_order: List[str],
-                                 efforts=None):
-    optimal_order_names = current_activity_order.copy()
+def get_ko_activities_sorted_with_dependencies(dependencies: dict[str, List[tuple[str, str]]],
+                                               current_activity_order: List[str],
+                                               efforts: pd.DataFrame = None):
+    """ Assumes ko_activities are already sorted by effort """
 
-    if (not (efforts is None)) and (REPORT_COLUMN_KNOCKOUT_CHECK in efforts.columns):
-        efforts.set_index(REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
+    # TODO: Works but needs refactor. Consider Topological Sort:
+    # https://stackoverflow.com/questions/4106862/how-to-sort-depended-objects-by-dependency
+    # https://www.geeksforgeeks.org/topological-sorting/
+    # https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.topological_sort.html
 
-    for knockout_activity in ko_activities:
-        if knockout_activity not in optimal_order_names:
-            continue
+    optimal_order_names = deepcopy(current_activity_order)
 
-        _dependencies = dependencies[knockout_activity]
-        if not all(map(lambda x: x[1] in optimal_order_names, _dependencies)):
-            continue
+    # First, sort by index of the dependency that appears last in the current "optimal ko order
+    max_dependency_indexes = []
+    for i, activity in enumerate(current_activity_order):
+        filtered_deps = list(filter(lambda a: a[1] in current_activity_order, dependencies[activity]))
+        dependency_indexes = [optimal_order_names.index(t[1]) for t in filtered_deps]
 
-        while len(_dependencies) > 0:
-            # Sort deps by the index of every second element of the tuples in current_activity_order
-            _dependencies = sorted(_dependencies, key=lambda x: optimal_order_names.index(x[1]))
-            _, attribute_producer = _dependencies.pop(0)
+        if len(dependency_indexes) > 0:
+            max_dependency_indexes.append((activity, max(dependency_indexes)))
+        else:
+            max_dependency_indexes.append((activity, 0))
 
-            # Remove knockout_activity from current_activity_order to insert it in the right place
-            optimal_order_names.remove(knockout_activity)
+    optimal_order_names = sorted(max_dependency_indexes, key=lambda x: x[1])
+    optimal_order_names = [t[0] for t in optimal_order_names]
 
-            # Find where is attribute_value_producer in current_activity_order,
-            # then insert knockout_activity after attribute_value_producer
-            idx = optimal_order_names.index(attribute_producer)
-            optimal_order_names.insert(idx + 1, knockout_activity)
+    # Then rearrange the list if needed, making sure no activity is before its dependency
+    if (not (efforts is None)) and (globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK in efforts.columns):
+        efforts.set_index(globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK, inplace=True)
 
-            # Sort by effort everything after the producer
-            # def position_rejection(x):
-            #     try:
-            #         return efforts.loc[x].values[1]
-            #     except KeyError:
-            #         return len(optimal_order_names) - 1
+    for i, activity in enumerate(current_activity_order):
+        filtered_deps = list(filter(lambda a: a[1] in current_activity_order, dependencies[activity]))
+        dependency_indexes = [optimal_order_names.index(t[1]) for t in filtered_deps]
 
-            def position_effort(x):
-                try:
-                    return efforts.loc[x].values[0], (100 - efforts.loc[x].values[1])
-                except KeyError:
-                    return len(optimal_order_names) - 1, len(optimal_order_names) - 1
+        if len(dependency_indexes) > 0:
+            last_dependency = optimal_order_names[max(dependency_indexes)]
 
-            if not (efforts is None):
-                # Sort the rest of the list by effort (ascending)
-                # TODO: by rejection rate (descending)?
-                idx = optimal_order_names.index(attribute_producer)
-                optimal_order_names[idx + 1:-1] = sorted(optimal_order_names[idx + 1:-1],
-                                                         key=position_effort)
+            if (activity in optimal_order_names) and (last_dependency in optimal_order_names):
+                optimal_order_names.remove(activity)
+                optimal_order_names.insert(optimal_order_names.index(last_dependency) + 1, activity)
+
+                # Sort the rest of the list by effort and 100 - rejection rate
+                if not (efforts is None):
+                    def position_effort(x):
+                        return efforts.loc[x].values[0], (100 - efforts.loc[x].values[1])
+
+                    idx = optimal_order_names.index(last_dependency)
+                    optimal_order_names[idx + 1:] = sorted(optimal_order_names[idx + 1:],
+                                                           key=position_effort)
 
     return optimal_order_names
 
@@ -127,14 +128,14 @@ def find_producers(attribute: str, log: pd.DataFrame):
     """ Assumes log has case id as index and is sorted by end timestamp"""
 
     producers = []
-    log = log.sort_values(by=['case_id_idx', SIMOD_END_TIMESTAMP_COLUMN_NAME],
+    log = log.sort_values(by=['case_id_idx', globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
                           ascending=[True, True], inplace=False)
 
     for caseid in log.index.unique():
         case = log.loc[caseid]
 
         activities_where_unavailable = case[pd.isnull(case[attribute].values)][
-            SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME].values
+            globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME].values
 
         # if attribute is never null, it means it's available from the start
         if not (len(activities_where_unavailable) > 0):
@@ -152,7 +153,7 @@ def find_producers(attribute: str, log: pd.DataFrame):
             producer_event = case[case["next_attribute_value"] == last_valid_value].values[0]
 
             # extract the activity name
-            idx = case.columns.get_loc(SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME)
+            idx = case.columns.get_loc(globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME)
             producer_activity = producer_event[idx]
 
             producers.append(producer_activity)
@@ -162,6 +163,88 @@ def find_producers(attribute: str, log: pd.DataFrame):
             continue
 
     return producers
+
+
+def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
+    """
+    - Returns dependencies between log ko_activities and attributes required by knockout checks
+    """
+
+    if analyzer.ruleset_algorithm == "IREP":
+        rule_discovery_dict = analyzer.IREP_rulesets
+    elif analyzer.ruleset_algorithm == "RIPPER":
+        rule_discovery_dict = analyzer.RIPPER_rulesets
+    else:
+        raise ValueError("Unknown ruleset algorithm")
+
+    # for every knockout activity, there will be a list of tuples (attribute of KO rule, name of producer activity)
+    dependencies = {k: [] for k in rule_discovery_dict.keys()}
+
+    log = deepcopy(analyzer.discoverer.log_df)
+    log.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    log = log.rename_axis('case_id_idx')
+
+    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
+        ruleset = rule_discovery_dict[ko_activity][0]
+
+        if len(ruleset.ruleset_) == 0:
+            continue
+
+        required_attributes = get_attribute_names_from_ruleset(ruleset)
+
+        for attribute in required_attributes:
+            # Find after which activity the attribute is available in the log
+            # (a list is returned; we then consider the most frequent activity as the producer)
+            producers = find_producers(attribute, log[log["knockout_activity"] == ko_activity])
+
+            if len(producers) > 0:
+                # get most frequent producer activity
+                producers = Counter(producers).most_common(1)[0][0]
+                if producers == ko_activity:
+                    continue
+                dependencies[ko_activity].append((attribute, producers))
+
+    return dependencies
+
+
+def get_relocated_kos(current_order_all_activities, optimal_ko_order, dependencies, start_activity_constraint=None):
+    """
+    NOTE: This assumes optimal_ko_order is already sorted taking into account attribute dependencies BETWEEN ko activities!
+    """
+    # drop all activities that are in the optimal order
+    ko_activities_in_trace = [x for x in optimal_ko_order if x in current_order_all_activities]
+    current_order_all_activities = [x for x in current_order_all_activities if x not in optimal_ko_order]
+    previous_knockout_activity = None
+
+    # insert ko activities after their dependencies, and respecting the optimal order
+    for i, knockout_activity in enumerate(optimal_ko_order):
+        if knockout_activity not in ko_activities_in_trace:
+            continue
+
+        try:
+            dependency_indexes = [current_order_all_activities.index(t[1]) for t in dependencies[knockout_activity]]
+        except ValueError:
+            continue
+            
+        if len(dependency_indexes) > 0:
+            idx = max(dependency_indexes)
+        else:
+            # To allow for potentially inserting at the very begginning (insertion index gets added 1 later)
+            idx = -1
+
+        if previous_knockout_activity in current_order_all_activities:
+            idx = max(idx, current_order_all_activities.index(previous_knockout_activity))
+
+        # To accomodate additional information about the start activity; an activity that MUST be performed before any Ko checks,
+        # but may not be reflected in case attribute dependencies
+        if not (start_activity_constraint is None):
+            idx = max(idx, current_order_all_activities.index(start_activity_constraint))
+
+        current_order_all_activities.insert(idx + 1, knockout_activity)
+
+        previous_knockout_activity = knockout_activity
+
+    return current_order_all_activities
 
 
 def bootstrap_ci(
@@ -206,105 +289,33 @@ def confidence_intervals_t_student(x, confidence=0.95):
     return m - s * t_crit / np.sqrt(len(x)), m + s * t_crit / np.sqrt(len(x))
 
 
-def get_relocated_kos(current_order_all_activities, ko_activities, dependencies, start_activity_constraint=None,
-                      optimal_ko_order_constraint=None, efforts=None):
-    trace_start_slice = []
-    if not (start_activity_constraint is None):
-        try:
-            # get a slice of the list right before the start activity, so that re-location does not interfere with the process semantics
-            trace_start_slice = current_order_all_activities[
-                                0:current_order_all_activities.index(start_activity_constraint) + 1]
-            current_order_all_activities = current_order_all_activities[
-                                           current_order_all_activities.index(start_activity_constraint) + 1:]
-        except Exception:
-            return current_order_all_activities
-
-    if not (optimal_ko_order_constraint is None):
-        # reorder current_order_all_activities to match the relative orders in optimal_ko_order_constraint (potentially shorter list, as it only contains ko activities)
-        def position(value):
-            # source: https://stackoverflow.com/a/52545309/8522453
-            try:
-                return optimal_ko_order_constraint.index(value)
-            except ValueError:
-                return len(optimal_ko_order_constraint)
-
-        current_order_all_activities.sort(key=position)
-
-    relocated = get_sorted_with_dependencies(ko_activities=ko_activities, dependencies=dependencies,
-                                             current_activity_order=current_order_all_activities, efforts=efforts)
-
-    trace_start_slice.extend(relocated)
-    return trace_start_slice
-
-
-def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
-    """
-    - Returns dependencies between log ko_activities and attributes required by knockout checks
-    """
-
-    if analyzer.ruleset_algorithm == "IREP":
-        rule_discovery_dict = analyzer.IREP_rulesets
-    elif analyzer.ruleset_algorithm == "RIPPER":
-        rule_discovery_dict = analyzer.RIPPER_rulesets
-    else:
-        raise ValueError("Unknown ruleset algorithm")
-
-    # for every knockout activity, there will be a list of tuples (attribute of KO rule, name of producer activity)
-    dependencies = {k: [] for k in rule_discovery_dict.keys()}
-
-    log = deepcopy(analyzer.discoverer.log_df)
-    log.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    log = log.rename_axis('case_id_idx')
-
-    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
-        ruleset = rule_discovery_dict[ko_activity][0]
-
-        if len(ruleset.ruleset_) == 0:
-            continue
-
-        required_attributes = get_attribute_names_from_ruleset(ruleset)
-
-        for attribute in required_attributes:
-            # Find after which activity the attribute is available in the log
-            # (a list is returned; we then consider the most frequent activity as the producer)
-            producers = find_producers(attribute, log[log["knockout_activity"] == ko_activity])
-
-            if len(producers) > 0:
-                # get most frequent producer activity
-                producers = Counter(producers).most_common(1)[0][0]
-                if producers == ko_activity:
-                    continue
-                dependencies[ko_activity].append((attribute, producers))
-
-    return dependencies
-
-
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: dict[str, List[tuple[str, str]]],
-                                    optimal_ko_order=None, efforts: pd.DataFrame = None) -> dict[tuple[str], List[str]]:
+                                    optimal_ko_order=None, start_activity_constraint=None) -> dict[
+    tuple[str], List[str]]:
     # TODO: get min_coverage_percentage or K as a parameter in config file
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
-        by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME],
+        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
     # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df, min_coverage_percentage=0.01)
+    # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df,
+    # min_coverage_percentage=analyzer.config.relocation_variants_min_coverage_percentage)
     flt = pm4py.filter_variants_top_k(analyzer.discoverer.log_df, k=10)
     variants = pm4py.get_variants_as_tuples(flt)
 
     proposed_relocations = {}
     for variant in variants.keys():
         proposed_relocations[variant] = get_relocated_kos(current_order_all_activities=list(variant),
-                                                          ko_activities=analyzer.discoverer.ko_activities,
+                                                          optimal_ko_order=optimal_ko_order,
                                                           dependencies=dependencies,
-                                                          start_activity_constraint=analyzer.start_activity,
-                                                          optimal_ko_order_constraint=optimal_ko_order,
-                                                          efforts=efforts)
+                                                          start_activity_constraint=start_activity_constraint)
 
     return proposed_relocations
 
 
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
-                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> tuple[dict, pd.DataFrame]:
+                                    dependencies: dict[str, List[tuple[str, str]]] = None) -> dict:
     '''
     - Returns the observed ko-checks ordering (AS-IS)
     - Returns optimal ordering by KO effort
@@ -313,38 +324,44 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
-        by=[SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, SIMOD_END_TIMESTAMP_COLUMN_NAME],
+        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
     report_df = deepcopy(analyzer.report_df)
-    report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].str.replace('%', '')
-    report_df[REPORT_COLUMN_REJECTION_RATE] = report_df[REPORT_COLUMN_REJECTION_RATE].astype(float)
+    report_df[globalColumnNames.REPORT_COLUMN_REJECTION_RATE] = report_df[
+        globalColumnNames.REPORT_COLUMN_REJECTION_RATE].str.replace('%', '')
+    report_df[globalColumnNames.REPORT_COLUMN_REJECTION_RATE] = report_df[
+        globalColumnNames.REPORT_COLUMN_REJECTION_RATE].astype(float)
 
-    sorted_by_effort = report_df.sort_values(by=[REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE],
-                                             ascending=[True, False], inplace=False)
+    sorted_by_effort_and_rejection_rate = report_df.sort_values(
+        by=[globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO, globalColumnNames.REPORT_COLUMN_REJECTION_RATE],
+        ascending=[True, False], inplace=False)
 
-    optimal_order_names = sorted_by_effort[REPORT_COLUMN_KNOCKOUT_CHECK].values
-    efforts = sorted_by_effort[
-        [REPORT_COLUMN_KNOCKOUT_CHECK, REPORT_COLUMN_EFFORT_PER_KO, REPORT_COLUMN_REJECTION_RATE]]
+    optimal_order_names = sorted_by_effort_and_rejection_rate[globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK].values
+    sorted_efforts = sorted_by_effort_and_rejection_rate[
+        [globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK, globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO,
+         globalColumnNames.REPORT_COLUMN_REJECTION_RATE]]
 
     # Determine how many cases respect this order in the log
     # TODO: for the moment, keeping only non knocked out cases to analyze order. Could be useful to see also partial (ko-d) cases
     filtered = log[log['knocked_out_case'] == False]
-    total_cases = filtered.groupby([PM4PY_CASE_ID_COLUMN_NAME]).ngroups
+    total_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
     if not (dependencies is None):
         # TODO: make it more flexible / generic, to include other sorting criteria
-        optimal_order_names = get_sorted_with_dependencies(
-            ko_activities=list(optimal_order_names), dependencies=dependencies,
-            current_activity_order=list(optimal_order_names), efforts=efforts)
+        optimal_order_names = get_ko_activities_sorted_with_dependencies(dependencies=dependencies,
+                                                                         current_activity_order=list(
+                                                                             optimal_order_names),
+                                                                         efforts=sorted_efforts)
 
     cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
-        .groupby([PM4PY_CASE_ID_COLUMN_NAME])
+        .groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME])
 
-    efforts.reset_index(inplace=True)
+    sorted_efforts.reset_index(inplace=True)
     return {"optimal_ko_order": list(optimal_order_names),
             "cases_respecting_order": cases_respecting_order.ngroups,
-            "total_cases": total_cases}, efforts
+            "total_cases": total_cases,
+            "sorted_efforts": sorted_efforts}
 
 
 def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95):

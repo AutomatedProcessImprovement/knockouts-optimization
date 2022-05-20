@@ -2,7 +2,7 @@ import pytest
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_fully_known_attributes
 
 
@@ -32,17 +32,17 @@ def test_report_creation(algorithm):
     assert sorted(analyzer.discoverer.ko_activities) == sorted(expected_kos)
 
     # assert all columns are in the report
-    assert sorted([REPORT_COLUMN_WT_WASTE,
-                   REPORT_COLUMN_MEAN_WT_WASTE,
-                   REPORT_COLUMN_TOTAL_PT_WASTE,
-                   REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE,
-                   REPORT_COLUMN_EFFORT_PER_KO,
-                   REPORT_COLUMN_REJECTION_RATE,
-                   REPORT_COLUMN_MEAN_PT,
-                   REPORT_COLUMN_CASE_FREQ,
-                   REPORT_COLUMN_TOTAL_FREQ,
-                   REPORT_COLUMN_KNOCKOUT_CHECK,
-                   f'{REPORT_COLUMN_REJECTION_RULE} ({algorithm})']) \
+    assert sorted([globalColumnNames.REPORT_COLUMN_WT_WASTE,
+                   globalColumnNames.REPORT_COLUMN_MEAN_WT_WASTE,
+                   globalColumnNames.REPORT_COLUMN_TOTAL_PT_WASTE,
+                   globalColumnNames.REPORT_COLUMN_TOTAL_OVERPROCESSING_WASTE,
+                   globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO,
+                   globalColumnNames.REPORT_COLUMN_REJECTION_RATE,
+                   globalColumnNames.REPORT_COLUMN_MEAN_PT,
+                   globalColumnNames.REPORT_COLUMN_CASE_FREQ,
+                   globalColumnNames.REPORT_COLUMN_TOTAL_FREQ,
+                   globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK,
+                   f'{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({algorithm})']) \
            == sorted(df.columns.tolist())
 
     # assert that there are no rows with NaN values

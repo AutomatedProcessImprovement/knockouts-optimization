@@ -7,7 +7,7 @@ import pm4py
 from knockout_ios.utils.preprocessing.log_reader.log_reader import LogReader, ReadOptions
 from knockout_ios.utils.preprocessing.feature_extraction import intercase_and_context
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 import os
 from dataclasses import dataclass
@@ -39,10 +39,11 @@ class Configuration:
     output: Optional[Path] = None
 
     # KO discovery
-    negative_outcomes: Optional[list[str]] = None
-    positive_outcomes: Optional[list[str]] = None
+    post_knockout_activities: Optional[list[str]] = None
+    success_activities: Optional[list[str]] = None
     known_ko_activities: Optional[list[str]] = None
     start_activity: Optional[str] = "Start"
+    end_activity: Optional[str] = "End"
     exclude_from_ko_activities: Optional[list[str]] = None
     ko_count_threshold: Optional[int] = None
     attributes_to_ignore: Optional[list[str]] = None
@@ -58,7 +59,9 @@ class Configuration:
     prune_size: Optional[float] = 0.8
 
     read_options: ReadOptions = ReadOptions(
-        column_names=ReadOptions.column_names_default()
+        column_names=ReadOptions.column_names_default(),
+        one_timestamp=False,
+        filter_d_attrib=False
     )
 
 
@@ -73,23 +76,23 @@ def config_data_with_datastructures(data: dict) -> dict:
     if output:
         data["output"] = Path(output)
 
-    negative_outcomes = data.get("negative_outcomes")
-    if negative_outcomes:
-        if isinstance(negative_outcomes, str):
-            data["negative_outcomes"] = [x.strip() for x in negative_outcomes.split(',')]
-        elif isinstance(negative_outcomes, list):
-            data["negative_outcomes"] = negative_outcomes
+    post_knockout_activities = data.get("post_knockout_activities")
+    if post_knockout_activities:
+        if isinstance(post_knockout_activities, str):
+            data["post_knockout_activities"] = [x.strip() for x in post_knockout_activities.split(',')]
+        elif isinstance(post_knockout_activities, list):
+            data["post_knockout_activities"] = post_knockout_activities
     else:
-        data["negative_outcomes"] = []
+        data["post_knockout_activities"] = []
 
-    positive_outcomes = data.get("positive_outcomes")
-    if positive_outcomes:
-        if isinstance(positive_outcomes, str):
-            data["positive_outcomes"] = [x.strip() for x in positive_outcomes.split(',')]
-        elif isinstance(positive_outcomes, list):
-            data["positive_outcomes"] = positive_outcomes
+    success_activities = data.get("success_activities")
+    if success_activities:
+        if isinstance(success_activities, str):
+            data["success_activities"] = [x.strip() for x in success_activities.split(',')]
+        elif isinstance(success_activities, list):
+            data["success_activities"] = success_activities
     else:
-        data["positive_outcomes"] = []
+        data["success_activities"] = []
 
     start_activity = data.get("start_activity")
     if start_activity:
@@ -107,10 +110,16 @@ def config_data_with_datastructures(data: dict) -> dict:
     if known_ko_activities:
         if isinstance(known_ko_activities, str):
             data["known_ko_activities"] = [x.strip() for x in known_ko_activities.split(',')]
-        elif isinstance(negative_outcomes, list):
+        elif isinstance(post_knockout_activities, list):
             data["known_ko_activities"] = known_ko_activities
     else:
         data["known_ko_activities"] = []
+
+    read_options = data.get("read_options")
+    if read_options:
+        if not ("column_names" in read_options):
+            read_options["column_names"] = ReadOptions.column_names_default()
+        data["read_options"] = ReadOptions(**read_options)
 
     return data
 
@@ -146,8 +155,11 @@ def read_config_file(config_file):
     else:
         raise Exception("Invalid File exception. Must be .yml or .json")
 
+    config_data.pop("$schema", None)
+
     config = Configuration(**config_data)
-    options = ReadOptions(column_names=ReadOptions.column_names_default(), filter_d_attrib=False)
+
+    options = config.read_options
 
     return config, options
 
@@ -158,15 +170,15 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
     config, options = read_config_file(config_file)
 
     # Try to load cache
-    cache_filename = f'{cache_dir}/{config_file.split(f"./{config_dir}/")[1]}.pkl'
+    cache_filename = f'{cache_dir}/{config_file.split(f"./{config_dir}/")[1]}_parsed_log.pkl'
 
     if not add_interarrival_features:
         add_intercase_and_context = False
         add_only_context = False
 
     try:
-        if config.always_force_recompute:
-            raise FileNotFoundError
+        # if config.always_force_recompute:
+        #    raise FileNotFoundError
 
         log_df = pd.read_pickle(cache_filename)
         return log_df, config
@@ -174,7 +186,7 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
     except FileNotFoundError:
         # Parse log
 
-        log = LogReader(config.log_path, options)
+        log = LogReader(input=config.log_path, settings=options)
 
         # Add inter-arrival features if requested
         if add_intercase_and_context:
@@ -202,10 +214,22 @@ def read_log_and_config(config_dir, config_file_name, cache_dir):
                                 cache_dir=cache_dir,
                                 add_intercase_and_context=False, add_only_context=False)
 
-    pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-                                                    activity_key=SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME,
-                                                    timestamp_key=SIMOD_END_TIMESTAMP_COLUMN_NAME,
-                                                    start_timestamp_key=SIMOD_START_TIMESTAMP_COLUMN_NAME)
+    column_names = config.read_options.column_names
+
+    globalColumnNames.SIMOD_RESOURCE_COLUMN_NAME = column_names["Resource"]
+
+    if config.read_options.one_timestamp:
+        globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME = globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME
+        pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=column_names["Case ID"],
+                                                        activity_key=column_names["Activity"],
+                                                        timestamp_key=globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                                                        timest_format=config.read_options.timestamp_format)
+    else:
+        pm4py_formatted_log_df = pm4py.format_dataframe(log_df, case_id=column_names["Case ID"],
+                                                        activity_key=column_names["Activity"],
+                                                        timestamp_key=globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME,
+                                                        start_timestamp_key=globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME,
+                                                        timest_format=config.read_options.timestamp_format)
 
     if set(list(log_df.columns.values)).issubset(set(list(pm4py_formatted_log_df.columns.values))):
         log_df = pm4py_formatted_log_df

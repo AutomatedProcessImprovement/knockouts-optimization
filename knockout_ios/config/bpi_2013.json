@@ -4,10 +4,10 @@
   "redesign_results_file_path": "outputs/bpi_2013.txt",
   "cache_dir": "cache/bpi_2013",
   "start_activity": "A_Create Application",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "A_Denied"
   ],
-  "positive_outcomes": [],
+  "success_activities": [],
   "known_ko_activities": [],
   "exclude_from_ko_activities": [
     "End"

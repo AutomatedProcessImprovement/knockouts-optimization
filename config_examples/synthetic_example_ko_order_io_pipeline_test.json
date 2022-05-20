@@ -1,13 +1,14 @@
 {
+  "$schema": "../config_schema.json",
   "log_path": "knockout_ios/inputs/synthetic_example/Synthetic Example (KO Order IO 2).xes",
   "output": "knockout_ios/outputs",
   "redesign_results_file_path": "outputs/ko_reorder_io.txt",
   "cache_dir": "knockout_ios/cache/synthetic_example",
   "start_activity": "Credit application received",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "Notify rejection"
   ],
-  "positive_outcomes": [],
+  "success_activities": [],
   "known_ko_activities": [],
   "rule_discovery_algorithm": "IREP",
   "confidence_threshold": 0.5,

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from knockout_ios.utils.constants import *
+from knockout_ios.utils.constants import globalColumnNames
 
 from scipy.stats import truncnorm
 
@@ -35,10 +35,10 @@ def enrich_log_df(log_df) -> pd.DataFrame:
 
     demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
 
-    if SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
-        log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    elif PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
-        log_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+    if globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    elif globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
 
     for caseid in tqdm(log_df.index.unique(), desc="Enriching with case attributes"):
 
@@ -80,10 +80,10 @@ def enrich_log_df_fixed_values(log_df) -> pd.DataFrame:
 
     demographic_values = ['demographic_type_1', 'demographic_type_2', 'demographic_type_3']
 
-    if SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
-        log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    elif PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
-        log_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+    if globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    elif globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
 
     for caseid in tqdm(log_df.index.unique(), desc="Enriching with case attributes"):
 
@@ -134,13 +134,13 @@ def enrich_log_df_with_masked_attributes(log_df: pd.DataFrame,
     else:
         log_df = enrich_log_df(log_df)
 
-    activity_col = SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME
+    activity_col = globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME
 
-    if SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
-        log_df.set_index(SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
-    elif PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
-        log_df.set_index(PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
-        activity_col = PM4PY_ACTIVITY_COLUMN_NAME
+    if globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
+    elif globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME in log_df.columns:
+        log_df.set_index(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+        activity_col = globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME
 
     for attribute in runtime_attributes:
 
@@ -150,14 +150,15 @@ def enrich_log_df_with_masked_attributes(log_df: pd.DataFrame,
             if attribute.value_provider_activity not in case[activity_col].unique():
                 continue
 
-            case = case.sort_values(by=SIMOD_START_TIMESTAMP_COLUMN_NAME, ascending=True)
+            case = case.sort_values(by=globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME, ascending=True)
 
             value_producer_end = \
-                case[case[SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == attribute.value_provider_activity][
-                    SIMOD_END_TIMESTAMP_COLUMN_NAME][0]
+                case[
+                    case[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == attribute.value_provider_activity][
+                    globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME][0]
 
             log_df.at[caseid, attribute.attribute_name] = np.where(
-                case[SIMOD_START_TIMESTAMP_COLUMN_NAME] >= value_producer_end,
+                case[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME] >= value_producer_end,
                 case[attribute.attribute_name],
                 np.nan)
 
