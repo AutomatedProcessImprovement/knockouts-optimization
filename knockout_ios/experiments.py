@@ -54,12 +54,6 @@ def envpermit_auto():
                                        cache_dir="cache/envpermit_auto")
 
 
-def bpi_2014_3k():
-    ko_redesign_adviser = run_pipeline(config_dir="config",
-                                       config_file_name="bpi_2014_3k.json",
-                                       cache_dir="cache/bpi_2014_3k")
-
-
 def bpi_2018_2k():
     ko_redesign_adviser = run_pipeline(config_dir="config",
                                        config_file_name="bpi_2018_2k.json",
@@ -81,6 +75,5 @@ if __name__ == "__main__":
     # bpi_2017_1k_W()
     # envpermit_auto()
     # envpermit()
-    # bpi_2014_3k()
     # bpi_2018_2k()
     bpi_2018_4k()
