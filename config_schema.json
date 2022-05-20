@@ -20,7 +20,7 @@
     "end_activity": {
       "type": "string"
     },
-    "negative_outcomes": {
+    "post_knockout_activities": {
       "type": "array",
       "items": [
         {
@@ -28,7 +28,7 @@
         }
       ]
     },
-    "positive_outcomes": {
+    "success_activities": {
       "type": "array",
       "items": [
         {

@@ -5,7 +5,7 @@
   "redesign_results_file_path": "outputs/bpi_2017_1k_W.txt",
   "cache_dir": "cache/bpi_2017_1k_W",
   "start_activity": "A_Create Application",
-  "negative_outcomes": [
+  "post_knockout_activities": [
     "A_Denied"
   ],
   "exclude_from_ko_activities": [

@@ -5,7 +5,7 @@
   "redesign_results_file_path": "outputs/bpi_2018_2k.txt",
   "cache_dir": "cache/bpi_2018_2k",
   "start_activity": "initialize",
-  "positive_outcomes": [
+  "success_activities": [
     "begin payment"
   ],
   "rule_discovery_algorithm": "RIPPER",

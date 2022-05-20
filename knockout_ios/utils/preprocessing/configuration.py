@@ -39,8 +39,8 @@ class Configuration:
     output: Optional[Path] = None
 
     # KO discovery
-    negative_outcomes: Optional[list[str]] = None
-    positive_outcomes: Optional[list[str]] = None
+    post_knockout_activities: Optional[list[str]] = None
+    success_activities: Optional[list[str]] = None
     known_ko_activities: Optional[list[str]] = None
     start_activity: Optional[str] = "Start"
     end_activity: Optional[str] = "End"
@@ -76,23 +76,23 @@ def config_data_with_datastructures(data: dict) -> dict:
     if output:
         data["output"] = Path(output)
 
-    negative_outcomes = data.get("negative_outcomes")
-    if negative_outcomes:
-        if isinstance(negative_outcomes, str):
-            data["negative_outcomes"] = [x.strip() for x in negative_outcomes.split(',')]
-        elif isinstance(negative_outcomes, list):
-            data["negative_outcomes"] = negative_outcomes
+    post_knockout_activities = data.get("post_knockout_activities")
+    if post_knockout_activities:
+        if isinstance(post_knockout_activities, str):
+            data["post_knockout_activities"] = [x.strip() for x in post_knockout_activities.split(',')]
+        elif isinstance(post_knockout_activities, list):
+            data["post_knockout_activities"] = post_knockout_activities
     else:
-        data["negative_outcomes"] = []
+        data["post_knockout_activities"] = []
 
-    positive_outcomes = data.get("positive_outcomes")
-    if positive_outcomes:
-        if isinstance(positive_outcomes, str):
-            data["positive_outcomes"] = [x.strip() for x in positive_outcomes.split(',')]
-        elif isinstance(positive_outcomes, list):
-            data["positive_outcomes"] = positive_outcomes
+    success_activities = data.get("success_activities")
+    if success_activities:
+        if isinstance(success_activities, str):
+            data["success_activities"] = [x.strip() for x in success_activities.split(',')]
+        elif isinstance(success_activities, list):
+            data["success_activities"] = success_activities
     else:
-        data["positive_outcomes"] = []
+        data["success_activities"] = []
 
     start_activity = data.get("start_activity")
     if start_activity:
@@ -110,7 +110,7 @@ def config_data_with_datastructures(data: dict) -> dict:
     if known_ko_activities:
         if isinstance(known_ko_activities, str):
             data["known_ko_activities"] = [x.strip() for x in known_ko_activities.split(',')]
-        elif isinstance(negative_outcomes, list):
+        elif isinstance(post_knockout_activities, list):
             data["known_ko_activities"] = known_ko_activities
     else:
         data["known_ko_activities"] = []
