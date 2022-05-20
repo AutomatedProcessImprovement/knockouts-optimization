@@ -36,12 +36,6 @@ def bpi_2017_21k():
                                        cache_dir="cache/bpi_2017_21k")
 
 
-def bpi_2013():
-    ko_redesign_adviser = run_pipeline(config_dir="config",
-                                       config_file_name="bpi_2013.json",
-                                       cache_dir="cache/bpi_2013")
-
-
 def bpi_2017_1k_W():
     ko_redesign_adviser = run_pipeline(config_dir="config",
                                        config_file_name="bpi_2017_1k_W.json",
@@ -60,13 +54,33 @@ def envpermit_auto():
                                        cache_dir="cache/envpermit_auto")
 
 
+def bpi_2014_3k():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2014_3k.json",
+                                       cache_dir="cache/bpi_2014_3k")
+
+
+def bpi_2018_2k():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2018_2k.json",
+                                       cache_dir="cache/bpi_2018_2k")
+
+
+def bpi_2018_4k():
+    ko_redesign_adviser = run_pipeline(config_dir="config",
+                                       config_file_name="bpi_2018_4k.json",
+                                       cache_dir="cache/bpi_2018_4k")
+
+
 if __name__ == "__main__":
     # synthetic_example()
     # synthetic_example_1_timest()
     # bpi_2017_1k()
     # bpi_2017_8k()
     # bpi_2017_21k()
-    # bpi_2013()
     # bpi_2017_1k_W()
-    envpermit()
     # envpermit_auto()
+    # envpermit()
+    # bpi_2014_3k()
+    # bpi_2018_2k()
+    bpi_2018_4k()

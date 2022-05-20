@@ -1,4 +1,5 @@
 {
+  "$schema": "../config_schema.json",
   "log_path": "knockout_ios/inputs/synthetic_example/Synthetic Example (KO Order IO 2).xes",
   "output": "knockout_ios/outputs",
   "redesign_results_file_path": "outputs/ko_reorder_io.txt",

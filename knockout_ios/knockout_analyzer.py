@@ -26,6 +26,9 @@ from knockout_ios.utils.synthetic_example.preprocessors import *
 def clear_cache(cachedir, config_file_name):
     file_list = glob.glob(f'{cachedir}/{config_file_name}*')
     for filePath in file_list:
+        if "parsed_log" in filePath:
+            continue
+
         try:
             os.remove(filePath)
         except:

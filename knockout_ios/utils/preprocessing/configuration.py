@@ -155,6 +155,8 @@ def read_config_file(config_file):
     else:
         raise Exception("Invalid File exception. Must be .yml or .json")
 
+    config_data.pop("$schema", None)
+
     config = Configuration(**config_data)
 
     options = config.read_options
@@ -168,15 +170,15 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
     config, options = read_config_file(config_file)
 
     # Try to load cache
-    cache_filename = f'{cache_dir}/{config_file.split(f"./{config_dir}/")[1]}.pkl'
+    cache_filename = f'{cache_dir}/{config_file.split(f"./{config_dir}/")[1]}_parsed_log.pkl'
 
     if not add_interarrival_features:
         add_intercase_and_context = False
         add_only_context = False
 
     try:
-        if config.always_force_recompute:
-            raise FileNotFoundError
+        # if config.always_force_recompute:
+        #    raise FileNotFoundError
 
         log_df = pd.read_pickle(cache_filename)
         return log_df, config

@@ -140,9 +140,12 @@ class KnockoutDiscoverer:
                 self.ko_outcomes = self.config.negative_outcomes
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.negative_outcomes))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
+            elif len(self.config.positive_outcomes) > 0:
+                self.ko_outcomes = self.config.positive_outcomes
+                relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.positive_outcomes))
+                rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations, retain=False)
             else:
-                # relations = list(map(lambda ca: (self.config.start_activity, ca), self.ko_outcomes))
-                # rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations)
+                # if no negative outcomes are provided, assume knocked-out cases go directly to the end activity
                 self.ko_outcomes = [self.config.end_activity]
                 relations = list(map(lambda check: (check, self.config.end_activity), self.ko_activities))
                 rejected = pm4py.filter_directly_follows_relation(self.log_df, relations)
@@ -228,6 +231,7 @@ class KnockoutDiscoverer:
                 relations = list(map(lambda ca: (self.config.start_activity, ca), self.config.positive_outcomes))
                 rejected = pm4py.filter_eventually_follows_relation(self.log_df, relations, retain=False)
             else:
+                # assume knocked-out cases go directly to the end activity
                 self.ko_outcomes = [self.config.end_activity]
                 relations = list(map(lambda check: (check, self.config.end_activity), self.ko_activities))
                 rejected = pm4py.filter_directly_follows_relation(self.log_df, relations)
