@@ -1,4 +1,5 @@
 {
+  "$schema": "../../config_schema.json",
   "log_path": "inputs/BPI Challenge 2017_1K_W.xes",
   "output": "./outputs",
   "redesign_results_file_path": "outputs/bpi_2017_1k_W.txt",
@@ -7,15 +8,8 @@
   "negative_outcomes": [
     "A_Denied"
   ],
-  "positive_outcomes": [],
-  "known_ko_activities": [],
   "exclude_from_ko_activities": [
-    "End",
     "A_Accepted"
-  ],
-  "attributes_to_ignore": [
-    "Action",
-    "EventOrigin"
   ],
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,

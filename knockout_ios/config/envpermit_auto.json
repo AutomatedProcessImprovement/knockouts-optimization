@@ -1,11 +1,10 @@
 {
+  "$schema": "../../config_schema.json",
   "log_path": "inputs/Envpermit.xes",
   "output": "./outputs",
   "redesign_results_file_path": "outputs/envpermit_auto.txt",
   "cache_dir": "cache/envpermit_auto",
   "start_activity": "Confirmation of receipt",
-  "known_ko_activities": [
-  ],
   "attributes_to_ignore": [
     "concept:instance"
   ],

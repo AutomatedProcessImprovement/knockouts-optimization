@@ -1,4 +1,5 @@
 {
+  "$schema": "../../config_schema.json",
   "log_path": "inputs/synthetic_example/Synthetic Example (KO Order IO 2).xes",
   "output": "./outputs",
   "redesign_results_file_path": "outputs/ko_reorder_io_1_timest.txt",

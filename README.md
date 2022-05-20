@@ -16,7 +16,8 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ## Usage example
 
-Create a config file (see `config_examples` directory), and then simply run:
+Create a config file following the schema defined in `config_schema.json` (see `config_examples` directory), and then
+simply run:
 
   ```python
 from knockout_ios.pipeline_wrapper import run_pipeline

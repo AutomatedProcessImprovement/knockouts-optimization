@@ -22,10 +22,13 @@ def find_rejection_rates(log_df, ko_activities):
 
     rates = {}
     for activity in ko_activities:
-        cases_knocked_out_by_activity = knock_out_counts_by_activity.get(activity)
+        cases_knocked_out_by_activity = knock_out_counts_by_activity.get(activity, 0)
         cases_containing_activity = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity] \
             .drop_duplicates(subset=globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME) \
             .count()[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME]
+
+        if cases_containing_activity == 0:
+            rates[activity] = 0
 
         rates[activity] = round(cases_knocked_out_by_activity / cases_containing_activity, 3)
 
