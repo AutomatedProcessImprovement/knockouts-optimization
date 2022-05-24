@@ -23,14 +23,16 @@ def find_rejection_rates(log_df, ko_activities):
     rates = {}
     for activity in ko_activities:
         cases_knocked_out_by_activity = knock_out_counts_by_activity.get(activity, 0)
-        cases_containing_activity = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity] \
-            .drop_duplicates(subset=globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME) \
-            .count()[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME]
+
+        # count how many cases in log_df contain the activity
+        filt = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity]
+        cases_containing_activity = filt[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME].unique().shape[0]
 
         if cases_containing_activity == 0:
             rates[activity] = 0
-
-        rates[activity] = round(cases_knocked_out_by_activity / cases_containing_activity, 3)
+        else:
+            rejection_rate = cases_knocked_out_by_activity / cases_containing_activity
+            rates[activity] = rejection_rate
 
     return rates
 
@@ -132,10 +134,10 @@ def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRules
 def calc_available_cases_before_ko(ko_activities: List[str], log_df: pd.DataFrame):
     counts = {}
 
-    # group log_df by caseid and for each activity count how many groups (i.e. cases) contain that activity
     for activity in ko_activities:
-        counts[activity] = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity].groupby(
-            globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME).size().sum()
+        filt = log_df[log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME] == activity]
+        cases_containing_activity = filt[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME].unique().shape[0]
+        counts[activity] = cases_containing_activity
 
     dump_metric_cache("available_cases_before_ko", counts)
     return counts

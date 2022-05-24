@@ -91,13 +91,20 @@
       "type": "number"
     },
     "always_force_recompute": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": true
+    },
+    "ignore_log_parsing_cache": {
+      "type": "boolean",
+      "default": false
     },
     "print_rule_discovery_stats": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "grid_search": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "read_options": {
       "type": "object",

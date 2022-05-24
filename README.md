@@ -14,16 +14,17 @@ This project is about discovering improvement opportunities in Knock-out checks 
 - Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`:
   [graphviz downloads page](https://graphviz.org/download/#windows).
 
-## Usage example
+## Usage
 
-Create a config file following the schema defined in `config_schema.json` (see `config_examples` directory), and then
+Create a config file following the schema defined in `config_schema.json` (see [`config_examples`](./config_examples)
+directory), and then
 simply run:
 
   ```python
 from knockout_ios.pipeline_wrapper import run_pipeline
 
 ko_redesign_adviser = run_pipeline(config_dir="config_examples",
-                                   config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
+                                   config_file_name="synthetic_example.json",
                                    cache_dir="cache/synthetic_example")
   ```
 

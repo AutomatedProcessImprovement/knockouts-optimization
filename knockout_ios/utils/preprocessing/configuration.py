@@ -22,17 +22,18 @@ class Configuration:
     # TODO: add sensible default values
 
     # Rule discovery
-    rule_discovery_algorithm: Optional[str] = None
-    confidence_threshold: Optional[float] = None
-    support_threshold: Optional[float] = None
-    print_rule_discovery_stats: Optional[bool] = None
-    grid_search: Optional[bool] = None
+    rule_discovery_algorithm: Optional[str] = "RIPPER"
+    confidence_threshold: Optional[float] = 0.5
+    support_threshold: Optional[float] = 0.5
+    print_rule_discovery_stats: Optional[bool] = False
+    grid_search: Optional[bool] = False
 
     # General
     redesign_results_file_path: Optional[str] = None
     config_file_name: Optional[str] = None
     config_dir: Optional[str] = None
     cache_dir: Optional[str] = None
+    ignore_log_parsing_cache: Optional[bool] = False
     always_force_recompute: bool = True
     log_path: Optional[Path] = None
     config_path: Optional[Path] = None
@@ -177,8 +178,8 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
         add_only_context = False
 
     try:
-        # if config.always_force_recompute:
-        #    raise FileNotFoundError
+        if config.ignore_log_parsing_cache:
+            raise FileNotFoundError
 
         log_df = pd.read_pickle(cache_filename)
         return log_df, config
