@@ -1,8 +1,8 @@
-Knockouts Redesign Pipeline started @ 2022-05-24 20:19:02.031865
+Knockouts Redesign Pipeline started @ 2022-05-24 20:34:22.699833
 
 Input parameters:
 
-{'always_force_recompute': True,
+{'always_force_recompute': False,
  'attributes_to_ignore': None,
  'cache_dir': 'cache/bpi_2017_1k_W',
  'confidence_threshold': 0.5,
@@ -54,28 +54,6 @@ Input parameters:
 │ W_Call after offers      │              1311 │ 99.7 %           │ 6.33 %           │ [[EventOrigin=Application^NumberOfTerms=47.85-56.0] V [EventOrigin=Application^OfferedAmount=16000.0-18135.0]]         │                  41.66 │ 0:04:23         │ 939 days, 15:48:26           │ 218 days, 3:00:53  │ 0:00:00                    │ 0:00:00                   │
 ╘══════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════╧═════════════════╧══════════════════════════════╧════════════════════╧════════════════════════════╧═══════════════════════════╛
 
-RIPPER
-
-"O_Created"
-# conditions: 3, # rules: 1
-support: 0.01, confidence: 0.50 
-roc_auc score: 0.66, f1 score: 0.38, accuracy: 0.98, precision: 0.43, recall: 0.33
-
-"W_Validate application"
-# conditions: 5, # rules: 2
-support: 0.02, confidence: 0.56 
-roc_auc score: 0.57, f1 score: 0.24, accuracy: 0.93, precision: 0.45, recall: 0.16
-
-"W_Call incomplete files"
-# conditions: 3, # rules: 1
-support: 0.00, confidence: 1.00 
-roc_auc score: 0.50, f1 score: 0.00, accuracy: 0.98, precision: 0.00, recall: 0.00
-
-"W_Call after offers"
-# conditions: 4, # rules: 2
-support: 0.02, confidence: 0.64 
-roc_auc score: 0.51, f1 score: 0.06, accuracy: 0.93, precision: 0.17, recall: 0.04
-
 ** Redesign options **
 
 
@@ -85,17 +63,17 @@ roc_auc score: 0.51, f1 score: 0.06, accuracy: 0.93, precision: 0.17, recall: 0.
 │ Knockout Check           │ Dependencies                                                  │
 ╞══════════════════════════╪═══════════════════════════════════════════════════════════════╡
 │ W_Call incomplete files  │ 'FirstWithdrawalAmount' available after activity 'A_Accepted' │
-│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
 │                          │ 'EventOrigin' available after activity 'O_Created'            │
+│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
 ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-│ W_Validate application   │ 'MonthlyCost' available after activity 'A_Accepted'           │
+│ W_Call after offers      │ 'OfferedAmount' available after activity 'A_Accepted'         │
+│                          │ 'EventOrigin' available after activity 'A_Create Application' │
+│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ W_Validate application   │ 'RequestedAmount' available after activity 'Start'            │
+│                          │ 'MonthlyCost' available after activity 'A_Accepted'           │
 │                          │ 'EventOrigin' available after activity 'Start'                │
 │                          │ 'LoanGoal' available after activity 'Start'                   │
-│                          │ 'RequestedAmount' available after activity 'Start'            │
-├──────────────────────────┼───────────────────────────────────────────────────────────────┤
-│ W_Call after offers      │ 'NumberOfTerms' available after activity 'A_Accepted'         │
-│                          │ 'EventOrigin' available after activity 'A_Create Application' │
-│                          │ 'OfferedAmount' available after activity 'A_Accepted'         │
 ├──────────────────────────┼───────────────────────────────────────────────────────────────┤
 │ O_Created                │ 'Selected' available after activity 'W_Call after offers'     │
 │                          │ 'EventOrigin' available after activity 'A_Create Application' │
@@ -168,8 +146,8 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                         │ [[EventOrigin=Application^LoanGoal=Car^RequestedAmount=20000.0-25000.0] V [EventOrigin=Application^MonthlyCost=<97.4]] │
 │                         │                                                                                                                        │
 │                         │ Value ranges of knocked-out cases:                                                                                     │
-│                         │ - MonthlyCost: 50.00 - 1000.00                                                                                         │
 │                         │ - RequestedAmount: 0.00 - 50000.00                                                                                     │
+│                         │ - MonthlyCost: 50.00 - 1000.00                                                                                         │
 ├─────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ W_Call incomplete files │ Rule:                                                                                                                  │
 │                         │ [[EventOrigin=Application^FirstWithdrawalAmount=7035.0-9000.0^NumberOfTerms=105.4-120.0]]                              │
@@ -182,10 +160,10 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                         │ [[EventOrigin=Application^NumberOfTerms=47.85-56.0] V [EventOrigin=Application^OfferedAmount=16000.0-18135.0]]         │
 │                         │                                                                                                                        │
 │                         │ Value ranges of knocked-out cases:                                                                                     │
-│                         │ - NumberOfTerms: 12.00 - 138.00                                                                                        │
 │                         │ - OfferedAmount: 5000.00 - 50000.00                                                                                    │
+│                         │ - NumberOfTerms: 12.00 - 138.00                                                                                        │
 ╘═════════════════════════╧════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-24 20:22:24.180805
+Knockouts Redesign Pipeline ended @ 2022-05-24 20:34:26.622801
 
-Wall-clock execution time:  0:03:22.148322
+Wall-clock execution time:  0:00:03.922712

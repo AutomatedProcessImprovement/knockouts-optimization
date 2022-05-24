@@ -170,56 +170,41 @@ def discover_ko_sequences(df, config_file_name, cache_dir, limit=3, post_knockou
     if known_ko_activities is None:
         known_ko_activities = []
 
-    try:
+    if not quiet:
+        print(f"Cache for {config_file_name} variants not found")
 
-        if force_recompute:
-            raise FileNotFoundError
+    if len(post_knockout_activities) > 0:
+        return discover_ko_sequences_known_post_kos(df, post_knockout_activities)
 
-        if not quiet:
-            print(f"Found cache for {config_file_name} variants")
+    if len(success_activities) > 0:
+        relations = list(map(lambda ca: (start_activity_name, ca), success_activities))
+        df = filter_eventually_follows_relation(df, relations, retain=False)
 
-        variants = read_variants_cache(config_file_name, cache_dir=cache_dir)
-        variants = sorted(variants, key=lambda e: e['prefix_len'])
+    # Find variants & sort by prefix length (less ko_activities start to end: possible indicator of knockout)
+    variants = get_sorted_variants(df)
 
-    except FileNotFoundError:
+    # Ideas:
+    # 1) most frequent differentiating transition, can be indicator of activity that triggered KO?
+    # 2) last activity / outcome of shortest variants indicates negative outcome/cancellation?
+    for v_i in range(0, len(variants)):
+        p1 = variants[v_i]['prefix']
+        diffs = {}
+        for v_j in range(0, len(variants)):
+            p2 = variants[v_j]['prefix']
+            diffs[f"{v_j}"] = []
 
-        if not quiet:
-            print(f"Cache for {config_file_name} variants not found")
+            # for every transition in current variant, check: is this transition present in the other variant?
+            for e1, e2 in zip(p1, p1[1:]):
+                present = False
+                for x, y in zip(p2, p2[1:]):
+                    if (e1, e2) == (x, y):
+                        present = True
+                        break
+                if not present:
+                    diffs[f"{v_j}"].append((e1, e2))  # transition was not present, add to detected differences
 
-        if len(post_knockout_activities) > 0:
-            return discover_ko_sequences_known_post_kos(df, post_knockout_activities)
-
-        if len(success_activities) > 0:
-            relations = list(map(lambda ca: (start_activity_name, ca), success_activities))
-            df = filter_eventually_follows_relation(df, relations, retain=False)
-
-        # Find variants & sort by prefix length (less ko_activities start to end: possible indicator of knockout)
-        variants = get_sorted_variants(df)
-
-        # Ideas:
-        # 1) most frequent differentiating transition, can be indicator of activity that triggered KO?
-        # 2) last activity / outcome of shortest variants indicates negative outcome/cancellation?
-        for v_i in range(0, len(variants)):
-            p1 = variants[v_i]['prefix']
-            diffs = {}
-            for v_j in range(0, len(variants)):
-                p2 = variants[v_j]['prefix']
-                diffs[f"{v_j}"] = []
-
-                # for every transition in current variant, check: is this transition present in the other variant?
-                for e1, e2 in zip(p1, p1[1:]):
-                    present = False
-                    for x, y in zip(p2, p2[1:]):
-                        if (e1, e2) == (x, y):
-                            present = True
-                            break
-                    if not present:
-                        diffs[f"{v_j}"].append((e1, e2))  # transition was not present, add to detected differences
-
-            variants[v_i]['diffs'] = diffs
-            variants[v_i]['most_frequent_differentiating_transition'] = find_most_frequent_tuple(diffs)
-
-        dump_variants_cache(config_file_name, variants, cache_dir=cache_dir)
+        variants[v_i]['diffs'] = diffs
+        variants[v_i]['most_frequent_differentiating_transition'] = find_most_frequent_tuple(diffs)
 
     ko_sequences = get_possible_ko_sequences(variants, limit)
     # sort by prefix length ASC (shorter variants = more likely to feature knock-out)
