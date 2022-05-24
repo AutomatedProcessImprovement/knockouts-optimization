@@ -80,7 +80,7 @@ class KnockoutAnalyzer:
             self.attributes_to_ignore = config.attributes_to_ignore
 
         log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-                                        globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME])
+                                        globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
 
         self.discoverer = KnockoutDiscoverer(log_df=log_df,
                                              config=config,

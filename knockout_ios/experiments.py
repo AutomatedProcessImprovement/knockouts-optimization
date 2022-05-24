@@ -67,12 +67,12 @@ def bpi_2018_4k():
 
 
 if __name__ == "__main__":
-    synthetic_example()
+    # synthetic_example()
     # synthetic_example_1_timest()
     # bpi_2017_1k()
     # bpi_2017_8k()
     # bpi_2017_21k()
-    # bpi_2017_1k_W()
+    bpi_2017_1k_W()
     # envpermit_auto()
     # envpermit()
     # bpi_2018_2k()

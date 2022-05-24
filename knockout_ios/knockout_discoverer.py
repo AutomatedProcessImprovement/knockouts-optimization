@@ -90,9 +90,6 @@ class KnockoutDiscoverer:
         else:
             ko_count_threshold = self.config.ko_count_threshold
 
-        # TODO: simpler implementation idea; if negative outcome(s) are known,
-        #       simply get all the activities that directly-follow them
-
         self.ko_activities, self.ko_outcomes, _ = discover_ko_sequences(self.log_df,
                                                                         self.config_file_name,
                                                                         cache_dir=self.cache_dir,
@@ -121,10 +118,6 @@ class KnockoutDiscoverer:
         if (len(self.ko_outcomes) == 0) or (len(self.ko_activities) == 0):
             print("Error finding knockouts")
             exit(1)
-
-        if not self.quiet:
-            print(f"\nNegative outcomes to search in log: {list(self.ko_outcomes)}"
-                  f"\nPotential K.O. ko_activities in log: {list(self.ko_activities)}")
 
         try:
             if self.force_recompute:
@@ -199,9 +192,10 @@ class KnockoutDiscoverer:
                             "\n- Reduce the ko_count_threshold"
                             "\n- Provide negative outcome activity name(s)"
                             "\n- Provide positive outcome activity name(s)")
-        elif not self.quiet:
-            print(f"\nNegative outcomes found in log: {list(self.ko_outcomes)}"
-                  f"\nK.O. ko_activities found in log: {list(self.ko_activities)}")
+
+        if not self.quiet:
+            print(f"\nPost K.O. activities found in log: {list(self.ko_outcomes)}"
+                  f"\nK.O. activities found in log: {list(self.ko_activities)}")
 
     def label_cases_with_known_ko_activities(self, ko_activities):
 
