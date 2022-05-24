@@ -1,6 +1,6 @@
 {
   "$schema": "../../config_schema.json",
-  "log_path": "inputs/Envpermit.xes",
+  "log_path": "inputs/Envpermit_complete_cases.xes",
   "output": "./outputs",
   "redesign_results_file_path": "outputs/envpermit.txt",
   "cache_dir": "cache/envpermit",
@@ -22,6 +22,7 @@
   "dl_allowance": 5,
   "prune_size": 0.25,
   "always_force_recompute": true,
+  "ignore_log_parsing_cache": false,
   "print_rule_discovery_stats": false,
   "read_options": {
     "column_names": {

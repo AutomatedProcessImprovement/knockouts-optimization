@@ -158,8 +158,7 @@ def find_producers(attribute: str, log: pd.DataFrame):
 
             producers.append(producer_activity)
 
-        except Exception as e:
-            print(e)
+        except Exception:
             continue
 
     return producers
@@ -225,7 +224,7 @@ def get_relocated_kos(current_order_all_activities, optimal_ko_order, dependenci
             dependency_indexes = [current_order_all_activities.index(t[1]) for t in dependencies[knockout_activity]]
         except ValueError:
             continue
-            
+
         if len(dependency_indexes) > 0:
             idx = max(dependency_indexes)
         else:

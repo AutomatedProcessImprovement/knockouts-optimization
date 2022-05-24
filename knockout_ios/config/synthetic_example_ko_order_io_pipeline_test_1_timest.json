@@ -8,8 +8,6 @@
   "post_knockout_activities": [
     "Notify rejection"
   ],
-  "success_activities": [],
-  "known_ko_activities": [],
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
