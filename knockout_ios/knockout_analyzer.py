@@ -13,7 +13,8 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.parallel import parallel_metrics_calc
 from knockout_ios.utils.formatting import seconds_to_hms
-from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
+    calc_processing_waste, calc_waiting_time_waste_v2
 
 from knockout_ios.utils.constants import globalColumnNames
 
@@ -362,9 +363,9 @@ class KnockoutAnalyzer:
             freqs = calc_available_cases_before_ko(self.discoverer.ko_activities,
                                                    self.discoverer.log_df)
             if not self.one_timestamp:
-                overprocessing_waste, processing_waste, waiting_time_waste = parallel_metrics_calc(
-                    self.discoverer.ko_activities,
-                    self.discoverer.log_df)
+                overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
+                processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
+                waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities, self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
             total_non_ko_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
