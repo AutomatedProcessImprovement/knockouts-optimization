@@ -40,46 +40,56 @@ def load_log(config_dir, config_file_name, cache_dir):
 
 
 def load_log_wrapper():
-    try:
-        st.session_state['pipeline'], st.session_state['log_activities'], st.session_state[
-            'log_attributes'] = load_log(config_dir=st.session_state['config_dir'],
-                                         config_file_name=st.session_state['config_file_name'],
-                                         cache_dir=st.session_state['cache_dir'])
+    with st.spinner('Reading Log and Config...'):
+        try:
+            st.session_state['pipeline'], st.session_state['log_activities'], st.session_state[
+                'log_attributes'] = load_log(config_dir=st.session_state['config_dir'],
+                                             config_file_name=st.session_state['config_file_name'],
+                                             cache_dir=st.session_state['cache_dir'])
 
-        # assume user wants to consider all attributes in the analysis
-        st.session_state['attributes_to_consider'] = st.session_state['log_attributes']
-        st.session_state['known_ko_activities'] = st.session_state['pipeline'].config.known_ko_activities
-        st.session_state['post_ko_activities'] = st.session_state['pipeline'].config.post_knockout_activities
-        st.session_state['success_activities'] = st.session_state['pipeline'].config.success_activities
+            # Initially assume user wants to consider all attributes in the analysis
+            st.session_state['attributes_to_consider'] = st.session_state['log_attributes']
 
-    except TypeError:
-        pass
+            # Reflect any info already provided via the config file
+            st.session_state['attributes_to_consider'] = [x for x in st.session_state['attributes_to_consider'] if
+                                                          x not in st.session_state[
+                                                              'pipeline'].config.attributes_to_ignore]
+            st.session_state['known_ko_activities'] = st.session_state['pipeline'].config.known_ko_activities
+            st.session_state['post_ko_activities'] = st.session_state['pipeline'].config.post_knockout_activities
+            st.session_state['success_activities'] = st.session_state['pipeline'].config.success_activities
+
+        except TypeError:
+            pass
 
 
-# @st.cache(allow_output_mutation=False)
-def run_analysis(pipeline):
-    if pipeline is None:
+def run_analysis():
+    if st.session_state['pipeline'] is None:
         return
 
-    _ko_redesign_adviser = pipeline.run_analysis()
+    _ko_redesign_adviser = st.session_state['pipeline'].run_analysis()
 
     return _ko_redesign_adviser
 
 
 def run_analysis_wrapper():
-    try:
-        st.session_state['ko_redesign_adviser'] = run_analysis(st.session_state['pipeline'])
+    with st.spinner('Running pipeline...'):
+        try:
+            st.session_state['ko_redesign_adviser'] = run_analysis()
 
-        if not (st.session_state["ko_redesign_adviser"] is None):
-            data = pd.read_csv(st.session_state["ko_redesign_adviser"].knockout_analyzer.report_file_name)
-            st.table(data)
-    except Exception as e:
-        logging.error(e)
-        st.error("Error running analysis. Check the console for details.")
+            # TODO: find better way to display results; raw tables are really ugly...
+            if not (st.session_state["ko_redesign_adviser"] is None):
+                data = pd.read_csv(st.session_state["ko_redesign_adviser"].knockout_analyzer.report_file_name)
+                st.table(data)
+
+        except Exception as e:
+            logging.error(e)
+            st.error("Error running analysis. Check the console for details.")
 
 
 with st.sidebar:
-    config_file_name = st.sidebar.text_input("Config file", key="config_file_name")
+    st.title('Knockouts Redesign Tool')
+
+    config_file_name = st.sidebar.text_input("Config file", key="config_file_name", on_change=load_log_wrapper)
 
     if len(st.session_state['log_activities']) > 0:
         known_ko_activities = st.multiselect(
