@@ -17,15 +17,24 @@ This project is about discovering improvement opportunities in Knock-out checks 
 ## Usage
 
 Create a config file following the schema defined in `config_schema.json` (see [`config_examples`](./config_examples)
-directory), and then
-simply run:
+directory). Then you can choose whether to:
+
+- Launch the tool as a web app (powered by [Streamlit](https://streamlit.io/)):
+
+  ```bash
+  ./launch_ui.sh
+  ```
+
+- Or programmatically:
 
   ```python
-from knockout_ios.pipeline_wrapper import run_pipeline
+  
+  from knockout_ios.pipeline_wrapper import Pipeline
+  
+  ko_redesign_adviser = Pipeline(config_dir="config_examples",
+                                 config_file_name="synthetic_example.json",
+                                 cache_dir="cache/synthetic_example").run_pipeline()
 
-ko_redesign_adviser = run_pipeline(config_dir="config_examples",
-                                   config_file_name="synthetic_example.json",
-                                   cache_dir="cache/synthetic_example")
   ```
 
 ## Running tests
