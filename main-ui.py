@@ -7,7 +7,7 @@ from knockout_ios.pipeline_wrapper import Pipeline
 from knockout_ios.utils.constants import globalColumnNames
 
 initial_state = [("config_dir", "config_examples"), ("config_file_name", "envpermit.json"),
-                 ("cache_dir", "cache/envpermit"),
+                 ("cache_dir", "cache"),
                  ("pipeline", None), ('log_activities', []), ('log_attributes', []), ('ko_redesign_adviser', None)]
 
 for v in initial_state:
