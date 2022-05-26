@@ -11,7 +11,8 @@
     "T10 Determine necessity to stop indication"
   ],
   "attributes_to_ignore": [
-    "concept:instance"
+    "concept:instance",
+    "user"
   ],
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,

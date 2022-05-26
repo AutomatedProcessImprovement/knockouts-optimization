@@ -1,9 +1,9 @@
 {
   "$schema": "../config_schema.json",
-  "log_path": "./knockout_ios/inputs/synthetic_example/Synthetic Example (KO Order IO 2).xes",
+  "log_path": "./knockout_ios/inputs/synthetic_example/synthetic_example_enriched.xes",
   "output": "./outputs",
-  "redesign_results_file_path": "outputs/synthetic_example.txt",
-  "cache_dir": "cache/synthetic_example",
+  "redesign_results_file_path": "outputs/synthetic_example_enriched.txt",
+  "cache_dir": "cache/synthetic_example_enriched",
   "start_activity": "Credit application received",
   "post_knockout_activities": [
     "Notify rejection"
@@ -20,6 +20,5 @@
   "always_force_recompute": true,
   "ignore_log_parsing_cache": false,
   "print_rule_discovery_stats": true,
-  "grid_search": false,
-  "custom_log_preprocessing_function": "enrich_log_for_synthetic_example_validation"
+  "grid_search": false
 }

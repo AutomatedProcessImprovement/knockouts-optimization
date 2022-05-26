@@ -3,7 +3,7 @@ from knockout_ios.pipeline_wrapper import Pipeline
 
 def test_synthetic_example():
     ko_redesign_adviser = Pipeline(config_dir="config",
-                                   config_file_name="synthetic_example_ko_order_io_pipeline_pytest.json",
+                                   config_file_name="synthetic_example_enriched.json",
                                    cache_dir="cache/synthetic_example",
                                    ).run_pipeline()
 
