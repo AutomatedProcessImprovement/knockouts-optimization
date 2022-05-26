@@ -54,32 +54,12 @@ class KnockoutDiscoverer:
         self.log_df = log_df
         self.config = config
 
-        self.update_should_recompute()
-
-    def update_should_recompute(self):
         self.force_recompute = True
-
-        # Automatically force recompute if pipeline_config changes
-        if self.config is None:
-            raise Exception("pipeline_config not yet loaded")
-
-        try:
-            if self.always_force_recompute:
-                raise FileNotFoundError
-
-            config_cache = read_config_cache(self.config_file_name, cache_dir=self.cache_dir)
-            self.force_recompute = config_hash_changed(self.config, config_cache)
-
-        except FileNotFoundError:
-            self.force_recompute = True
-            dump_config_cache(self.config_file_name, self.config, cache_dir=self.cache_dir)
 
     def find_ko_activities(self):
 
         if self.config is None:
             raise Exception("pipeline_config not yet loaded")
-
-        self.update_should_recompute()
 
         # Idea: iteratively increase the limit until finding a positive outcome in the outcome list;
         #       keep last num before this happened
@@ -203,8 +183,6 @@ class KnockoutDiscoverer:
             raise Exception("pipeline_config not yet loaded")
 
         self.ko_activities = ko_activities
-
-        self.update_should_recompute()
 
         try:
             if self.force_recompute:

@@ -43,7 +43,7 @@ def read_analyzer_cache(cache_dir, cache_name) -> KnockoutAnalyzer:
     return ko_analyzer
 
 
-def dump_analyzer_cache(ko_analyzer, cache_dir, cache_name):
+def dump_analyzer_cache(ko_analyzer: KnockoutAnalyzer, cache_dir, cache_name):
     binary_file = open(f'{cache_dir}/{cache_name}', 'wb')
     pickle.dump(ko_analyzer, binary_file)
     binary_file.close()

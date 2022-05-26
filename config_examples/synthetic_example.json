@@ -18,6 +18,7 @@
   "dl_allowance": 1,
   "prune_size": 0.8,
   "always_force_recompute": true,
+  "ignore_log_parsing_cache": false,
   "print_rule_discovery_stats": true,
   "grid_search": false,
   "custom_log_preprocessing_function": "enrich_log_for_synthetic_example_validation"
