@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 
-@dataclass
 class ColumnNames:
     SIMOD_LOG_READER_CASE_ID_COLUMN_NAME = 'caseid'
     SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME = 'task'

@@ -1,9 +1,19 @@
-Knockouts Redesign Pipeline started @ 2022-05-26 23:36:14.113951
+Knockouts Redesign Pipeline started @ 2022-05-26 23:25:53.446195
 
 Input parameters:
 
 {'always_force_recompute': True,
- 'attributes_to_ignore': ['concept:instance'],
+ 'attributes_to_ignore': ['caseid',
+                          'task',
+                          'user',
+                          'end_timestamp',
+                          'concept:instance',
+                          'start_timestamp',
+                          '@@duration',
+                          'case:concept:name',
+                          'concept:name',
+                          'time:timestamp',
+                          '@@index'],
  'cache_dir': 'cache/envpermit',
  'confidence_threshold': 0.5,
  'config_dir': None,
@@ -20,7 +30,7 @@ Input parameters:
                          'T06 Determine necessity of stop advice',
                          'T10 Determine necessity to stop indication'],
  'ko_count_threshold': None,
- 'log_path': WindowsPath('inputs/Envpermit_complete_cases.xes'),
+ 'log_path': WindowsPath('knockout_ios/inputs/Envpermit_complete_cases.xes'),
  'max_rule_conds': None,
  'max_rules': 3,
  'n_discretize_bins': 20,
@@ -42,15 +52,15 @@ Input parameters:
  'support_threshold': 0.1}
 
 
-╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═════════════════════════════════════════════════════════╤════════════════════════╕
-│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)                                 │   Effort per rejection │
-╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═════════════════════════════════════════════════════════╪════════════════════════╡
-│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]                                    │                  65.12 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────────────────────────┼────────────────────────┤
-│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource03^(case)_channel=e-mail]] │                   1.23 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────────────────────────┼────────────────────────┤
-│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=Group4] V [(case)_responsible=Resource21]]  │                   0.41 │
-╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═════════════════════════════════════════════════════════╧════════════════════════╛
+╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════╤════════════════════════╕
+│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)                                                                   │   Effort per rejection │
+╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════╪════════════════════════╡
+│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=Group4] V [org:group=EMPTY]]                                                  │                   0.41 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┤
+│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]                                                                      │                  65.12 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┤
+│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource03^(case)_channel=e-mail] V [(case)_responsible=Resource03]] │                   1.23 │
+╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════╛
 
 ** Redesign options **
 
@@ -60,13 +70,12 @@ Input parameters:
 ╒════════════════════════════════════════════╤═══════════════════════════════════════════════════════════════════════════════════╕
 │ Knockout Check                             │ Dependencies                                                                      │
 ╞════════════════════════════════════════════╪═══════════════════════════════════════════════════════════════════════════════════╡
-│ T06 Determine necessity of stop advice     │ '(case) channel' available after activity 'Start'                                 │
-│                                            │ '(case) responsible' available after activity 'Start'                             │
+│ T06 Determine necessity of stop advice     │ '(case) responsible' available after activity 'Start'                             │
+│                                            │ '(case) channel' available after activity 'Start'                                 │
 ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
 │ T10 Determine necessity to stop indication │ 'org:group' available after activity 'T05 Print and send confirmation of receipt' │
 ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
 │ T02 Check confirmation of receipt          │ 'org:group' available after activity 'T06 Determine necessity of stop advice'     │
-│                                            │ '(case) responsible' available after activity 'Start'                             │
 ╘════════════════════════════════════════════╧═══════════════════════════════════════════════════════════════════════════════════╛
 
 
@@ -119,25 +128,25 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 
 > Knock-out rule value ranges
 
-╒════════════════════════════════════════════╤═════════════════════════════════════════════════════════╕
-│ Knockout Check                             │ Observation                                             │
-╞════════════════════════════════════════════╪═════════════════════════════════════════════════════════╡
-│ T10 Determine necessity to stop indication │ Rule:                                                   │
-│                                            │ [[org:group=Group1]]                                    │
-│                                            │                                                         │
-│                                            │ No numerical attributes found in rule.                  │
-├────────────────────────────────────────────┼─────────────────────────────────────────────────────────┤
-│ T06 Determine necessity of stop advice     │ Rule:                                                   │
-│                                            │ [[(case)_responsible=Resource03^(case)_channel=e-mail]] │
-│                                            │                                                         │
-│                                            │ No numerical attributes found in rule.                  │
-├────────────────────────────────────────────┼─────────────────────────────────────────────────────────┤
-│ T02 Check confirmation of receipt          │ Rule:                                                   │
-│                                            │ [[org:group=Group4] V [(case)_responsible=Resource21]]  │
-│                                            │                                                         │
-│                                            │ No numerical attributes found in rule.                  │
-╘════════════════════════════════════════════╧═════════════════════════════════════════════════════════╛
+╒════════════════════════════════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════╕
+│ Knockout Check                             │ Observation                                                                               │
+╞════════════════════════════════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════╡
+│ T02 Check confirmation of receipt          │ Rule:                                                                                     │
+│                                            │ [[org:group=Group4] V [org:group=EMPTY]]                                                  │
+│                                            │                                                                                           │
+│                                            │ No numerical attributes found in rule.                                                    │
+├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────┤
+│ T10 Determine necessity to stop indication │ Rule:                                                                                     │
+│                                            │ [[org:group=Group1]]                                                                      │
+│                                            │                                                                                           │
+│                                            │ No numerical attributes found in rule.                                                    │
+├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────┤
+│ T06 Determine necessity of stop advice     │ Rule:                                                                                     │
+│                                            │ [[(case)_responsible=Resource03^(case)_channel=e-mail] V [(case)_responsible=Resource03]] │
+│                                            │                                                                                           │
+│                                            │ No numerical attributes found in rule.                                                    │
+╘════════════════════════════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-26 23:36:18.281094
+Knockouts Redesign Pipeline ended @ 2022-05-26 23:25:57.035299
 
-Wall-clock execution time:  0:00:04.166610
+Wall-clock execution time:  0:00:03.587754
