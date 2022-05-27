@@ -235,7 +235,7 @@ class KnockoutAnalyzer:
 
     def compute_ko_rules(self,
                          algorithm="RIPPER",
-                         max_rules=3,
+                         max_rules=None,
                          max_rule_conds=None,
                          max_total_conds=None,
                          k=2,
@@ -278,24 +278,13 @@ class KnockoutAnalyzer:
                 param_grid = {"prune_size": [0.5, 0.8, 0.9], "n_discretize_bins": [10, 20]}
 
         try:
-            rulesets = find_ko_rulesets(self.rule_discovery_log_df,
-                                        self.discoverer.ko_activities,
-                                        self.discoverer.config_file_name,
-                                        self.cache_dir,
+            rulesets = find_ko_rulesets(self.rule_discovery_log_df, self.discoverer.ko_activities,
+                                        self.discoverer.config_file_name, self.cache_dir,
                                         available_cases_before_ko=self.available_cases_before_ko,
-                                        force_recompute=self.always_force_recompute,
-                                        columns_to_ignore=columns_to_ignore,
-                                        algorithm=algorithm,
-                                        max_rules=max_rules,
-                                        max_rule_conds=max_rule_conds,
-                                        max_total_conds=max_total_conds,
-                                        k=k,
-                                        n_discretize_bins=n_discretize_bins,
-                                        dl_allowance=dl_allowance,
-                                        prune_size=prune_size,
-                                        grid_search=grid_search,
-                                        param_grid=param_grid
-                                        )
+                                        columns_to_ignore=columns_to_ignore, algorithm=algorithm, max_rules=max_rules,
+                                        max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
+                                        n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
+                                        prune_size=prune_size, grid_search=grid_search, param_grid=param_grid)
         except Exception as e:
             # TODO recover gracefully?
             print(f"Error: {e}")

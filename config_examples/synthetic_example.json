@@ -20,5 +20,8 @@
   "always_force_recompute": true,
   "ignore_log_parsing_cache": false,
   "print_rule_discovery_stats": true,
-  "grid_search": false
+  "grid_search": false,
+  "read_options": {
+    "one_timestamp": true
+  }
 }

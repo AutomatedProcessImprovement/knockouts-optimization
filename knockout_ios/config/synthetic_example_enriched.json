@@ -17,7 +17,10 @@
   "n_discretize_bins": 10,
   "dl_allowance": 1,
   "prune_size": 0.8,
-  "always_force_recompute": true,
+  "always_force_recompute": false,
   "print_rule_discovery_stats": true,
-  "grid_search": false
+  "grid_search": false,
+  "read_options": {
+    "one_timestamp": true
+  }
 }

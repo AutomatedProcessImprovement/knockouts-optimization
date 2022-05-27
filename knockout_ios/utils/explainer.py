@@ -12,7 +12,7 @@ from knockout_ios.utils.constants import globalColumnNames
 # TODO: Excessive wittgenstein frame.append deprecation warnings
 #  currently trying to suppress just with -Wignore
 import wittgenstein as lw
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve
 from sklearn.model_selection import train_test_split, GridSearchCV
 
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
@@ -31,21 +31,10 @@ def dump_rule_discovery_result(clfs, config_file_name, cache_dir):
     binary_file.close()
 
 
-def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
-                     available_cases_before_ko,
-                     force_recompute=True,
-                     columns_to_ignore=None,
-                     algorithm='IREP',
-                     max_rules=None,
-                     max_rule_conds=None,
-                     max_total_conds=None,
-                     k=2,
-                     n_discretize_bins=7,
-                     dl_allowance=2,
-                     prune_size=0.8,
-                     grid_search=True,
-                     param_grid=None
-                     ):
+def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, available_cases_before_ko,
+                     columns_to_ignore=None, algorithm='IREP', max_rules=None, max_rule_conds=None,
+                     max_total_conds=None, k=2, n_discretize_bins=7, dl_allowance=2, prune_size=0.8, grid_search=True,
+                     param_grid=None):
     if columns_to_ignore is None:
         columns_to_ignore = []
 
@@ -105,6 +94,9 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
         confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case,
                                                       processed_with_pandas_dummies=grid_search)
         try:
+            # y_score = ruleset_model.predict_proba(test)[:, 1]
+            # c = roc_curve(y_test, y_score)
+
             rulesets[activity] = (
                 ruleset_model,
                 ruleset_params,
@@ -118,13 +110,11 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir,
                     'recall': ruleset_model.score(x_test, y_test, recall_score),
                     'f1_score': ruleset_model.score(x_test, y_test, f1_score),
                     'roc_auc_score': ruleset_model.score(x_test, y_test, roc_auc_score),
+                    'roc_curve': ruleset_model.score(x_test, y_test, roc_curve),
                 }
             )
 
         except Exception as e:
-            # print("\n" + f"Error: {e}")
-            # print(f"During rule discovery for activity: {activity}")
-            # print(f"Positive examples :{_by_case[_by_case['knocked_out_case'] == True].shape[0]}" + "\n")
 
             rulesets[activity] = (
                 ruleset_model,
