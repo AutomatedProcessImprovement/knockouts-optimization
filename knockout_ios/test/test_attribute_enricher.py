@@ -10,7 +10,7 @@ def test_attribute_enricher():
 
     log_df = enrich_log_df(original)
 
-    # verify random state is fixed
+    # verify random initial_state is fixed
     assert log_df.equals(enrich_log_df(original))
 
     assert log_df[log_df['knockout_activity'] == "Check Monthly Income"]['Monthly Income'].min() <= 1000

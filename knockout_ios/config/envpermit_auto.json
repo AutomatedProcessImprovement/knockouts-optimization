@@ -1,6 +1,6 @@
 {
   "$schema": "../../config_schema.json",
-  "log_path": "inputs/Envpermit.xes",
+  "log_path": "inputs/Envpermit_complete_cases.xes",
   "output": "./outputs",
   "redesign_results_file_path": "outputs/envpermit_auto.txt",
   "cache_dir": "cache/envpermit_auto",

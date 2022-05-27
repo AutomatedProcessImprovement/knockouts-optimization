@@ -54,32 +54,12 @@ class KnockoutDiscoverer:
         self.log_df = log_df
         self.config = config
 
-        self.update_should_recompute()
-
-    def update_should_recompute(self):
         self.force_recompute = True
-
-        # Automatically force recompute if pipeline_config changes
-        if self.config is None:
-            raise Exception("pipeline_config not yet loaded")
-
-        try:
-            if self.always_force_recompute:
-                raise FileNotFoundError
-
-            config_cache = read_config_cache(self.config_file_name, cache_dir=self.cache_dir)
-            self.force_recompute = config_hash_changed(self.config, config_cache)
-
-        except FileNotFoundError:
-            self.force_recompute = True
-            dump_config_cache(self.config_file_name, self.config, cache_dir=self.cache_dir)
 
     def find_ko_activities(self):
 
         if self.config is None:
             raise Exception("pipeline_config not yet loaded")
-
-        self.update_should_recompute()
 
         # Idea: iteratively increase the limit until finding a positive outcome in the outcome list;
         #       keep last num before this happened
@@ -89,9 +69,6 @@ class KnockoutDiscoverer:
             ko_count_threshold = len(self.log_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME].unique())
         else:
             ko_count_threshold = self.config.ko_count_threshold
-
-        # TODO: simpler implementation idea; if negative outcome(s) are known,
-        #       simply get all the activities that directly-follow them
 
         self.ko_activities, self.ko_outcomes, _ = discover_ko_sequences(self.log_df,
                                                                         self.config_file_name,
@@ -121,10 +98,6 @@ class KnockoutDiscoverer:
         if (len(self.ko_outcomes) == 0) or (len(self.ko_activities) == 0):
             print("Error finding knockouts")
             exit(1)
-
-        if not self.quiet:
-            print(f"\nNegative outcomes to search in log: {list(self.ko_outcomes)}"
-                  f"\nPotential K.O. ko_activities in log: {list(self.ko_activities)}")
 
         try:
             if self.force_recompute:
@@ -199,9 +172,10 @@ class KnockoutDiscoverer:
                             "\n- Reduce the ko_count_threshold"
                             "\n- Provide negative outcome activity name(s)"
                             "\n- Provide positive outcome activity name(s)")
-        elif not self.quiet:
-            print(f"\nNegative outcomes found in log: {list(self.ko_outcomes)}"
-                  f"\nK.O. ko_activities found in log: {list(self.ko_activities)}")
+
+        if not self.quiet:
+            print(f"\nPost K.O. activities found in log: {list(self.ko_outcomes)}"
+                  f"\nK.O. activities found in log: {list(self.ko_activities)}")
 
     def label_cases_with_known_ko_activities(self, ko_activities):
 
@@ -209,8 +183,6 @@ class KnockoutDiscoverer:
             raise Exception("pipeline_config not yet loaded")
 
         self.ko_activities = ko_activities
-
-        self.update_should_recompute()
 
         try:
             if self.force_recompute:

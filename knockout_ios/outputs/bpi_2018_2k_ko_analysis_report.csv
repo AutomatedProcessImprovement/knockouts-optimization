@@ -1,5 +1,5 @@
 Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection
-save,6473,271.75 %,0.2 %,[],0.2
-finish editing,27604,1158.86 %,0.0 %,[],0.0
-insert document,5111,214.57 %,0.4 %,[],0.4
-calculate,24373,1023.22 %,0.0 %,[],0.0
+finish editing,2381,99.96 %,0.04 %,[],0.04
+save,636,26.7 %,0.16 %,[],0.16
+calculate,2382,100.0 %,0.04 %,[],0.04
+insert document,2382,100.0 %,0.42 %,[],0.42

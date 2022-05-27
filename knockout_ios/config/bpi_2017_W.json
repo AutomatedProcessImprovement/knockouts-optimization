@@ -1,0 +1,28 @@
+{
+  "$schema": "../../config_schema.json",
+  "log_path": "inputs/BPI Challenge 2017_W.xes",
+  "output": "./outputs",
+  "redesign_results_file_path": "outputs/bpi_2017_W.txt",
+  "cache_dir": "cache/bpi_2017_W",
+  "start_activity": "A_Create Application",
+  "post_knockout_activities": [
+    "A_Denied"
+  ],
+  "exclude_from_ko_activities": [
+    "A_Accepted"
+  ],
+  "rule_discovery_algorithm": "RIPPER",
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "k": 2,
+  "n_discretize_bins": 20,
+  "dl_allowance": 64,
+  "prune_size": 0.2,
+  "always_force_recompute": false,
+  "ignore_log_parsing_cache": false,
+  "print_rule_discovery_stats": true,
+  "grid_search": false,
+  "read_options": {
+    "one_timestamp": true
+  }
+}
