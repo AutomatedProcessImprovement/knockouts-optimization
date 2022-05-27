@@ -1,16 +1,16 @@
-Knockouts Redesign Pipeline started @ 2022-05-27 03:16:18.172445
+Knockouts Redesign Pipeline started @ 2022-05-27 02:27:06.532615
 
 Input parameters:
 
 {'always_force_recompute': True,
- 'attributes_to_ignore': ['concept:instance', 'user'],
+ 'attributes_to_ignore': ['concept:instance'],
  'cache_dir': 'cache/envpermit',
  'confidence_threshold': 0.5,
  'config_dir': None,
  'config_file_name': None,
  'config_path': None,
  'custom_log_preprocessing_function': None,
- 'dl_allowance': 64,
+ 'dl_allowance': 120,
  'end_activity': 'End',
  'exclude_from_ko_activities': None,
  'grid_search': False,
@@ -27,7 +27,7 @@ Input parameters:
  'output': WindowsPath('outputs'),
  'post_knockout_activities': [],
  'print_rule_discovery_stats': False,
- 'prune_size': 0.001,
+ 'prune_size': 0.01,
  'read_options': {'column_names': {'Activity': 'task',
                                    'Case ID': 'caseid',
                                    'Resource': 'case (responsible)',
@@ -42,15 +42,15 @@ Input parameters:
  'support_threshold': 0.1}
 
 
-╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═══════════════════════════════════╤════════════════════════╕
-│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)           │   Effort per rejection │
-╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═══════════════════════════════════╪════════════════════════╡
-│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource03]] │                   1.23 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
-│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]              │                  65.12 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
-│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY]]               │                   0.41 │
-╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═══════════════════════════════════╧════════════════════════╛
+╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═════════════════════════════════════════════════════════════════════╤════════════════════════╕
+│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)                                             │   Effort per rejection │
+╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═════════════════════════════════════════════════════════════════════╪════════════════════════╡
+│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]                                                │                  65.12 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────┼────────────────────────┤
+│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01] V [(case)_responsible=Resource03]] │                   1.23 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────┼────────────────────────┤
+│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=Group4] V [org:group=EMPTY]]                            │                   0.41 │
+╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═════════════════════════════════════════════════════════════════════╧════════════════════════╛
 
 ** Redesign options **
 
@@ -117,25 +117,25 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 
 > Knock-out rule value ranges
 
-╒════════════════════════════════════════════╤════════════════════════════════════════╕
-│ Knockout Check                             │ Observation                            │
-╞════════════════════════════════════════════╪════════════════════════════════════════╡
-│ T06 Determine necessity of stop advice     │ Rule:                                  │
-│                                            │ [[(case)_responsible=Resource03]]      │
-│                                            │                                        │
-│                                            │ No numerical attributes found in rule. │
-├────────────────────────────────────────────┼────────────────────────────────────────┤
-│ T10 Determine necessity to stop indication │ Rule:                                  │
-│                                            │ [[org:group=Group1]]                   │
-│                                            │                                        │
-│                                            │ No numerical attributes found in rule. │
-├────────────────────────────────────────────┼────────────────────────────────────────┤
-│ T02 Check confirmation of receipt          │ Rule:                                  │
-│                                            │ [[org:group=EMPTY]]                    │
-│                                            │                                        │
-│                                            │ No numerical attributes found in rule. │
-╘════════════════════════════════════════════╧════════════════════════════════════════╛
+╒════════════════════════════════════════════╤═════════════════════════════════════════════════════════════════════╕
+│ Knockout Check                             │ Observation                                                         │
+╞════════════════════════════════════════════╪═════════════════════════════════════════════════════════════════════╡
+│ T10 Determine necessity to stop indication │ Rule:                                                               │
+│                                            │ [[org:group=Group1]]                                                │
+│                                            │                                                                     │
+│                                            │ No numerical attributes found in rule.                              │
+├────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────┤
+│ T06 Determine necessity of stop advice     │ Rule:                                                               │
+│                                            │ [[(case)_responsible=Resource01] V [(case)_responsible=Resource03]] │
+│                                            │                                                                     │
+│                                            │ No numerical attributes found in rule.                              │
+├────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────┤
+│ T02 Check confirmation of receipt          │ Rule:                                                               │
+│                                            │ [[org:group=Group4] V [org:group=EMPTY]]                            │
+│                                            │                                                                     │
+│                                            │ No numerical attributes found in rule.                              │
+╘════════════════════════════════════════════╧═════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-27 03:16:22.364647
+Knockouts Redesign Pipeline ended @ 2022-05-27 02:27:10.700998
 
-Wall-clock execution time:  0:00:04.192479
+Wall-clock execution time:  0:00:04.167007

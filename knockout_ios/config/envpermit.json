@@ -11,16 +11,16 @@
     "T10 Determine necessity to stop indication"
   ],
   "attributes_to_ignore": [
-    "concept:instance"
+    "concept:instance",
+    "user"
   ],
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
-  "max_rules": 3,
   "k": 2,
   "n_discretize_bins": 20,
-  "dl_allowance": 5,
-  "prune_size": 0.25,
+  "dl_allowance": 64,
+  "prune_size": 0.001,
   "always_force_recompute": true,
   "ignore_log_parsing_cache": false,
   "print_rule_discovery_stats": false,
