@@ -158,8 +158,7 @@ def find_producers(attribute: str, log: pd.DataFrame):
 
             producers.append(producer_activity)
 
-        except Exception as e:
-            print(e)
+        except Exception:
             continue
 
     return producers
@@ -225,7 +224,7 @@ def get_relocated_kos(current_order_all_activities, optimal_ko_order, dependenci
             dependency_indexes = [current_order_all_activities.index(t[1]) for t in dependencies[knockout_activity]]
         except ValueError:
             continue
-            
+
         if len(dependency_indexes) > 0:
             idx = max(dependency_indexes)
         else:
@@ -295,7 +294,8 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
     # TODO: get min_coverage_percentage or K as a parameter in config file
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
-        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
+        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
+            globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
     # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df, min_coverage_percentage=0.01)
@@ -324,7 +324,8 @@ def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
 
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
-        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
+        by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
+            globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
     report_df = deepcopy(analyzer.report_df)

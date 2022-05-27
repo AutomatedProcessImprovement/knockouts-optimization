@@ -13,7 +13,8 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.parallel import parallel_metrics_calc
 from knockout_ios.utils.formatting import seconds_to_hms
-from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko
+from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
+    calc_processing_waste, calc_waiting_time_waste_v2
 
 from knockout_ios.utils.constants import globalColumnNames
 
@@ -80,7 +81,7 @@ class KnockoutAnalyzer:
             self.attributes_to_ignore = config.attributes_to_ignore
 
         log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-                                        globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME])
+                                        globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
 
         self.discoverer = KnockoutDiscoverer(log_df=log_df,
                                              config=config,
@@ -234,7 +235,7 @@ class KnockoutAnalyzer:
 
     def compute_ko_rules(self,
                          algorithm="RIPPER",
-                         max_rules=3,
+                         max_rules=None,
                          max_rule_conds=None,
                          max_total_conds=None,
                          k=2,
@@ -277,24 +278,13 @@ class KnockoutAnalyzer:
                 param_grid = {"prune_size": [0.5, 0.8, 0.9], "n_discretize_bins": [10, 20]}
 
         try:
-            rulesets = find_ko_rulesets(self.rule_discovery_log_df,
-                                        self.discoverer.ko_activities,
-                                        self.discoverer.config_file_name,
-                                        self.cache_dir,
+            rulesets = find_ko_rulesets(self.rule_discovery_log_df, self.discoverer.ko_activities,
+                                        self.discoverer.config_file_name, self.cache_dir,
                                         available_cases_before_ko=self.available_cases_before_ko,
-                                        force_recompute=self.always_force_recompute,
-                                        columns_to_ignore=columns_to_ignore,
-                                        algorithm=algorithm,
-                                        max_rules=max_rules,
-                                        max_rule_conds=max_rule_conds,
-                                        max_total_conds=max_total_conds,
-                                        k=k,
-                                        n_discretize_bins=n_discretize_bins,
-                                        dl_allowance=dl_allowance,
-                                        prune_size=prune_size,
-                                        grid_search=grid_search,
-                                        param_grid=param_grid
-                                        )
+                                        columns_to_ignore=columns_to_ignore, algorithm=algorithm, max_rules=max_rules,
+                                        max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
+                                        n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
+                                        prune_size=prune_size, grid_search=grid_search, param_grid=param_grid)
         except Exception as e:
             # TODO recover gracefully?
             print(f"Error: {e}")
@@ -362,9 +352,9 @@ class KnockoutAnalyzer:
             freqs = calc_available_cases_before_ko(self.discoverer.ko_activities,
                                                    self.discoverer.log_df)
             if not self.one_timestamp:
-                overprocessing_waste, processing_waste, waiting_time_waste = parallel_metrics_calc(
-                    self.discoverer.ko_activities,
-                    self.discoverer.log_df)
+                overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
+                processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
+                waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities, self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
             total_non_ko_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
