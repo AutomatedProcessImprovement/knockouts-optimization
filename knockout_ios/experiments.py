@@ -53,3 +53,6 @@ def envpermit():
 if __name__ == "__main__":
     # synthetic_example()
     envpermit()
+
+# TODO: n-fold validation
+# TODO: holdout with time-split
