@@ -1,5 +1,5 @@
 Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection
-Check Liability,3000,100.0 %,20.17 %,[[Total_Debt=>5207.22] V [Owns_Vehicle=FALSE]],20.17
-Check Risk,2395,79.83 %,30.1 %,[[Loan_Ammount=11616.69-16587.06] V [Loan_Ammount=>16587.06]],30.1
-Check Monthly Income,1674,55.8 %,50.06 %,[[Monthly_Income=<577.24] V [Monthly_Income=577.24-824.13] V [Monthly_Income=824.13-1020.72]],46.35
-Assess application,836,27.87 %,80.02 %,[[External_Risk_Score=0.36-0.64] V [External_Risk_Score=>0.64] V [External_Risk_Score=0.27-0.36^Loan_Ammount=4792.35-6053.11]],78.24
+Assess application,836,27.87 %,80.02 %,[[External_Risk_Score=>0.66] V [External_Risk_Score=0.37-0.66] V [External_Risk_Score=0.27-0.37^Loan_Ammount=4744.98-5938.57]],78.34
+Check Risk,2395,79.83 %,30.1 %,[[Loan_Ammount=11366.26-16465.29] V [Loan_Ammount=>16465.29]],30.1
+Check Liability,3000,100.0 %,20.17 %,[[Owns_Vehicle=FALSE] V [Total_Debt=>5219.85]],20.17
+Check Monthly Income,1674,55.8 %,50.06 %,[[Monthly_Income=588.28-854.35] V [Monthly_Income=<588.28] V [Monthly_Income=854.35-1026.73]],44.87
