@@ -42,20 +42,6 @@ def synthetic_example():
     get_roc_curves(adviser)
 
 
-def bpi_2017_1k_W():
-    adviser = Pipeline(config_dir="config",
-                       config_file_name="bpi_2017_1k_W.json",
-                       cache_dir="cache/bpi_2017_1k_W").run_pipeline()
-    get_roc_curves(adviser)
-
-
-def bpi_2017_W():
-    adviser = Pipeline(config_dir="config",
-                       config_file_name="bpi_2017_W.json",
-                       cache_dir="cache/bpi_2017_W").run_pipeline()
-    get_roc_curves(adviser)
-
-
 def envpermit():
     adviser = Pipeline(config_dir="config",
                        config_file_name="envpermit.json",
@@ -66,6 +52,4 @@ def envpermit():
 
 if __name__ == "__main__":
     # synthetic_example()
-    # bpi_2017_1k_W()
-    bpi_2017_W()
-    # envpermit()
+    envpermit()
