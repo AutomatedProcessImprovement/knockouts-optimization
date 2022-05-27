@@ -14,7 +14,6 @@
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
-  "max_rules": 5,
   "k": 2,
   "n_discretize_bins": 20,
   "dl_allowance": 64,
