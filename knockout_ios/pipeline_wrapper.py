@@ -6,7 +6,7 @@ import time
 from dataclasses import asdict
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser, read_analyzer_cache, dump_analyzer_cache
+from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser, read_analyzer_cache
 
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.synthetic_example.preprocessors import preprocessors_dict
@@ -23,8 +23,6 @@ class Pipeline:
         self.adviser = None
 
     def read_log_and_config(self):
-        # TODO: in BPI2017 Case Attributes are being dropped!
-        #       current workaround: export to csv and re-import as event attributes in apromore...
         self.log_df, self.config = read_log_and_config(self.config_dir, self.config_file_name, self.cache_dir)
 
     def run_analysis(self, pipeline_config=None, log_df=None):
@@ -82,11 +80,8 @@ class Pipeline:
                                               k=pipeline_config.k,
                                               n_discretize_bins=pipeline_config.n_discretize_bins,
                                               prune_size=pipeline_config.prune_size,
+                                              param_grid=pipeline_config.param_grid,
                                               )
-
-                    # dump_analyzer_cache(cache_dir=self.cache_dir,
-                    #                     cache_name=self.config_file_name.split('.')[0],
-                    #                     ko_analyzer=analyzer)
 
                 _adviser = KnockoutRedesignAdviser(analyzer)
                 _adviser.compute_redesign_options()

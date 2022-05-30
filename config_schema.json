@@ -106,6 +106,43 @@
       "type": "boolean",
       "default": false
     },
+    "param_grid": {
+      "type": "object",
+      "properties": {
+        "k": {
+          "type": "array",
+          "items": [
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "n_discretize_bins": {
+          "type": "array",
+          "items": [
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "dl_allowance": {
+          "type": "array",
+          "items": [
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "prune_size": {
+          "type": "array",
+          "items": [
+            {
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
     "read_options": {
       "type": "object",
       "properties": {

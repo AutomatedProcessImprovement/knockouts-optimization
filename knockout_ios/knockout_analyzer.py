@@ -11,7 +11,6 @@ from tabulate import tabulate
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
-from knockout_ios.utils.parallel import parallel_metrics_calc
 from knockout_ios.utils.formatting import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
     calc_processing_waste, calc_waiting_time_waste_v2
@@ -247,7 +246,7 @@ class KnockoutAnalyzer:
                          confidence_threshold=0.5,
                          support_threshold=0.5,
                          omit_report=False,
-                         print_rule_discovery_stats=False):
+                         print_rule_discovery_stats=True):
 
         if self.discoverer.log_df is None:
             raise Exception("log not yet loaded")
@@ -286,7 +285,6 @@ class KnockoutAnalyzer:
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid)
         except Exception as e:
-            # TODO recover gracefully?
             print(f"Error: {e}")
             print("\nDuring rule discovery. Try adjusting the parameters or balancing the data.")
             sys.exit(1)
@@ -334,7 +332,7 @@ class KnockoutAnalyzer:
                 f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
                 f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
             )
-            # print(f"{algorithm} parameters: ", params)
+            print(f"{algorithm} parameters: ", params)
 
     def build_report(self, omit=False, use_cache=False):
         if (not use_cache) or (self.report_df is None):
@@ -399,21 +397,22 @@ class KnockoutAnalyzer:
 
 
 if __name__ == "__main__":
-    _log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io_pipeline_test.json",
-                                              "cache/synthetic_example")
+    _log, _config = read_log_and_config("config", "synthetic_example_enriched.json",
+                                        "cache/synthetic_example")
     analyzer = KnockoutAnalyzer(log_df=_log,
-                                config=configuration,
-                                config_file_name="synthetic_example_ko_order_io_pipeline_test.json",
+                                config=_config,
+                                config_file_name="synthetic_example_enriched.json",
                                 config_dir="config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
-                                quiet=True,
-                                custom_log_preprocessing_function=enrich_log_for_synthetic_example_validation)
+                                quiet=True)
 
     analyzer.discover_knockouts()
 
     analyzer.compute_ko_rules(grid_search=False, algorithm="RIPPER", confidence_threshold=0.1, support_threshold=0.5,
-                              print_rule_discovery_stats=False, dl_allowance=configuration.dl_allowance,
-                              k=configuration.k,
-                              n_discretize_bins=configuration.n_discretize_bins,
-                              prune_size=configuration.prune_size)
+                              print_rule_discovery_stats=True, dl_allowance=_config.dl_allowance,
+                              k=_config.k,
+                              n_discretize_bins=_config.n_discretize_bins,
+                              prune_size=_config.prune_size,
+                              max_rules=_config.max_rules,
+                              max_rule_conds=_config.max_rule_conds)
