@@ -27,6 +27,7 @@ class Configuration:
     support_threshold: Optional[float] = 0.5
     print_rule_discovery_stats: Optional[bool] = False
     grid_search: Optional[bool] = False
+    param_grid: Optional[dict[str, list]] = None
 
     # General
     redesign_results_file_path: Optional[str] = None

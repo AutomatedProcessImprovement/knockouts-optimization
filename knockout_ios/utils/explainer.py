@@ -63,7 +63,7 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
                                                            prune_size=prune_size,
                                                            grid_search=grid_search,
                                                            param_grid=param_grid)
-        # default to "IREP"
+        # fallback to "IREP"
         else:
             ruleset_model, ruleset_params = IREP_wrapper(train, activity, max_rules=max_rules,
                                                          max_rule_conds=max_rule_conds,
@@ -77,25 +77,10 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
         x_test = test.drop(['knocked_out_case'], axis=1)
         y_test = test['knocked_out_case']
 
-        if grid_search:
-            # Pre-process to conform to sklearn required format
-            x_test = pd.get_dummies(x_test, columns=x_test.select_dtypes('object').columns)
-            y_test = y_test.map(lambda x: 1 if x else 0)
-
-            _by_case = _by_case.drop(
-                columns=[globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME,
-                         globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME],
-                errors='ignore')
-            _by_case = pd.get_dummies(_by_case, columns=_by_case.select_dtypes('object').columns)
-
         support = calc_knockout_ruleset_support(ruleset_model, _by_case,
-                                                available_cases_before_ko=available_cases_before_ko[activity],
-                                                processed_with_pandas_dummies=grid_search)
-        confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case,
-                                                      processed_with_pandas_dummies=grid_search)
+                                                available_cases_before_ko=available_cases_before_ko[activity])
+        confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
         try:
-            # y_score = ruleset_model.predict_proba(test)[:, 1]
-            # c = roc_curve(y_test, y_score)
 
             rulesets[activity] = (
                 ruleset_model,
@@ -120,8 +105,8 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
                 ruleset_model,
                 ruleset_params,
                 {
-                    'support': support,
-                    'confidence': confidence,
+                    'support': 0,
+                    'confidence': 0,
                     'condition_count': ruleset_model.ruleset_.count_conds(),
                     'rule_count': ruleset_model.ruleset_.count_rules(),
                     'accuracy': 0,
@@ -179,6 +164,11 @@ def RIPPER_wrapper(train, activity, max_rules=None,
                                                          param_grid=param_grid)
         params.update(optimized_params)
 
+        # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
+        # repeat rule discovery with optimized parameters and without dummy variables
+        ruleset_model = lw.RIPPER(**params)
+        ruleset_model.fit(train, class_feat='knocked_out_case')
+
     return ruleset_model, params
 
 
@@ -207,6 +197,10 @@ def IREP_wrapper(train, activity, max_rules=None,
                                                          param_grid=param_grid)
         params.update(optimized_params)
 
+        # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
+        # repeat rule discovery with optimized parameters and without dummy variables
+        ruleset_model = lw.RIPPER(**params)
+
     else:
         ruleset_model = lw.IREP(max_rules=max_rules,
                                 max_rule_conds=max_rule_conds,
@@ -226,7 +220,7 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Tru
     if not quiet:
         print(f"\nPerforming {algorithm} parameter grid search")
 
-    # Dummify categorical features and booleanize your class values for sklearn compatibility
+    # Dummify categorical features and booleanize class values for sklearn compatibility
     x_train = train.drop(['knocked_out_case'], axis=1)
     x_train = pd.get_dummies(x_train, columns=x_train.select_dtypes('object').columns)
 

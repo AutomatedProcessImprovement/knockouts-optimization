@@ -156,17 +156,16 @@ class KnockoutRedesignAdviser(object):
 
 
 if __name__ == "__main__":
-    log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io.json",
+    log, configuration = read_log_and_config("config", "synthetic_example_enriched.json",
                                              "cache/synthetic_example")
 
     analyzer = KnockoutAnalyzer(log_df=log,
                                 config=configuration,
-                                config_file_name="synthetic_example_ko_order_io.json",
+                                config_file_name="synthetic_example_enriched.json",
                                 config_dir="config",
-                                cache_dir="test/knockout_ios/cache/synthetic_example",
+                                cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
-                                quiet=True,
-                                custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)
+                                quiet=True)
 
     analyzer.discover_knockouts()
 
