@@ -17,13 +17,9 @@
   "rule_discovery_algorithm": "RIPPER",
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
-  "k": 2,
-  "n_discretize_bins": 20,
-  "dl_allowance": 64,
-  "prune_size": 0.001,
   "always_force_recompute": true,
   "ignore_log_parsing_cache": false,
-  "print_rule_discovery_stats": false,
+  "print_rule_discovery_stats": true,
   "read_options": {
     "column_names": {
       "Activity": "task",
@@ -32,5 +28,29 @@
       "lifecycle:transition": "event_type"
     },
     "one_timestamp": true
+  },
+  "k": 2,
+  "n_discretize_bins": 20,
+  "dl_allowance": 64,
+  "prune_size": 0.001,
+  "grid_search": false,
+  "param_grid": {
+    "prune_size": [
+      0.0001,
+      0.001,
+      0.1,
+      0.2
+    ],
+    "k": [
+      2,
+      4,
+      6
+    ],
+    "dl_allowance": [
+      16,
+      32,
+      64,
+      112
+    ]
   }
 }

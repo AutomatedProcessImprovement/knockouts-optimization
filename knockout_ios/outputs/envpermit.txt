@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-05-27 03:16:18.172445
+Knockouts Redesign Pipeline started @ 2022-05-30 12:22:54.526724
 
 Input parameters:
 
@@ -25,8 +25,11 @@ Input parameters:
  'max_rules': None,
  'n_discretize_bins': 20,
  'output': WindowsPath('outputs'),
+ 'param_grid': {'dl_allowance': [16, 32, 64, 112],
+                'k': [2, 4, 6],
+                'prune_size': [0.0001, 0.001, 0.1, 0.2]},
  'post_knockout_activities': [],
- 'print_rule_discovery_stats': False,
+ 'print_rule_discovery_stats': True,
  'prune_size': 0.001,
  'read_options': {'column_names': {'Activity': 'task',
                                    'Case ID': 'caseid',
@@ -45,12 +48,32 @@ Input parameters:
 ╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═══════════════════════════════════╤════════════════════════╕
 │ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)           │   Effort per rejection │
 ╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═══════════════════════════════════╪════════════════════════╡
-│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource03]] │                   1.23 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
 │ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]              │                  65.12 │
 ├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
 │ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY]]               │                   0.41 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
+│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01]] │                   1.23 │
 ╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═══════════════════════════════════╧════════════════════════╛
+
+RIPPER
+
+"T10 Determine necessity to stop indication"
+# conditions: 1, # rules: 1
+support: 0.39, confidence: 0.98 
+roc_auc score: 0.57, f1 score: 0.25, accuracy: 0.25, precision: 1.00, recall: 0.14
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.001}
+
+"T02 Check confirmation of receipt"
+# conditions: 1, # rules: 1
+support: 0.01, confidence: 0.23 
+roc_auc score: 0.74, f1 score: 0.33, accuracy: 0.98, precision: 0.25, recall: 0.50
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.001}
+
+"T06 Determine necessity of stop advice"
+# conditions: 1, # rules: 1
+support: 0.02, confidence: 0.13 
+roc_auc score: 0.49, f1 score: 0.00, accuracy: 0.96, precision: 0.00, recall: 0.00
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.001}
 
 ** Redesign options **
 
@@ -120,11 +143,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 ╒════════════════════════════════════════════╤════════════════════════════════════════╕
 │ Knockout Check                             │ Observation                            │
 ╞════════════════════════════════════════════╪════════════════════════════════════════╡
-│ T06 Determine necessity of stop advice     │ Rule:                                  │
-│                                            │ [[(case)_responsible=Resource03]]      │
-│                                            │                                        │
-│                                            │ No numerical attributes found in rule. │
-├────────────────────────────────────────────┼────────────────────────────────────────┤
 │ T10 Determine necessity to stop indication │ Rule:                                  │
 │                                            │ [[org:group=Group1]]                   │
 │                                            │                                        │
@@ -134,8 +152,13 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                                            │ [[org:group=EMPTY]]                    │
 │                                            │                                        │
 │                                            │ No numerical attributes found in rule. │
+├────────────────────────────────────────────┼────────────────────────────────────────┤
+│ T06 Determine necessity of stop advice     │ Rule:                                  │
+│                                            │ [[(case)_responsible=Resource01]]      │
+│                                            │                                        │
+│                                            │ No numerical attributes found in rule. │
 ╘════════════════════════════════════════════╧════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-27 03:16:22.364647
+Knockouts Redesign Pipeline ended @ 2022-05-30 12:23:42.441085
 
-Wall-clock execution time:  0:00:04.192479
+Wall-clock execution time:  0:00:47.911729

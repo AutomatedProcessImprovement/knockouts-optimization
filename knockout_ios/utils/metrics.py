@@ -96,8 +96,7 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
 
 
 def calc_knockout_ruleset_support(ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
-                                  available_cases_before_ko: int,
-                                  processed_with_pandas_dummies=False):
+                                  available_cases_before_ko: int):
     # Source: https://christophm.github.io/interpretable-ml-book/rules.html#rules
 
     predicted_ko = ruleset_model.predict(log)
@@ -111,16 +110,11 @@ def calc_knockout_ruleset_support(ruleset_model: AbstractRulesetClassifier, log:
     return support
 
 
-def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
-                                     processed_with_pandas_dummies=False):
+def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame):
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
-    if processed_with_pandas_dummies:
-        correct_predictions = \
-            log[(log['predicted_ko']) & (log[f'knockout_activity_{activity}'])].shape[0]
-    else:
-        correct_predictions = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+    correct_predictions = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
     total_predictions = sum(predicted_ko)
 
     if total_predictions == 0:
