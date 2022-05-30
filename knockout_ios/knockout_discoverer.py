@@ -18,8 +18,7 @@ import pm4py
 from tqdm import tqdm
 
 from knockout_ios.utils.constants import globalColumnNames
-from knockout_ios.utils.discovery import config_hash_changed, read_config_cache, dump_config_cache, \
-    discover_ko_sequences
+from knockout_ios.utils.discovery import discover_ko_sequences
 from knockout_ios.utils.metrics import get_ko_discovery_metrics
 from knockout_ios.utils.formatting import format_for_post_proc, plot_cycle_times_per_ko_activity, \
     plot_ko_activities_count
@@ -61,11 +60,7 @@ class KnockoutDiscoverer:
         if self.config is None:
             raise Exception("pipeline_config not yet loaded")
 
-        # Idea: iteratively increase the limit until finding a positive outcome in the outcome list;
-        #       keep last num before this happened
-
         if self.config.ko_count_threshold is None:
-            # count the unique values in the activity column of log_df
             ko_count_threshold = len(self.log_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME].unique())
         else:
             ko_count_threshold = self.config.ko_count_threshold
@@ -283,12 +278,15 @@ class KnockoutDiscoverer:
 
 
 if __name__ == "__main__":
-    test_data = ("credit_app_simple.json", ['Assess application', 'Check credit history', 'Check income sources'])
+    test_data = (
+        "synthetic_example_enriched.json",
+        ['Assess application', 'Check Liability', 'Check Monthly Income', 'Check Risk'])
 
-    log, configuration = read_log_and_config("config", "credit_app_simple.json", "cache/credit_app")
+    log, configuration = read_log_and_config("config", "synthetic_example_enriched.json",
+                                             "cache/synthetic_example_enriched")
 
     analyzer = KnockoutDiscoverer(log_df=log, config=configuration, config_file_name=test_data[0],
-                                  cache_dir="cache/credit_app",
+                                  cache_dir="cache/synthetic_example",
                                   always_force_recompute=True, quiet=False)
 
     analyzer.find_ko_activities()
