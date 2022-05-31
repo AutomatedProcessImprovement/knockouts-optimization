@@ -6,16 +6,30 @@ import streamlit as st
 from knockout_ios.pipeline_wrapper import Pipeline
 from knockout_ios.utils.constants import globalColumnNames
 
-initial_state = [("config_dir", "config_examples"), ("config_file_name", "envpermit.json"),
+initial_state = [("config_dir", "config"), ("config_file_name", "envpermit.json"),
                  ("cache_dir", "cache"),
-                 ("pipeline", None), ('log_activities', []), ('log_attributes', []), ('ko_redesign_adviser', None)]
+                 ("pipeline", None), ('log_activities', []), ('log_attributes', []), ('ko_redesign_adviser', None),
+                 ('attributes_to_consider', []), ('known_ko_activities', []), ('post_ko_activities', []),
+                 ]
 
 for v in initial_state:
     if v[0] not in st.session_state:
         st.session_state[v[0]] = v[1]
 
 
+def reset_state(fields_to_keep=None):
+    if fields_to_keep is None:
+        fields_to_keep = []
+
+    for v in initial_state:
+        if v[0] in fields_to_keep:
+            continue
+        st.session_state[v[0]] = v[1]
+
+
 def load_log(config_dir, config_file_name, cache_dir):
+    reset_state(fields_to_keep=["config_file_name"])
+
     pipeline = Pipeline(config_dir=config_dir,
                         config_file_name=config_file_name,
                         cache_dir=cache_dir)
@@ -41,25 +55,28 @@ def load_log(config_dir, config_file_name, cache_dir):
 
 def load_log_wrapper():
     with st.spinner('Reading Log and Config...'):
-        try:
-            st.session_state['pipeline'], st.session_state['log_activities'], st.session_state[
-                'log_attributes'] = load_log(config_dir=st.session_state['config_dir'],
-                                             config_file_name=st.session_state['config_file_name'],
-                                             cache_dir=st.session_state['cache_dir'])
+        st.session_state['pipeline'], st.session_state['log_activities'], st.session_state[
+            'log_attributes'] = load_log(config_dir=st.session_state['config_dir'],
+                                         config_file_name=st.session_state['config_file_name'],
+                                         cache_dir=st.session_state['cache_dir'])
 
-            # Initially assume user wants to consider all attributes in the analysis
-            st.session_state['attributes_to_consider'] = st.session_state['log_attributes']
+        # Initially assume user wants to consider all attributes in the analysis
+        st.session_state['attributes_to_consider'] = st.session_state['log_attributes']
 
-            # Reflect any info already provided via the config file
+        # Reflect any info already provided via the config file
+        if not (st.session_state['pipeline'].config.attributes_to_ignore is None):
             st.session_state['attributes_to_consider'] = [x for x in st.session_state['attributes_to_consider'] if
                                                           x not in st.session_state[
                                                               'pipeline'].config.attributes_to_ignore]
-            st.session_state['known_ko_activities'] = st.session_state['pipeline'].config.known_ko_activities
-            st.session_state['post_ko_activities'] = st.session_state['pipeline'].config.post_knockout_activities
-            st.session_state['success_activities'] = st.session_state['pipeline'].config.success_activities
 
-        except TypeError:
-            pass
+        st.session_state['known_ko_activities'] = st.session_state['pipeline'].config.known_ko_activities
+        st.session_state['post_ko_activities'] = st.session_state['pipeline'].config.post_knockout_activities
+        st.session_state['success_activities'] = st.session_state['pipeline'].config.success_activities
+
+        fields = {'attributes_to_consider': st.session_state['attributes_to_consider'],
+                  'known_ko_activities': st.session_state['known_ko_activities'],
+                  'post_ko_activities': st.session_state['post_ko_activities']}
+        logging.info(f"Read from config: {fields}")
 
 
 def run_analysis():

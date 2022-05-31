@@ -1,4 +1,5 @@
 import glob
+import logging
 import os
 import pprint
 import sys
@@ -76,7 +77,7 @@ class KnockoutAnalyzer:
         if config.attributes_to_ignore is None:
             self.attributes_to_ignore = []
         else:
-            self.attributes_to_ignore = config.attributes_to_ignore
+            self.attributes_to_ignore = [c.replace(' ', '_') for c in config.attributes_to_ignore]
 
         log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
                                         globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
@@ -193,6 +194,7 @@ class KnockoutAnalyzer:
                              ]
 
         columns_to_ignore.extend(self.attributes_to_ignore)
+        logging.info(f"Ignoring columns: {columns_to_ignore}")
 
         columns_to_ignore.extend(list(filter(
             lambda c: ('@' in c) | ('id' in c.lower()) | ('daytime' in c) | ('weekday' in c) | ('month' in c) | (
@@ -284,9 +286,7 @@ class KnockoutAnalyzer:
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid)
         except Exception as e:
-            print(f"Error: {e}")
-            print("\nDuring rule discovery. Try adjusting the parameters or balancing the data.")
-            sys.exit(1)
+            raise Exception(f"Error: {e}" + "\nDuring rule discovery.")
 
         if algorithm == "RIPPER":
             self.RIPPER_rulesets = rulesets

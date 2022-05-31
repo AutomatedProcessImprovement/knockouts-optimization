@@ -1,5 +1,6 @@
 import contextlib
 import datetime
+import logging
 import pprint
 import time
 
@@ -100,13 +101,16 @@ class Pipeline:
     def update_known_ko_activities(self, known_ko_activities):
         self.config.known_ko_activities = known_ko_activities
 
-    def update_post_ko_activities(self, update_post_ko_activities):
-        self.config.update_post_ko_activities = update_post_ko_activities
+    def update_post_ko_activities(self, post_ko_activities):
+        self.config.post_knockout_activities = post_ko_activities
+        logging.info(f"Updated post-knockout activities: {self.config.post_knockout_activities}")
 
-    def update_success_activities(self, update_success_activities):
-        self.config.update_success_activities = update_success_activities
+    def update_success_activities(self, success_activities):
+        self.config.success_activities = success_activities
+        logging.info(f"Updated success activities: {self.config.success_activities}")
 
     def update_log_attributes(self, attributes_to_consider):
         all_attributes = self.log_df.columns.values.tolist()
         attributes_to_ignore = [a for a in all_attributes if a not in attributes_to_consider]
         self.config.attributes_to_ignore = attributes_to_ignore
+        logging.info(f"Updated attributes to ignore: {self.config.attributes_to_ignore}")

@@ -91,8 +91,7 @@ class KnockoutDiscoverer:
                                              self.ko_activities))
 
         if (len(self.ko_outcomes) == 0) or (len(self.ko_activities) == 0):
-            print("Error finding knockouts")
-            exit(1)
+            raise Exception("Error finding knockouts")
 
         try:
             if self.force_recompute:
@@ -164,7 +163,6 @@ class KnockoutDiscoverer:
         if self.log_df['knocked_out_case'].all():
             raise Exception("No K.O. ko_activities could be distinguished."
                             "\n\nSuggestions:"
-                            "\n- Reduce the ko_count_threshold"
                             "\n- Provide negative outcome activity name(s)"
                             "\n- Provide positive outcome activity name(s)")
 
@@ -249,7 +247,6 @@ class KnockoutDiscoverer:
         if self.log_df['knocked_out_case'].all():
             raise Exception("No K.O. ko_activities could be distinguished."
                             "\n\nSuggestions:"
-                            "\n- Reduce the ko_count_threshold"
                             "\n- Provide negative outcome activity name(s)"
                             "\n- Provide positive outcome activity name(s)")
 
