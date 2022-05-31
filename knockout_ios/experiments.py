@@ -79,7 +79,7 @@ def envpermit():
 
 
 if __name__ == "__main__":
-    # synthetic_example()
+    synthetic_example()
     envpermit()
 
 # TODO: holdout with time-split - implement before aggregating cases
