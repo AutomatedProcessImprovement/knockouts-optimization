@@ -25,7 +25,7 @@ def get_cross_val_scores(adviser, cv=5):
 
         X_train = pd.get_dummies(X_train, columns=X_train.select_dtypes('object').columns)
         y_train = y_train.map(lambda x: 1 if x == 'p' else 0)
-        
+
         cross_val_scores[activity] = cross_val_score(classifier, X_train, y_train, cv=cv)
 
 
@@ -82,5 +82,5 @@ if __name__ == "__main__":
     # synthetic_example()
     envpermit()
 
-# TODO: n-fold validation
-# TODO: holdout with time-split
+# TODO: holdout with time-split - implement before aggregating cases
+# TODO: n-fold validation: justify as implicit in grid search? apply it anyway for metrics?

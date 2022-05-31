@@ -87,3 +87,4 @@ swifter~=1.1.2
 setuptools~=60.9.3
 DateTimeRange~=1.2.0
 streamlit==1.9.0
+shutup==0.2.0

@@ -327,12 +327,8 @@ class KnockoutAnalyzer:
                 continue
 
             print(f"\n\"{key}\"")
-            print(f'# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
-            print(
-                f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
-                f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
-            )
             print(f"{algorithm} parameters: ", params)
+            pprint.pprint(metrics)
 
     def build_report(self, omit=False, use_cache=False):
         if (not use_cache) or (self.report_df is None):
