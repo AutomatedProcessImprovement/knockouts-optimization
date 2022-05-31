@@ -19,19 +19,6 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
 
 
-def read_rule_discovery_result(config_file_name, cache_dir):
-    binary_file = open(f'{cache_dir}/{config_file_name}_clfs', 'rb')
-    clfs = pickle.load(binary_file)
-    binary_file.close()
-    return clfs
-
-
-def dump_rule_discovery_result(clfs, config_file_name, cache_dir):
-    binary_file = open(f'{cache_dir}/{config_file_name}_clfs', 'wb')
-    pickle.dump(clfs, binary_file)
-    binary_file.close()
-
-
 def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, available_cases_before_ko,
                      columns_to_ignore=None, algorithm='IREP', max_rules=None, max_rule_conds=None,
                      max_total_conds=None, k=2, n_discretize_bins=7, dl_allowance=2, prune_size=0.8, grid_search=True,
@@ -82,46 +69,29 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
                                                 available_cases_before_ko=available_cases_before_ko[activity])
         confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
 
+        metrics = {
+            'support': support,
+            'confidence': confidence,
+            'condition_count': ruleset_model.ruleset_.count_conds(),
+            'rule_count': ruleset_model.ruleset_.count_rules(),
+            'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
+            'precision': ruleset_model.score(x_test, y_test, precision_score),
+            'recall': ruleset_model.score(x_test, y_test, recall_score),
+            'f1_score': ruleset_model.score(x_test, y_test, f1_score)
+        }
+
         try:
-            rulesets[activity] = (
-                ruleset_model,
-                ruleset_params,
-                {
-                    'support': support,
-                    'confidence': confidence,
-                    'condition_count': ruleset_model.ruleset_.count_conds(),
-                    'rule_count': ruleset_model.ruleset_.count_rules(),
-                    'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
-                    'precision': ruleset_model.score(x_test, y_test, precision_score),
-                    'recall': ruleset_model.score(x_test, y_test, recall_score),
-                    'f1_score': ruleset_model.score(x_test, y_test, f1_score),
-                    'roc_auc_score': ruleset_model.score(x_test, y_test, roc_auc_score),
-                    'roc_curve': ruleset_model.score(x_test, y_test, roc_curve),
-                }
-            )
+            metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
+            metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
+        except Exception:
+            pass
 
-        except Exception as e:
-
-            rulesets[activity] = (
-                ruleset_model,
-                ruleset_params,
-                {
-                    'support': 0,
-                    'confidence': 0,
-                    'condition_count': ruleset_model.ruleset_.count_conds(),
-                    'rule_count': ruleset_model.ruleset_.count_rules(),
-                    'accuracy': 0,
-                    'precision': 0,
-                    'recall': 0,
-                    'f1_score': 0,
-                    'roc_auc_score': 0,
-                }
-            )
-
-        finally:
-            stdout.flush()
-
-        dump_rule_discovery_result(rulesets, f"{config_file_name}_{algorithm}", cache_dir=cache_dir)
+        rulesets[activity] = (
+            ruleset_model,
+            ruleset_params,
+            metrics
+        )
+        stdout.flush()
 
     return rulesets
 

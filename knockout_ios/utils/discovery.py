@@ -1,5 +1,4 @@
 import collections
-import itertools
 import pickle
 from itertools import chain
 
