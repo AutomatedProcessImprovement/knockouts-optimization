@@ -5,6 +5,7 @@ from sys import stdout
 
 import numpy as np
 import pandas as pd
+import shutup
 from tqdm import tqdm
 
 from knockout_ios.utils.constants import globalColumnNames
@@ -80,8 +81,8 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
         support = calc_knockout_ruleset_support(ruleset_model, _by_case,
                                                 available_cases_before_ko=available_cases_before_ko[activity])
         confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
-        try:
 
+        try:
             rulesets[activity] = (
                 ruleset_model,
                 ruleset_params,
@@ -135,16 +136,6 @@ def RIPPER_wrapper(train, activity, max_rules=None,
                    grid_search=True,
                    param_grid=None
                    ):
-    ruleset_model = lw.RIPPER(max_rules=max_rules,
-                              max_rule_conds=max_rule_conds,
-                              max_total_conds=max_total_conds,
-                              k=k,
-                              n_discretize_bins=n_discretize_bins,
-                              dl_allowance=dl_allowance,
-                              prune_size=prune_size
-                              )
-
-    ruleset_model.fit(train, class_feat='knocked_out_case')
     params = {"max_rules": max_rules,
               "max_rule_conds": max_rule_conds,
               "max_total_conds": max_total_conds,
@@ -164,9 +155,11 @@ def RIPPER_wrapper(train, activity, max_rules=None,
                                                          param_grid=param_grid)
         params.update(optimized_params)
 
-        # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
-        # repeat rule discovery with optimized parameters and without dummy variables
-        ruleset_model = lw.RIPPER(**params)
+    # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
+    # repeat rule discovery with optimized parameters and without dummy variables
+    ruleset_model = lw.RIPPER(**params)
+
+    with shutup.mute_warnings:
         ruleset_model.fit(train, class_feat='knocked_out_case')
 
     return ruleset_model, params
@@ -187,8 +180,17 @@ def IREP_wrapper(train, activity, max_rules=None,
               "prune_size": prune_size}
 
     if grid_search:
+
         if param_grid is None:
             param_grid = {"prune_size": [0.2, 0.33, 0.5], "n_discretize_bins": [10, 20, 30]}
+        else:
+            # to keep only relevant parameters for IREP
+            _param_grid = {}
+            if "n_discretize_bins" in param_grid:
+                _param_grid["n_discretize_bins"] = param_grid["n_discretize_bins"]
+            if "prune_size" in param_grid:
+                _param_grid["prune_size"] = param_grid["prune_size"]
+            param_grid = _param_grid
 
         ruleset_model, optimized_params = do_grid_search(lw.IREP(max_rules=max_rules,
                                                                  max_rule_conds=max_rule_conds,
@@ -197,18 +199,11 @@ def IREP_wrapper(train, activity, max_rules=None,
                                                          param_grid=param_grid)
         params.update(optimized_params)
 
-        # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
-        # repeat rule discovery with optimized parameters and without dummy variables
-        ruleset_model = lw.RIPPER(**params)
+    # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
+    # repeat rule discovery with optimized parameters and without dummy variables
+    ruleset_model = lw.IREP(**params)
 
-    else:
-        ruleset_model = lw.IREP(max_rules=max_rules,
-                                max_rule_conds=max_rule_conds,
-                                max_total_conds=max_total_conds,
-                                n_discretize_bins=n_discretize_bins,
-                                prune_size=prune_size,
-                                )
-
+    with shutup.mute_warnings:
         ruleset_model.fit(train, class_feat='knocked_out_case')
 
     return ruleset_model, params
@@ -235,8 +230,10 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Tru
     # Source: https://scikit-learn.org/stable/modules/grid_search.html#tips-for-parameter-search
 
     # TODO: understand better the concept of this scoring function, it works much better than the previous but why
-    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="roc_auc", n_jobs=-1)
-    grid.fit(x_train, y_train)
+    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1)
+
+    with shutup.mute_warnings:
+        grid.fit(x_train, y_train)
 
     if not quiet:
         print(f"Best {algorithm} parameters for \"{activity}\": {grid.best_params_}")
