@@ -63,7 +63,7 @@ def get_roc_curves(adviser):
 
 
 def synthetic_example():
-    adviser = Pipeline(config_dir="config",
+    adviser = Pipeline(config_dir="test/config",
                        config_file_name="synthetic_example_enriched.json",
                        cache_dir="cache/synthetic_example_enriched").run_pipeline()
 
@@ -71,7 +71,7 @@ def synthetic_example():
 
 
 def envpermit():
-    adviser = Pipeline(config_dir="config",
+    adviser = Pipeline(config_dir="test/config",
                        config_file_name="envpermit.json",
                        cache_dir="cache/envpermit").run_pipeline()
 

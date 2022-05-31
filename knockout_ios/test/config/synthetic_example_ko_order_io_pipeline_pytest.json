@@ -1,0 +1,19 @@
+{
+  "$schema": "../../../config_schema.json",
+  "log_path": "test/inputs/synthetic_example/Synthetic Example (KO Order IO 2).xes",
+  "output": "test/outputs",
+  "redesign_results_file_path": "test/outputs/ko_reorder_io_pytest.txt",
+  "cache_dir": "cache/synthetic_example",
+  "start_activity": "Credit application received",
+  "post_knockout_activities": [
+    "Notify rejection"
+  ],
+  "rule_discovery_algorithm": "IREP",
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "max_rules": 3,
+  "always_force_recompute": true,
+  "print_rule_discovery_stats": true,
+  "grid_search": false,
+  "custom_log_preprocessing_function": "enrich_log_for_synthetic_example_validation"
+}

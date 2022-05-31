@@ -1,0 +1,27 @@
+{
+  "$schema": "../config_schema.json",
+  "log_path": "data/inputs/synthetic_example/synthetic_example_enriched.xes",
+  "output": "data/outputs",
+  "redesign_results_file_path": "data/outputs/synthetic_example_enriched.txt",
+  "cache_dir": "cache/synthetic_example_enriched",
+  "start_activity": "Credit application received",
+  "post_knockout_activities": [
+    "Notify rejection"
+  ],
+  "rule_discovery_algorithm": "RIPPER",
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "max_rules": 3,
+  "max_rule_conds": 1,
+  "k": 2,
+  "n_discretize_bins": 10,
+  "dl_allowance": 1,
+  "prune_size": 0.8,
+  "always_force_recompute": true,
+  "ignore_log_parsing_cache": false,
+  "print_rule_discovery_stats": true,
+  "grid_search": false,
+  "read_options": {
+    "one_timestamp": true
+  }
+}

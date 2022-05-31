@@ -282,7 +282,7 @@ if __name__ == "__main__":
         "synthetic_example_enriched.json",
         ['Assess application', 'Check Liability', 'Check Monthly Income', 'Check Risk'])
 
-    log, configuration = read_log_and_config("config", "synthetic_example_enriched.json",
+    log, configuration = read_log_and_config("test/config", "synthetic_example_enriched.json",
                                              "cache/synthetic_example_enriched")
 
     analyzer = KnockoutDiscoverer(log_df=log, config=configuration, config_file_name=test_data[0],

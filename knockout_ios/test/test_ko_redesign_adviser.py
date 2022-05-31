@@ -5,12 +5,12 @@ from knockout_ios.utils.synthetic_example.preprocessors import *
 
 
 def test_ko_reorder_io_simple():
-    log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io.json",
+    log, configuration = read_log_and_config("test/config", "synthetic_example_ko_order_io.json",
                                              "cache/synthetic_example")
 
     analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
                                 config_file_name="synthetic_example_ko_order_io.json",
-                                config_dir="./config",
+                                config_dir="./test/config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,
@@ -29,12 +29,12 @@ def test_ko_reorder_io_simple():
 
 
 def test_ko_reorder_io_advanced():
-    log, configuration = read_log_and_config("config", "synthetic_example_ko_order_io_advanced.json",
+    log, configuration = read_log_and_config("test/config", "synthetic_example_ko_order_io_advanced.json",
                                              "cache/synthetic_example")
 
     analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
                                 config_file_name="synthetic_example_ko_order_io_advanced.json",
-                                config_dir="./config",
+                                config_dir="./test/config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,

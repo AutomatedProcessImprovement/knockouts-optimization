@@ -1,0 +1,13 @@
+{
+  "log_path": "./test/inputs/LoanApplicationDemo.xes",
+  "output": "test/outputs",
+  "start_activity": "Start",
+  "post_knockout_activities": [],
+  "success_activities": [
+    "Loan application approved",
+    "Loan__application_approved",
+    "Loan application canceled"
+  ],
+  "known_ko_activities": []
+}
+
