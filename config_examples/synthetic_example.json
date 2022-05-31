@@ -1,6 +1,6 @@
 {
   "$schema": "../config_schema.json",
-  "log_path": "./knockout_ios/inputs/synthetic_example/synthetic_example_enriched.xes",
+  "log_path": "./inputs/synthetic_example/synthetic_example_enriched.xes",
   "output": "./outputs",
   "redesign_results_file_path": "outputs/synthetic_example_enriched.txt",
   "cache_dir": "cache/synthetic_example_enriched",

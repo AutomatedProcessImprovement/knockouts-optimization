@@ -46,7 +46,6 @@ class KnockoutAnalyzer:
         # TODO: refactor the need for config_dir, cache_dir...
 
         os.makedirs(cache_dir, exist_ok=True)
-        os.makedirs("temp", exist_ok=True)
 
         self.quiet = quiet
         self.config = config
