@@ -173,6 +173,10 @@
           "type": "boolean"
         }
       }
+    },
+    "skip_temporal_holdout": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

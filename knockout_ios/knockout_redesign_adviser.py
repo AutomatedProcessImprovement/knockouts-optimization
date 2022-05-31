@@ -78,7 +78,6 @@ class KnockoutRedesignAdviser(object):
             print(f"\n** Redesign options **\n")
 
             # TODO: cleaner printing/reporting method...
-            # TODO: make a distinction; dependencies, and actual relocation proposal per variant
             print_dependencies = True
             if print_dependencies:
                 print("\n> Dependencies of KO activities\n")

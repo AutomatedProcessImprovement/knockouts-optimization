@@ -15,6 +15,7 @@
     "user"
   ],
   "rule_discovery_algorithm": "RIPPER",
+  "skip_temporal_holdout": true,
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
   "always_force_recompute": true,

@@ -47,7 +47,7 @@ class LogReader(object):
 
         self.timestamp_format = settings.timestamp_format
         self.column_names = settings.column_names
-        self.one_timestamp = settings.one_timestamp  # TODO: remove everywhere, interval log is compulsory
+        self.one_timestamp = settings.one_timestamp
         self.filter_d_attrib = settings.filter_d_attrib
         self.verbose = verbose
         self.data = list()
@@ -72,7 +72,6 @@ class LogReader(object):
         reads all the data from the log depending
         the extension of the file
         """
-        # TODO: esto se puede manejar mejor con un patron fabrica
         if self.file_extension == '.xes':
             self.get_xes_events_data()
         elif self.file_extension == '.csv':
@@ -95,7 +94,6 @@ class LogReader(object):
         # temp_data = log_converter.apply(log, variant=log_converter.Variants.TO_DATA_FRAME)
 
         # NOTE: Stripping zone information from the log
-        # TODO: is it applicable here: pm4py.objects.log.util.dataframe_utils.convert_timestamp_columns_in_df?
         temp_data[timestamp_key] = temp_data.apply(lambda x: x[timestamp_key].strftime(self.timestamp_format), axis=1)
         temp_data[timestamp_key] = pd.to_datetime(temp_data[timestamp_key], format=self.timestamp_format)
         temp_data['start_timestamp'] = temp_data.apply(lambda x: x['start_timestamp'].strftime(self.timestamp_format),
@@ -131,7 +129,7 @@ class LogReader(object):
         if self.verbose:
             sup.print_done_task()
 
-    def get_csv_events_data(self):  # TODO: does this function work? Had problems reading in Production.csv
+    def get_csv_events_data(self):
         """
         reads and parse all the events information from a csv file
         """
@@ -192,7 +190,7 @@ class LogReader(object):
             new_data.extend(trace)
         self.data = new_data
 
-    def get_traces(self):  # TODO: can we do it just with Pandas functions?
+    def get_traces(self):
         """
         Returns the data splitted by caseid and ordered by start_timestamp
         """

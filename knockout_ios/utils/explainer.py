@@ -1,4 +1,4 @@
-import pickle
+import logging
 
 from copy import deepcopy
 from sys import stdout
@@ -8,21 +8,19 @@ import pandas as pd
 import shutup
 from tqdm import tqdm
 
-from knockout_ios.utils.constants import globalColumnNames
-
 # TODO: Excessive wittgenstein frame.append deprecation warnings
 #  currently trying to suppress just with -Wignore
 import wittgenstein as lw
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score
 
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
 
 
-def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, available_cases_before_ko,
-                     columns_to_ignore=None, algorithm='IREP', max_rules=None, max_rule_conds=None,
-                     max_total_conds=None, k=2, n_discretize_bins=7, dl_allowance=2, prune_size=0.8, grid_search=True,
-                     param_grid=None):
+def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None, algorithm='IREP',
+                     max_rules=None, max_rule_conds=None, max_total_conds=None, k=2, n_discretize_bins=7,
+                     dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None, skip_temporal_holdout=False
+                     ):
     if columns_to_ignore is None:
         columns_to_ignore = []
 
@@ -38,8 +36,19 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
         # (attributes remain the same throughout the case)
         _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
 
-        train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
-                                       test_size=.33)
+        if skip_temporal_holdout:
+            # This simple train/test split is incorrect; need time-aware splits; only used for baseline comparison against Illya
+            # balance ko'd/non ko'd cases
+            _by_case = _by_case.groupby("knocked_out_case")
+            _by_case = _by_case.apply(lambda x: x.sample(_by_case.size().min()).reset_index(drop=True))
+            _by_case = _by_case.reset_index(drop=True)
+            # split with the same proportion as Illya
+            train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
+                                           test_size=.2, stratify=_by_case["knocked_out_case"])
+        else:
+            _by_case = _by_case.sort_values(by=['start_timestamp'])
+            train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
+                                           test_size=.33, shuffle=False)
 
         if algorithm == "RIPPER":
             ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
@@ -79,7 +88,6 @@ def find_ko_rulesets(log_df, ko_activities, config_file_name, cache_dir, availab
             'recall': ruleset_model.score(x_test, y_test, recall_score),
             'f1_score': ruleset_model.score(x_test, y_test, f1_score)
         }
-
         try:
             metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
             metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
@@ -118,15 +126,19 @@ def RIPPER_wrapper(train, activity, max_rules=None,
         if param_grid is None:
             param_grid = {"prune_size": [0.2, 0.33, 0.5], "k": [1, 2, 4], "dl_allowance": [16, 32, 64],
                           "n_discretize_bins": [4, 8, 12]}
-        ruleset_model, optimized_params = do_grid_search(lw.RIPPER(max_rules=max_rules,
-                                                                   max_rule_conds=max_rule_conds,
-                                                                   max_total_conds=max_total_conds), train, activity,
-                                                         algorithm="RIPPER",
-                                                         param_grid=param_grid)
-        params.update(optimized_params)
+        try:
+            optimized_params = do_grid_search(lw.RIPPER(max_rules=max_rules,
+                                                        max_rule_conds=max_rule_conds,
+                                                        max_total_conds=max_total_conds), train,
+                                              activity,
+                                              algorithm="RIPPER",
+                                              param_grid=param_grid)
 
-    # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
-    # repeat rule discovery with optimized parameters and without dummy variables
+            params.update(optimized_params)
+        except:
+            logging.error(f"Grid search failed for {activity}. Using default parameters.")
+
+    # Fit "final model" with optimized parameters
     ruleset_model = lw.RIPPER(**params)
 
     with shutup.mute_warnings:
@@ -162,15 +174,17 @@ def IREP_wrapper(train, activity, max_rules=None,
                 _param_grid["prune_size"] = param_grid["prune_size"]
             param_grid = _param_grid
 
-        ruleset_model, optimized_params = do_grid_search(lw.IREP(max_rules=max_rules,
-                                                                 max_rule_conds=max_rule_conds,
-                                                                 max_total_conds=max_total_conds), train, activity,
-                                                         algorithm="IREP",
-                                                         param_grid=param_grid)
-        params.update(optimized_params)
+        try:
+            optimized_params = do_grid_search(lw.IREP(max_rules=max_rules,
+                                                      max_rule_conds=max_rule_conds,
+                                                      max_total_conds=max_total_conds), train, activity,
+                                              algorithm="IREP",
+                                              param_grid=param_grid)
+            params.update(optimized_params)
+        except:
+            logging.error(f"Grid search failed for {activity}. Using default parameters.")
 
-    # workaround for Issue #16 (https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues/16):
-    # repeat rule discovery with optimized parameters and without dummy variables
+    # Fit "final model" with optimized parameters
     ruleset_model = lw.IREP(**params)
 
     with shutup.mute_warnings:
@@ -179,17 +193,18 @@ def IREP_wrapper(train, activity, max_rules=None,
     return ruleset_model, params
 
 
-def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=True, param_grid=None):
-    train = deepcopy(train)
+def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=True, param_grid=None,
+                   skip_temporal_holdout=False):
+    dataset = deepcopy(dataset)
 
     if not quiet:
         print(f"\nPerforming {algorithm} parameter grid search")
 
     # Dummify categorical features and booleanize class values for sklearn compatibility
-    x_train = train.drop(['knocked_out_case'], axis=1)
+    x_train = dataset.drop(['knocked_out_case'], axis=1)
     x_train = pd.get_dummies(x_train, columns=x_train.select_dtypes('object').columns)
 
-    y_train = train['knocked_out_case']
+    y_train = dataset['knocked_out_case']
     y_train = y_train.map(lambda x: 1 if x else 0)
 
     # Search best parameter combination; criteria: f1 score (balanced fbeta score / same importance to recall and
@@ -199,8 +214,16 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Tru
     # By default it uses the model's score() function (for classification this is sklearn.metrics.accuracy_score)
     # Source: https://scikit-learn.org/stable/modules/grid_search.html#tips-for-parameter-search
 
-    # TODO: understand better the concept of this scoring function, it works much better than the previous but why
-    grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1)
+    if skip_temporal_holdout:
+        # Incorrect approach: non-time-aware splits; only to be used for baseline comparison against Illya
+        grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1, cv=5)
+    else:
+        # Temporal split is the correct way to handle time-series data
+        # In this way, we can still use grid search + cross validation, with time-aware splits
+        # Source: https://stackoverflow.com/a/46918197/8522453
+        #         https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html
+        tscv = TimeSeriesSplit(n_splits=5)
+        grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1, cv=tscv)
 
     with shutup.mute_warnings:
         grid.fit(x_train, y_train)
@@ -208,4 +231,4 @@ def do_grid_search(ruleset_model, train, activity, algorithm="RIPPER", quiet=Tru
     if not quiet:
         print(f"Best {algorithm} parameters for \"{activity}\": {grid.best_params_}")
 
-    return grid.best_estimator_, grid.best_params_
+    return grid.best_params_

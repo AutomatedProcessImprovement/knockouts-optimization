@@ -59,6 +59,7 @@ class Configuration:
     n_discretize_bins: Optional[int] = 10
     dl_allowance: Optional[int] = 1
     prune_size: Optional[float] = 0.8
+    skip_temporal_holdout: Optional[bool] = False
 
     read_options: ReadOptions = ReadOptions(
         column_names=ReadOptions.column_names_default(),
@@ -208,7 +209,6 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
 
 
 def read_log_and_config(config_dir, config_file_name, cache_dir):
-    # TODO: document that add_intercase_and_context and add_only_context are False
     os.makedirs(cache_dir, exist_ok=True)
 
     log_df, config = preprocess(config_file=f"./{config_dir}/{config_file_name}",

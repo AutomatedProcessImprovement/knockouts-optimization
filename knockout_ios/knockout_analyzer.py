@@ -2,7 +2,6 @@ import glob
 import logging
 import os
 import pprint
-import sys
 
 from copy import deepcopy
 from typing import Callable, Optional
@@ -91,8 +90,6 @@ class KnockoutAnalyzer:
                                              quiet=quiet)
 
     def discover_knockouts(self, expected_kos=None):
-        # TODO: if ko activities are provided, skip ko discovery,
-        #  just mark the cases by which activity knocked it out (last one that appears)
         if not (self.config.known_ko_activities is None) and (len(self.config.known_ko_activities) > 0):
             self.discoverer.label_cases_with_known_ko_activities(self.config.known_ko_activities)
         else:
@@ -277,16 +274,13 @@ class KnockoutAnalyzer:
             elif algorithm == "IREP":
                 param_grid = {"prune_size": [0.5, 0.8, 0.9], "n_discretize_bins": [10, 20]}
 
-        try:
-            rulesets = find_ko_rulesets(self.rule_discovery_log_df, self.discoverer.ko_activities,
-                                        self.discoverer.config_file_name, self.cache_dir,
-                                        available_cases_before_ko=self.available_cases_before_ko,
-                                        columns_to_ignore=columns_to_ignore, algorithm=algorithm, max_rules=max_rules,
-                                        max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
-                                        n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
-                                        prune_size=prune_size, grid_search=grid_search, param_grid=param_grid)
-        except Exception as e:
-            raise Exception(f"Error: {e}" + "\nDuring rule discovery.")
+        rulesets = find_ko_rulesets(self.rule_discovery_log_df, self.discoverer.ko_activities,
+                                    available_cases_before_ko=self.available_cases_before_ko,
+                                    columns_to_ignore=columns_to_ignore, algorithm=algorithm, max_rules=max_rules,
+                                    max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
+                                    n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
+                                    prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
+                                    skip_temporal_holdout=self.config.skip_temporal_holdout)
 
         if algorithm == "RIPPER":
             self.RIPPER_rulesets = rulesets
