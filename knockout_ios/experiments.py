@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -19,7 +20,7 @@ def get_cross_val_scores(adviser, cv=5):
         if (len(ruleset) == 0) or ('roc_curve' not in classifier[2]):
             continue
 
-        train = classifier[2]["train"]
+        train = classifier[2]["dataset"]
         X_train = train.drop(['knocked_out_case'], axis=1)
         y_train = train['knocked_out_case']
 
@@ -45,20 +46,26 @@ def get_roc_curves(adviser):
             continue
 
         fpr, tpr, _ = classifier[2]['roc_curve']
+        if any(np.isnan(fpr)) or any(np.isnan(tpr)):
+            continue
+
         plt.plot(
             fpr,
             tpr,
             lw=2,
+            linestyle=np.random.choice(["dashed", "dotted", "dashdot"])
         )
         legends.append(activity)
 
-    plt.plot([0, 1], [0, 1], color="black", lw=2, linestyle="dotted")
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
 
-    plt.legend(legends + ["Baseline"], loc="lower right")
+    # plt.plot([0, 1], [0, 1], color="black", lw=2, linestyle="dotted")
+    # plt.legend(legends + ["Baseline"], loc="lower right")
+
+    plt.legend(legends, loc="lower right")
     plt.show()
 
 
@@ -82,5 +89,6 @@ if __name__ == "__main__":
     synthetic_example()
     envpermit()
 
-# TODO: holdout with time-split - implement before aggregating cases
-# TODO: n-fold validation: justify as implicit in grid search? apply it anyway for metrics?
+# TODO: holdout with time-split - implemented at case-level; aggregate, sort by timestamp, then keep a percentage w/o shuffling
+# TODO: make sure train is past and test is future!
+# TODO: n-fold validation: implicit in grid search; time-aware and normal versions available
