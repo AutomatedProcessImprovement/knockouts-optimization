@@ -156,13 +156,13 @@ class KnockoutRedesignAdviser(object):
 
 
 if __name__ == "__main__":
-    log, configuration = read_log_and_config("config", "synthetic_example_enriched.json",
+    log, configuration = read_log_and_config("test/config", "synthetic_example_enriched.json",
                                              "cache/synthetic_example")
 
     analyzer = KnockoutAnalyzer(log_df=log,
                                 config=configuration,
                                 config_file_name="synthetic_example_enriched.json",
-                                config_dir="config",
+                                config_dir="test/config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
                                 quiet=True)

@@ -392,12 +392,12 @@ class KnockoutAnalyzer:
 
 
 if __name__ == "__main__":
-    _log, _config = read_log_and_config("config", "synthetic_example_enriched.json",
+    _log, _config = read_log_and_config("test/config", "synthetic_example_enriched.json",
                                         "cache/synthetic_example")
     analyzer = KnockoutAnalyzer(log_df=_log,
                                 config=_config,
                                 config_file_name="synthetic_example_enriched.json",
-                                config_dir="config",
+                                config_dir="test/config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
                                 quiet=True)

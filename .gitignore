@@ -5,4 +5,4 @@ __pycache__
 .idea
 venv/
 **/cache/**
-knockout_ios/inputs/BPI*
+knockout_ios/test/inputs/BPI*
