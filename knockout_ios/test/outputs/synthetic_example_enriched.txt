@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-05-31 20:33:57.530508
+Knockouts Redesign Pipeline started @ 2022-06-01 20:26:05.649804
 
 Input parameters:
 
@@ -45,11 +45,11 @@ Input parameters:
 ╒══════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════════╤════════════════════════╤═════════════════╤══════════════════════════════╤════════════════════╤════════════════════════════╤═══════════════════════════╕
 │ Knockout Check       │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)                                                                       │   Effort per rejection │ Mean Duration   │ Total Overprocessing Waste   │ Total PT Waste     │ Total Waiting Time Waste   │ Mean Waiting Time Waste   │
 ╞══════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════╪════════════════════════╪═════════════════╪══════════════════════════════╪════════════════════╪════════════════════════════╪═══════════════════════════╡
-│ Check Monthly Income │              1674 │ 55.8 %           │ 50.06 %          │ [[Monthly_Income=564.21-825.21] V [Monthly_Income=<564.21] V [Monthly_Income=825.21-1012.08]] │                  40.84 │ 0:35:56         │ 139 days, 4:24:45            │ 126 days, 8:02:16  │ 0:00:00                    │ 0:00:00                   │
+│ Check Monthly Income │              1674 │ 55.8 %           │ 50.06 %          │ [[Monthly_Income=564.21-825.21] V [Monthly_Income=825.21-1012.08] V [Monthly_Income=<564.21]] │                  40.84 │ 0:35:56         │ 139 days, 4:24:45            │ 126 days, 8:02:16  │ 0:00:00                    │ 0:00:00                   │
 ├──────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼─────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
-│ Assess application   │               836 │ 27.87 %          │ 80.02 %          │ [[External_Risk_Score=>0.64] V [External_Risk_Score=0.35-0.64]]                               │                  50.2  │ 1:06:57         │ 178 days, 0:35:20            │ 172 days, 22:02:52 │ 0:00:00                    │ 0:00:00                   │
+│ Check Risk           │              2395 │ 79.83 %          │ 30.1 %           │ [[Loan_Ammount=11547.69-16733.85] V [Loan_Ammount=>16733.85]]                                 │                 136.54 │ 1:08:30         │ 143 days, 1:12:24            │ 141 days, 18:10:50 │ 0:00:00                    │ 0:00:00                   │
 ├──────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼─────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
-│ Check Risk           │              2395 │ 79.83 %          │ 30.1 %           │ [[Loan_Ammount=>16733.85] V [Loan_Ammount=11547.69-16733.85]]                                 │                 136.54 │ 1:08:30         │ 143 days, 1:12:24            │ 141 days, 18:10:50 │ 0:00:00                    │ 0:00:00                   │
+│ Assess application   │               836 │ 27.87 %          │ 80.02 %          │ [[External_Risk_Score=0.35-0.64] V [External_Risk_Score=>0.64]]                               │                  50.2  │ 1:06:57         │ 178 days, 0:35:20            │ 172 days, 22:02:52 │ 0:00:00                    │ 0:00:00                   │
 ├──────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼─────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
 │ Check Liability      │              3000 │ 100.0 %          │ 20.17 %          │ [[Total_Debt=>5152.98] V [Owns_Vehicle=FALSE]]                                                │                 202.83 │ 1:08:10         │ 55 days, 18:56:48            │ 55 days, 5:47:50   │ 0:00:00                    │ 0:00:00                   │
 ╘══════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════╧═════════════════╧══════════════════════════════╧════════════════════╧════════════════════════════╧═══════════════════════════╛
@@ -71,21 +71,6 @@ RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': Non
  'rule_count': 3,
  'support': 0.5280764635603346}
 
-"Assess application"
-RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
-{'accuracy': 0.9838383838383838,
- 'condition_count': 2,
- 'confidence': 1.0,
- 'f1_score': 0.962962962962963,
- 'precision': 1.0,
- 'recall': 0.9285714285714286,
- 'roc_auc_score': 0.9642857142857143,
- 'roc_curve': (array([0., 0., 1.]),
-               array([0.        , 0.92857143, 1.        ]),
-               array([2, 1, 0])),
- 'rule_count': 2,
- 'support': 0.7320574162679426}
-
 "Check Risk"
 RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
 {'accuracy': 0.9626262626262626,
@@ -100,6 +85,21 @@ RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': Non
                array([2, 1, 0])),
  'rule_count': 2,
  'support': 0.2559498956158664}
+
+"Assess application"
+RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'accuracy': 0.9838383838383838,
+ 'condition_count': 2,
+ 'confidence': 1.0,
+ 'f1_score': 0.962962962962963,
+ 'precision': 1.0,
+ 'recall': 0.9285714285714286,
+ 'roc_auc_score': 0.9642857142857143,
+ 'roc_curve': (array([0., 0., 1.]),
+               array([0.        , 0.92857143, 1.        ]),
+               array([2, 1, 0])),
+ 'rule_count': 2,
+ 'support': 0.7320574162679426}
 
 "Check Liability"
 RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
@@ -174,22 +174,22 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │ Knockout Check       │ Observation                                                                                   │
 ╞══════════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════╡
 │ Check Monthly Income │ Rule:                                                                                         │
-│                      │ [[Monthly_Income=564.21-825.21] V [Monthly_Income=<564.21] V [Monthly_Income=825.21-1012.08]] │
+│                      │ [[Monthly_Income=564.21-825.21] V [Monthly_Income=825.21-1012.08] V [Monthly_Income=<564.21]] │
 │                      │                                                                                               │
 │                      │ Value ranges of knocked-out cases:                                                            │
 │                      │ - Monthly Income: 3.52 - 998.69                                                               │
 ├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
-│ Assess application   │ Rule:                                                                                         │
-│                      │ [[External_Risk_Score=>0.64] V [External_Risk_Score=0.35-0.64]]                               │
-│                      │                                                                                               │
-│                      │ Value ranges of knocked-out cases:                                                            │
-│                      │ - External Risk Score: 0.30 - 1.00                                                            │
-├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Check Risk           │ Rule:                                                                                         │
-│                      │ [[Loan_Ammount=>16733.85] V [Loan_Ammount=11547.69-16733.85]]                                 │
+│                      │ [[Loan_Ammount=11547.69-16733.85] V [Loan_Ammount=>16733.85]]                                 │
 │                      │                                                                                               │
 │                      │ Value ranges of knocked-out cases:                                                            │
 │                      │ - Loan Ammount: 10003.42 - 40181.17                                                           │
+├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Assess application   │ Rule:                                                                                         │
+│                      │ [[External_Risk_Score=0.35-0.64] V [External_Risk_Score=>0.64]]                               │
+│                      │                                                                                               │
+│                      │ Value ranges of knocked-out cases:                                                            │
+│                      │ - External Risk Score: 0.30 - 1.00                                                            │
 ├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Check Liability      │ Rule:                                                                                         │
 │                      │ [[Total_Debt=>5152.98] V [Owns_Vehicle=FALSE]]                                                │
@@ -198,6 +198,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                      │ - Total Debt: 192.61 - 10719.54                                                               │
 ╘══════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-05-31 20:36:16.123417
+Knockouts Redesign Pipeline ended @ 2022-06-01 20:28:28.346694
 
-Wall-clock execution time:  0:02:18.592975
+Wall-clock execution time:  0:02:22.695930

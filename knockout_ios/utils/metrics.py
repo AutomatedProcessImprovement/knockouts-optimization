@@ -12,6 +12,8 @@ from knockout_ios.utils.constants import globalColumnNames
 
 import swifter
 
+from knockout_ios.utils.custom_exceptions import KnockoutMetricsException
+
 
 def find_rejection_rates(log_df, ko_activities):
     # for every ko_activity,
@@ -43,7 +45,7 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
     total_observations = len(activities)
 
     if total_observations == 0:
-        raise Exception("No ko_activities provided")
+        raise KnockoutMetricsException("No ko_activities provided")
 
     # Compute components of metrics
 

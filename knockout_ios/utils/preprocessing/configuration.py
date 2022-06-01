@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import pm4py
 
+from knockout_ios.utils.custom_exceptions import InvalidFileExtensionException
 from knockout_ios.utils.preprocessing.log_reader.log_reader import LogReader, ReadOptions
 from knockout_ios.utils.preprocessing.feature_extraction import intercase_and_context
 
@@ -147,7 +148,7 @@ def read_config_file(config_file):
     ext = config_file.split(".")
 
     if len(ext) < 2:
-        raise Exception("No file extension provided")
+        raise InvalidFileExtensionException("No file extension provided")
 
     config_path = Path(config_file)
 
@@ -156,7 +157,7 @@ def read_config_file(config_file):
     elif ext[-1] == "json":
         config_data = config_data_from_json(config_path)
     else:
-        raise Exception("Invalid File exception. Must be .yml or .json")
+        raise InvalidFileExtensionException("Invalid File exception. Must be .yml or .json")
 
     config_data.pop("$schema", None)
 
