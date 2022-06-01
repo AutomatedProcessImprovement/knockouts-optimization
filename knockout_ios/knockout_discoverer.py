@@ -18,6 +18,8 @@ import pm4py
 from tqdm import tqdm
 
 from knockout_ios.utils.constants import globalColumnNames
+from knockout_ios.utils.custom_exceptions import ConfigNotLoadedException, KnockoutsDiscoveryException, \
+    LogNotLoadedException, EmptyKnockoutActivitiesException
 from knockout_ios.utils.discovery import discover_ko_sequences
 from knockout_ios.utils.metrics import get_ko_discovery_metrics
 from knockout_ios.utils.formatting import format_for_post_proc, plot_cycle_times_per_ko_activity, \
@@ -58,7 +60,7 @@ class KnockoutDiscoverer:
     def find_ko_activities(self):
 
         if self.config is None:
-            raise Exception("pipeline_config not yet loaded")
+            raise ConfigNotLoadedException
 
         if self.config.ko_count_threshold is None:
             ko_count_threshold = len(self.log_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME].unique())
@@ -91,7 +93,7 @@ class KnockoutDiscoverer:
                                              self.ko_activities))
 
         if (len(self.ko_outcomes) == 0) or (len(self.ko_activities) == 0):
-            raise Exception("Error finding knockouts")
+            raise KnockoutsDiscoveryException("Error finding knockouts")
 
         try:
             if self.force_recompute:
@@ -161,10 +163,10 @@ class KnockoutDiscoverer:
         # Throw error when no KOs are distinguished (all cases are considered 'knocked out')
         # Ask user for more info
         if self.log_df['knocked_out_case'].all():
-            raise Exception("No K.O. ko_activities could be distinguished."
-                            "\n\nSuggestions:"
-                            "\n- Provide negative outcome activity name(s)"
-                            "\n- Provide positive outcome activity name(s)")
+            raise KnockoutsDiscoveryException("No K.O. ko_activities could be distinguished."
+                                              "\n\nSuggestions:"
+                                              "\n- Provide negative outcome activity name(s)"
+                                              "\n- Provide positive outcome activity name(s)")
 
         if not self.quiet:
             print(f"\nPost K.O. activities found in log: {list(self.ko_outcomes)}"
@@ -173,7 +175,7 @@ class KnockoutDiscoverer:
     def label_cases_with_known_ko_activities(self, ko_activities):
 
         if self.config is None:
-            raise Exception("pipeline_config not yet loaded")
+            raise ConfigNotLoadedException("pipeline_config not yet loaded")
 
         self.ko_activities = ko_activities
 
@@ -245,10 +247,10 @@ class KnockoutDiscoverer:
         # Throw error when no KOs are distinguished (all cases are considered 'knocked out')
         # Ask user for more info
         if self.log_df['knocked_out_case'].all():
-            raise Exception("No K.O. ko_activities could be distinguished."
-                            "\n\nSuggestions:"
-                            "\n- Provide negative outcome activity name(s)"
-                            "\n- Provide positive outcome activity name(s)")
+            raise KnockoutsDiscoveryException("No K.O. ko_activities could be distinguished."
+                                              "\n\nSuggestions:"
+                                              "\n- Provide negative outcome activity name(s)"
+                                              "\n- Provide positive outcome activity name(s)")
 
     def print_basic_stats(self):
         # Basic impact assessment
@@ -256,7 +258,7 @@ class KnockoutDiscoverer:
         # vs. cases that don't get knockout out but have negative end
 
         if self.log_df is None:
-            raise Exception("log not yet processed")
+            raise LogNotLoadedException("log not yet processed")
 
         aggregated_df = format_for_post_proc(self.log_df)
 
@@ -269,7 +271,7 @@ class KnockoutDiscoverer:
     def get_discovery_metrics(self, expected_kos):
 
         if self.ko_activities is None:
-            raise Exception("ko ko_activities not yet computed")
+            raise EmptyKnockoutActivitiesException("ko ko_activities not yet computed")
 
         return get_ko_discovery_metrics(self.get_activities(), expected_kos, self.ko_activities)
 

@@ -5,6 +5,8 @@ import streamlit as st
 
 from knockout_ios.pipeline_wrapper import Pipeline
 from knockout_ios.utils.constants import globalColumnNames
+from knockout_ios.utils.custom_exceptions import KnockoutsDiscoveryException, InvalidFileExtensionException, \
+    KnockoutRuleDiscoveryException
 
 initial_state = [("config_dir", "config"), ("config_file_name", "envpermit.json"),
                  ("cache_dir", "cache"),
@@ -54,29 +56,37 @@ def load_log(config_dir, config_file_name, cache_dir):
 
 
 def load_log_wrapper():
-    with st.spinner('Reading Log and Config...'):
-        st.session_state['pipeline'], st.session_state['log_activities'], st.session_state[
-            'log_attributes'] = load_log(config_dir=st.session_state['config_dir'],
-                                         config_file_name=st.session_state['config_file_name'],
-                                         cache_dir=st.session_state['cache_dir'])
+    try:
+        with st.spinner('Reading Log and Config...'):
+            st.session_state['pipeline'], st.session_state['log_activities'], st.session_state[
+                'log_attributes'] = load_log(config_dir=st.session_state['config_dir'],
+                                             config_file_name=st.session_state['config_file_name'],
+                                             cache_dir=st.session_state['cache_dir'])
 
-        # Initially assume user wants to consider all attributes in the analysis
-        st.session_state['attributes_to_consider'] = st.session_state['log_attributes']
+            # Initially assume user wants to consider all attributes in the analysis
+            st.session_state['attributes_to_consider'] = st.session_state['log_attributes']
 
-        # Reflect any info already provided via the config file
-        if not (st.session_state['pipeline'].config.attributes_to_ignore is None):
-            st.session_state['attributes_to_consider'] = [x for x in st.session_state['attributes_to_consider'] if
-                                                          x not in st.session_state[
-                                                              'pipeline'].config.attributes_to_ignore]
+            # Reflect any info already provided via the config file
+            if not (st.session_state['pipeline'].config.attributes_to_ignore is None):
+                st.session_state['attributes_to_consider'] = [x for x in st.session_state['attributes_to_consider'] if
+                                                              x not in st.session_state[
+                                                                  'pipeline'].config.attributes_to_ignore]
 
-        st.session_state['known_ko_activities'] = st.session_state['pipeline'].config.known_ko_activities
-        st.session_state['post_ko_activities'] = st.session_state['pipeline'].config.post_knockout_activities
-        st.session_state['success_activities'] = st.session_state['pipeline'].config.success_activities
+            st.session_state['known_ko_activities'] = st.session_state['pipeline'].config.known_ko_activities
+            st.session_state['post_ko_activities'] = st.session_state['pipeline'].config.post_knockout_activities
+            st.session_state['success_activities'] = st.session_state['pipeline'].config.success_activities
 
-        fields = {'attributes_to_consider': st.session_state['attributes_to_consider'],
-                  'known_ko_activities': st.session_state['known_ko_activities'],
-                  'post_ko_activities': st.session_state['post_ko_activities']}
-        logging.info(f"Read from config: {fields}")
+            fields = {'attributes_to_consider': st.session_state['attributes_to_consider'],
+                      'known_ko_activities': st.session_state['known_ko_activities'],
+                      'post_ko_activities': st.session_state['post_ko_activities']}
+            logging.info(f"Read from config: {fields}")
+
+    except InvalidFileExtensionException as e:
+        logging.error(e)
+        st.error("Invalid file extension")
+    except Exception as e:
+        logging.error(e)
+        st.error("Error running analysis. Check the console for details.")
 
 
 def run_analysis():
@@ -97,7 +107,12 @@ def run_analysis_wrapper():
             if not (st.session_state["ko_redesign_adviser"] is None):
                 data = pd.read_csv(st.session_state["ko_redesign_adviser"].knockout_analyzer.report_file_name)
                 st.table(data)
-
+        except KnockoutRuleDiscoveryException as e:
+            logging.error(e)
+            st.error("Error discovering Knockout Rules. Check the console for details.")
+        except KnockoutsDiscoveryException as e:
+            logging.error(e)
+            st.error("Error discovering Knockout Activities. Check the console for details.")
         except Exception as e:
             logging.error(e)
             st.error("Error running analysis. Check the console for details.")
