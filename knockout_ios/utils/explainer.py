@@ -12,8 +12,7 @@ from tqdm import tqdm
 #  currently trying to suppress just with -Wignore
 import wittgenstein as lw
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, \
-    StratifiedGroupKFold
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
@@ -231,6 +230,9 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
     #
     # By default it uses the model's score() function (for classification this is sklearn.metrics.accuracy_score)
     # Source: https://scikit-learn.org/stable/modules/grid_search.html#tips-for-parameter-search
+
+    # More about splitting techniques here:
+    # https://scikit-learn.org/stable/modules/cross_validation.html#cross-validation
 
     if skip_temporal_holdout:
         # Incorrect approach: non-time-aware splits; only to be used for baseline comparison against Illya
