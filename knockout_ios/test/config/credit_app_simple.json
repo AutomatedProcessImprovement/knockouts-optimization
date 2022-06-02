@@ -1,0 +1,10 @@
+{
+  "log_path": "./test/inputs/credit_app_simplified.xes",
+  "output": "test/outputs",
+  "start_activity": "Start",
+  "post_knockout_activities": [
+    "Notify rejection"
+  ],
+  "success_activities": [],
+  "known_ko_activities": []
+}

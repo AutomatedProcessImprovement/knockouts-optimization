@@ -10,7 +10,6 @@ def enrich_log_with_fully_known_attributes(ko_analyzer: 'KnockoutAnalyzer', log:
     Returns the log enriched with attributes whose values are known from the begging of the case
     '''
 
-    # TODO: remove this if the .xes exporting problem is ever fixed - not critical anyway.
     if "synthetic_example" in ko_analyzer.config_file_name:
         try:
             if ko_analyzer.always_force_recompute:
@@ -42,7 +41,6 @@ def enrich_log_for_ko_order_advanced_test(ko_analyzer: 'KnockoutAnalyzer',
     'Aggregated Risk Score Check'
     '''
 
-    # TODO: remove this if the .xes exporting problem is ever fixed - not critical anyway.
     if "synthetic_example" in ko_analyzer.config_file_name:
         try:
             if ko_analyzer.always_force_recompute:
@@ -75,7 +73,6 @@ def enrich_log_for_synthetic_example_validation(ko_analyzer: 'KnockoutAnalyzer',
     'Aggregated Risk Score Check'
     '''
 
-    # TODO: remove this if the .xes exporting problem is ever fixed - not critical anyway.
     if "synthetic_example" in ko_analyzer.config_file_name:
         try:
             if ko_analyzer.always_force_recompute:

@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import pm4py
 
+from knockout_ios.utils.custom_exceptions import InvalidFileExtensionException
 from knockout_ios.utils.preprocessing.log_reader.log_reader import LogReader, ReadOptions
 from knockout_ios.utils.preprocessing.feature_extraction import intercase_and_context
 
@@ -59,6 +60,8 @@ class Configuration:
     n_discretize_bins: Optional[int] = 10
     dl_allowance: Optional[int] = 1
     prune_size: Optional[float] = 0.8
+    skip_temporal_holdout: Optional[bool] = False
+    balance_classes: Optional[bool] = False
 
     read_options: ReadOptions = ReadOptions(
         column_names=ReadOptions.column_names_default(),
@@ -146,7 +149,7 @@ def read_config_file(config_file):
     ext = config_file.split(".")
 
     if len(ext) < 2:
-        raise Exception("No file extension provided")
+        raise InvalidFileExtensionException("No file extension provided")
 
     config_path = Path(config_file)
 
@@ -155,7 +158,7 @@ def read_config_file(config_file):
     elif ext[-1] == "json":
         config_data = config_data_from_json(config_path)
     else:
-        raise Exception("Invalid File exception. Must be .yml or .json")
+        raise InvalidFileExtensionException("Invalid File exception. Must be .yml or .json")
 
     config_data.pop("$schema", None)
 
@@ -208,7 +211,6 @@ def preprocess(config_file, config_dir="pipeline_config", cache_dir="./cache/", 
 
 
 def read_log_and_config(config_dir, config_file_name, cache_dir):
-    # TODO: document that add_intercase_and_context and add_only_context are False
     os.makedirs(cache_dir, exist_ok=True)
 
     log_df, config = preprocess(config_file=f"./{config_dir}/{config_file_name}",

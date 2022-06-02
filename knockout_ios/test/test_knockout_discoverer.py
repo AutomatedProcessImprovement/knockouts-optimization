@@ -18,7 +18,7 @@ credit_app_scenarios = [
 
 @pytest.mark.parametrize("config_file, expected_outcomes, expected_kos", credit_app_scenarios)
 def test_credit_app(config_file, expected_outcomes, expected_kos):
-    log, configuration = read_log_and_config("config", config_file, "./cache/credit_app")
+    log, configuration = read_log_and_config("test/config", config_file, "./cache/credit_app")
 
     analyzer = KnockoutDiscoverer(log_df=log, config=configuration, config_file_name=config_file,
                                   cache_dir="./cache/credit_app",
@@ -50,29 +50,3 @@ loan_app_scenarios = [
     ("loan_app_w_positive.json", loan_app_post_knockout_activities, loan_app_kos),
     ("loan_app_w_negative.json", loan_app_post_knockout_activities, loan_app_kos),
 ]
-
-
-# TODO: This test is slow. Skip depending on slow/no-slow flag like Simod.
-@pytest.mark.skip(reason="Slow test")
-@pytest.mark.parametrize("config_file, expected_outcomes, expected_kos", loan_app_scenarios)
-def test_loan_app(config_file, expected_outcomes, expected_kos):
-    log, configuration = read_log_and_config("config", config_file, "./cache/loan_app")
-
-    analyzer = KnockoutDiscoverer(log_df=log, config=configuration, config_file_name=config_file,
-                                  cache_dir="./cache/loan_app",
-                                  always_force_recompute=True, quiet=True)
-    analyzer.find_ko_activities()
-
-    assert len(analyzer.ko_outcomes) == len(expected_outcomes)
-    for outcome in expected_outcomes:
-        assert outcome in analyzer.ko_outcomes
-
-    assert len(analyzer.ko_activities) == len(expected_kos)
-    for ko in expected_kos:
-        assert ko in analyzer.ko_activities
-
-    metrics = analyzer.get_discovery_metrics(expected_kos)
-    assert metrics['accuracy'] == pytest.approx(1.0)
-    assert metrics['f1_score'] == pytest.approx(1.0)
-    assert metrics['precision'] == pytest.approx(1.0)
-    assert metrics['recall'] == pytest.approx(1.0)

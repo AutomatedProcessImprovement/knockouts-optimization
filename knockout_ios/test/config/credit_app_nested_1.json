@@ -1,0 +1,10 @@
+{
+  "log_path": "./test/inputs/credit_app_nested_1.xes",
+  "output": "test/outputs",
+  "start_activity": "Start",
+  "post_knockout_activities": [
+    "Reject application"
+  ],
+  "success_activities": [],
+  "known_ko_activities": []
+}

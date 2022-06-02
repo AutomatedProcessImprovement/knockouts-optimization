@@ -1,0 +1,272 @@
+Knockouts Redesign Pipeline started @ 2022-05-13 12:11:13.393971
+
+Input parameters:
+
+{'always_force_recompute': True,
+ 'attributes_to_ignore': [],
+ 'cache_dir': 'cache/bpi_2017_1k',
+ 'confidence_threshold': 0.5,
+ 'config_dir': None,
+ 'config_file_name': None,
+ 'config_path': None,
+ 'custom_log_preprocessing_function': None,
+ 'dl_allowance': 1,
+ 'exclude_from_ko_activities': ['End'],
+ 'grid_search': False,
+ 'k': 2,
+ 'known_ko_activities': [],
+ 'ko_count_threshold': None,
+ 'log_path': WindowsPath('inputs/BPI Challenge 2017_1K_filtered.xes'),
+ 'max_rule_conds': None,
+ 'max_rules': 3,
+ 'n_discretize_bins': 20,
+ 'post_knockout_activities': ['A_Denied'],
+ 'output': WindowsPath('outputs'),
+ 'success_activities': [],
+ 'print_rule_discovery_stats': True,
+ 'prune_size': 0.5,
+ 'read_options': {'column_names': {'Activity': 'task',
+                                   'Case ID': 'caseid',
+                                   'Resource': 'user',
+                                   'lifecycle:transition': 'event_type'},
+                  'filter_d_attrib': True,
+                  'one_timestamp': False,
+                  'timeformat': '%Y-%m-%dT%H:%M:%S.%f'},
+ 'redesign_results_file_path': 'outputs/bpi_2017_1k.txt',
+ 'rule_discovery_algorithm': 'RIPPER',
+ 'start_activity': 'A_Create Application',
+ 'support_threshold': 0.1}
+
+
+
+Error: Only one class present in y_true. ROC AUC score is not defined in that case.
+During rule discovery for activity: A_Complete
+Positive examples :4
+
+
+Error: Only one class present in y_true. ROC AUC score is not defined in that case.
+During rule discovery for activity: O_Cancelled
+Positive examples :2
+
+
+Error: Only one class present in y_true. ROC AUC score is not defined in that case.
+During rule discovery for activity: O_Created
+Positive examples :2
+
+╒══════════════════════════╤═══════════════════╤══════════════════╤═════════════════╤══════════════════╤═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╤════════════════════════╤══════════════════════════════╤════════════════════╤════════════════════════════╤═══════════════════════════╕
+│ Knockout Check           │   Total frequency │ Case frequency   │ Mean Duration   │ Rejection rate   │ Rejection rule (RIPPER)                                                                                                                 │   Effort per rejection │ Total Overprocessing Waste   │ Total PT Waste     │ Total Waiting Time Waste   │ Mean Waiting Time Waste   │
+╞══════════════════════════╪═══════════════════╪══════════════════╪═════════════════╪══════════════════╪═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╪════════════════════════╪══════════════════════════════╪════════════════════╪════════════════════════════╪═══════════════════════════╡
+│ W_Assess potential fraud │                 7 │ 0.49 %           │ 15:39:51        │ 42.9 %           │ [[MonthlyCost=400.0-466.19^Selected=0.0]]                                                                                               │         1314.49        │ 28 days, 11:37:19            │ 5 days, 8:31:00    │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ O_Returned               │              1510 │ 104.64 %         │ 0:00:00         │ 12.6 %           │ [[CreditScore=<722.0^Action=Deleted^Accepted=0.0] V [CreditScore=<722.0^Action=Deleted^NumberOfTerms=102.4-120.0^Selected=1.0]]         │            0           │ 2384 days, 5:29:57           │ 420 days, 18:02:16 │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ W_Validate application   │              1063 │ 73.67 %          │ 2 days, 2:51:47 │ 0.1 %            │ []                                                                                                                                      │            1.83108e+06 │ 9 days, 1:53:31              │ 3 days, 0:08:52    │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ A_Validating             │              2356 │ 163.27 %         │ 0:00:00         │ 2.9 %            │ [[CreditScore=<682.6^Action=Deleted^NumberOfTerms=51.0-57.0^OfferedAmount=10880.0-13000.0]]                                             │            0           │ 620 days, 10:55:34           │ 163 days, 4:55:45  │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ A_Complete               │              1441 │ 99.86 %          │ 0:00:00         │ 0.8 %            │ [[Selected=0.0^MonthlyCost=250.0-274.92^FirstWithdrawalAmount=<354.0] V [MonthlyCost=300.0-303.93^FirstWithdrawalAmount=1361.2-2500.0]] │            0           │ 61 days, 0:05:27             │ 0:54:42            │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ O_Cancelled              │               459 │ 31.81 %          │ 0:00:00         │ 0.9 %            │ [[OfferedAmount=7480.0-8800.0^NumberOfTerms=111.0-120.0]]                                                                               │            0           │ 50 days, 12:10:03            │ 12 days, 5:55:23   │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ A_Incomplete             │              1071 │ 74.22 %          │ 0:00:00         │ 0.9 %            │ [[OfferedAmount=12500.0-15000.0^CreditScore=<717.0^NumberOfTerms=58.0-60.0]]                                                            │            0           │ 82 days, 8:07:14             │ 15 days, 18:03:59  │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ O_Sent (mail and online) │              1823 │ 126.33 %         │ 0:00:00         │ 0.2 %            │ []                                                                                                                                      │            0           │ 65 days, 16:16:55            │ 0:29:57            │ 0:00:00                    │ 0:00:00                   │
+├──────────────────────────┼───────────────────┼──────────────────┼─────────────────┼──────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ O_Created                │              1977 │ 137.01 %         │ 0:00:00         │ 0.1 %            │ [[NumberOfTerms=94.0-106.0^MonthlyCost=162.03-193.03]]                                                                                  │            0           │ 4 days, 19:04:40             │ 4:14:30            │ 0:00:00                    │ 0:00:00                   │
+╘══════════════════════════╧═══════════════════╧══════════════════╧═════════════════╧══════════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╧════════════════════════╧══════════════════════════════╧════════════════════╧════════════════════════════╧═══════════════════════════╛
+
+RIPPER
+
+"W_Assess potential fraud"
+# conditions: 2, # rules: 1
+support: 0.43, confidence: 0.33 
+roc_auc score: 0.50, f1 score: 0.00, accuracy: 0.99, precision: 0.00, recall: 0.00
+
+"O_Returned"
+# conditions: 7, # rules: 2
+support: 0.10, confidence: 0.62 
+roc_auc score: 0.71, f1 score: 0.51, accuracy: 0.87, precision: 0.57, recall: 0.47
+
+"A_Validating"
+# conditions: 4, # rules: 1
+support: 0.00, confidence: 0.50 
+roc_auc score: 0.50, f1 score: 0.00, accuracy: 0.97, precision: 0.00, recall: 0.00
+
+"A_Complete"
+# conditions: 5, # rules: 2
+support: 0.00, confidence: 0.67 
+roc_auc score: 0.00, f1 score: 0.00, accuracy: 0.00, precision: 0.00, recall: 0.00
+
+"O_Cancelled"
+# conditions: 2, # rules: 1
+support: 0.01, confidence: 0.25 
+roc_auc score: 0.00, f1 score: 0.00, accuracy: 0.00, precision: 0.00, recall: 0.00
+
+"A_Incomplete"
+# conditions: 3, # rules: 1
+support: 0.00, confidence: 0.60 
+roc_auc score: 1.00, f1 score: 0.50, accuracy: 0.99, precision: 0.33, recall: 1.00
+
+"O_Created"
+# conditions: 2, # rules: 1
+support: 0.00, confidence: 0.33 
+roc_auc score: 0.00, f1 score: 0.00, accuracy: 0.00, precision: 0.00, recall: 0.00
+
+** Redesign options **
+
+
+> Dependencies of KO activities
+
+╒══════════════════════════╤═══════════════════════════════════════════════════════════════╕
+│ Knockout Check           │ Dependencies                                                  │
+╞══════════════════════════╪═══════════════════════════════════════════════════════════════╡
+│ O_Returned               │ 'Action' available after activity 'A_Create Application'      │
+│                          │ 'Accepted' available after activity 'A_Accepted'              │
+│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
+│                          │ 'CreditScore' available after activity 'A_Accepted'           │
+│                          │ 'Selected' available after activity 'A_Accepted'              │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ A_Validating             │ 'CreditScore' available after activity 'A_Accepted'           │
+│                          │ 'Action' available after activity 'O_Sent (mail and online)'  │
+│                          │ 'OfferedAmount' available after activity 'A_Accepted'         │
+│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ A_Incomplete             │ 'CreditScore' available after activity 'A_Accepted'           │
+│                          │ 'OfferedAmount' available after activity 'A_Accepted'         │
+│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ A_Complete               │ 'MonthlyCost' available after activity 'A_Accepted'           │
+│                          │ 'FirstWithdrawalAmount' available after activity 'A_Accepted' │
+│                          │ 'Selected' available after activity 'A_Accepted'              │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ O_Created                │ 'MonthlyCost' available after activity 'A_Complete'           │
+│                          │ 'NumberOfTerms' available after activity 'A_Complete'         │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ W_Assess potential fraud │ 'MonthlyCost' available after activity 'A_Complete'           │
+│                          │ 'Selected' available after activity 'A_Accepted'              │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ O_Cancelled              │ 'OfferedAmount' available after activity 'A_Accepted'         │
+│                          │ 'NumberOfTerms' available after activity 'A_Accepted'         │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ W_Validate application   │ required attributes are available from the start.             │
+├──────────────────────────┼───────────────────────────────────────────────────────────────┤
+│ O_Sent (mail and online) │ required attributes are available from the start.             │
+╘══════════════════════════╧═══════════════════════════════════════════════════════════════╛
+
+
+> Knock-out Re-ordering
+
+Optimal Order of Knock-out checks (taking into account attribute dependencies):
+1. O_Returned
+2. A_Validating
+3. O_Cancelled
+4. A_Incomplete
+5. A_Complete
+6. O_Sent (mail and online)
+7. O_Created
+8. W_Assess potential fraud
+9. W_Validate application
+
+0/1192 non-knocked-out case(s) follow it.
+
+
+> Knock-out Re-location
+
+╒═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Variant / Relocation Suggestion                                                                                                                                                                                                                                                                                 │
+╞═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Start -> A_Create Application -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> W_Complete application -> A_Complete -> A_Validating -> O_Returned -> O_Accepted -> A_Pending -> W_Validate application -> End                                                           │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Concept -> A_Accepted -> A_Validating -> A_Complete -> O_Created -> O_Create Offer -> W_Complete application -> O_Accepted -> A_Pending -> W_Validate application -> End                                                           │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Submitted -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> A_Complete -> A_Validating -> O_Returned -> O_Accepted -> A_Pending -> End                                                                                                │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Submitted -> A_Concept -> A_Accepted -> A_Validating -> A_Complete -> O_Created -> O_Create Offer -> O_Accepted -> A_Pending -> End                                                                                                │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> W_Complete application -> A_Complete -> A_Validating -> O_Returned -> O_Accepted -> A_Pending -> End                                                                                     │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Concept -> A_Accepted -> A_Validating -> A_Complete -> O_Created -> O_Create Offer -> W_Complete application -> O_Accepted -> A_Pending -> End                                                                                     │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Submitted -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> A_Complete -> A_Validating -> O_Returned -> A_Incomplete -> A_Validating -> O_Accepted -> A_Pending -> End                                                                │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Submitted -> A_Concept -> A_Accepted -> A_Validating -> A_Validating -> A_Incomplete -> A_Complete -> O_Created -> O_Create Offer -> O_Accepted -> A_Pending -> End                                                                │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> W_Complete application -> A_Complete -> A_Validating -> O_Returned -> A_Incomplete -> A_Validating -> O_Accepted -> A_Pending -> End                                                     │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Concept -> A_Accepted -> A_Validating -> A_Validating -> A_Incomplete -> A_Complete -> O_Created -> O_Create Offer -> W_Complete application -> O_Accepted -> A_Pending -> End                                                     │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> W_Complete application -> A_Complete -> A_Validating -> O_Returned -> W_Validate application -> A_Incomplete -> A_Validating -> O_Accepted -> A_Pending -> W_Validate application -> End │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Concept -> A_Accepted -> A_Validating -> A_Validating -> A_Incomplete -> A_Complete -> O_Created -> O_Create Offer -> W_Complete application -> O_Accepted -> A_Pending -> W_Validate application -> W_Validate application -> End │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Submitted -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> W_Complete application -> A_Complete -> A_Validating -> O_Returned -> O_Accepted -> A_Pending -> End                                                                      │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Submitted -> A_Concept -> A_Accepted -> A_Validating -> A_Complete -> O_Created -> O_Create Offer -> W_Complete application -> O_Accepted -> A_Pending -> End                                                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Submitted -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> W_Complete application -> A_Complete -> A_Validating -> O_Returned -> A_Incomplete -> A_Validating -> O_Accepted -> A_Pending -> End                                      │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Submitted -> A_Concept -> A_Accepted -> A_Validating -> A_Validating -> A_Incomplete -> A_Complete -> O_Created -> O_Create Offer -> W_Complete application -> O_Accepted -> A_Pending -> End                                      │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> A_Complete -> A_Validating -> O_Returned -> O_Accepted -> A_Pending -> End                                                                                                               │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Concept -> A_Accepted -> A_Validating -> A_Complete -> O_Created -> O_Create Offer -> O_Accepted -> A_Pending -> End                                                                                                               │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Start -> A_Create Application -> A_Submitted -> A_Concept -> A_Accepted -> O_Create Offer -> O_Created -> O_Sent (mail and online) -> A_Complete -> A_Validating -> O_Returned -> A_Denied -> O_Refused -> W_Validate application -> End                                                                        │
+│ Start -> A_Create Application -> O_Returned -> O_Sent (mail and online) -> A_Submitted -> A_Concept -> A_Accepted -> A_Validating -> A_Complete -> O_Created -> O_Create Offer -> A_Denied -> O_Refused -> W_Validate application -> End                                                                        │
+╘═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+
+
+> Knock-out rule value ranges
+
+╒══════════════════════════╤═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Knockout Check           │ Observation                                                                                                                             │
+╞══════════════════════════╪═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ W_Assess potential fraud │ Rule:                                                                                                                                   │
+│                          │ [[MonthlyCost=400.0-466.19^Selected=0.0]]                                                                                               │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - MonthlyCost: 97.40 - 439.29                                                                                                           │
+│                          │ - Selected: 0.00 - 1.00                                                                                                                 │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ O_Returned               │ Rule:                                                                                                                                   │
+│                          │ [[CreditScore=<722.0^Action=Deleted^Accepted=0.0] V [CreditScore=<722.0^Action=Deleted^NumberOfTerms=102.4-120.0^Selected=1.0]]         │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - Accepted: 0.00 - 1.00                                                                                                                 │
+│                          │ - NumberOfTerms: 18.00 - 138.00                                                                                                         │
+│                          │ - CreditScore: 0.00 - 0.00                                                                                                              │
+│                          │ - Selected: 0.00 - 1.00                                                                                                                 │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ A_Validating             │ Rule:                                                                                                                                   │
+│                          │ [[CreditScore=<682.6^Action=Deleted^NumberOfTerms=51.0-57.0^OfferedAmount=10880.0-13000.0]]                                             │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - CreditScore: 0.00 - 0.00                                                                                                              │
+│                          │ - OfferedAmount: 5000.00 - 50000.00                                                                                                     │
+│                          │ - NumberOfTerms: 23.00 - 134.00                                                                                                         │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ A_Complete               │ Rule:                                                                                                                                   │
+│                          │ [[Selected=0.0^MonthlyCost=250.0-274.92^FirstWithdrawalAmount=<354.0] V [MonthlyCost=300.0-303.93^FirstWithdrawalAmount=1361.2-2500.0]] │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - MonthlyCost: 157.59 - 303.93                                                                                                          │
+│                          │ - FirstWithdrawalAmount: 0.00 - 15000.00                                                                                                │
+│                          │ - Selected: 0.00 - 0.00                                                                                                                 │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ O_Cancelled              │ Rule:                                                                                                                                   │
+│                          │ [[OfferedAmount=7480.0-8800.0^NumberOfTerms=111.0-120.0]]                                                                               │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - OfferedAmount: 7000.00 - 7500.00                                                                                                      │
+│                          │ - NumberOfTerms: 120.00 - 120.00                                                                                                        │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ A_Incomplete             │ Rule:                                                                                                                                   │
+│                          │ [[OfferedAmount=12500.0-15000.0^CreditScore=<717.0^NumberOfTerms=58.0-60.0]]                                                            │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - CreditScore: 0.00 - 0.00                                                                                                              │
+│                          │ - OfferedAmount: 5000.00 - 15000.00                                                                                                     │
+│                          │ - NumberOfTerms: 60.00 - 127.00                                                                                                         │
+├──────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ O_Created                │ Rule:                                                                                                                                   │
+│                          │ [[NumberOfTerms=94.0-106.0^MonthlyCost=162.03-193.03]]                                                                                  │
+│                          │                                                                                                                                         │
+│                          │ Value ranges of knocked-out cases:                                                                                                      │
+│                          │ - MonthlyCost: 150.00 - 180.77                                                                                                          │
+│                          │ - NumberOfTerms: 101.00 - 127.00                                                                                                        │
+╘══════════════════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+
+Knockouts Redesign Pipeline ended @ 2022-05-13 12:11:58.466938
+
+Wall-clock execution time:  0:00:45.072457

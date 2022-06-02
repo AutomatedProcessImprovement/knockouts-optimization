@@ -1,0 +1,10 @@
+{
+  "log_path": "test/inputs/synthetic_example/synthetic_example_raw.xes",
+  "output": "test/outputs",
+  "start_activity": "Credit application received",
+  "post_knockout_activities": [
+    "Notify rejection"
+  ],
+  "success_activities": [],
+  "known_ko_activities": []
+}

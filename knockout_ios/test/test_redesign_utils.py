@@ -64,10 +64,7 @@ def test_pure_relocation_3():
 
 
 def test_relocation_BPI():
-    try:
-        bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
-    except FileNotFoundError:
-        bpi_knockout_analyzer = pd.read_pickle("bpi_2017_1k_W")
+    bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
 
     dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
     reordering = evaluate_knockout_reordering_io(bpi_knockout_analyzer,
@@ -106,10 +103,7 @@ def test_relocation_BPI():
 
 
 def test_relocation_BPI_2():
-    try:
-        bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W_2")
-    except FileNotFoundError:
-        bpi_knockout_analyzer = pd.read_pickle("bpi_2017_1k_W_2")
+    bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W_2")
 
     dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
     reordering = evaluate_knockout_reordering_io(bpi_knockout_analyzer,
