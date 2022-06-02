@@ -16,13 +16,13 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ## Usage
 
-Create a config file following the schema defined in `config_schema.json` (see [`config`](
-./config) directory for examples). Then you can choose whether to:
+Create a config file following the schema defined in `config/config_schema.json` (the directory also contains examples).
+Then you can choose whether to:
 
 - Launch the tool as a web app (powered by [Streamlit](https://streamlit.io/)):
 
   ```bash
-  ./launch_ui.sh
+  ./start.sh
   ```
 
 - Or programmatically:

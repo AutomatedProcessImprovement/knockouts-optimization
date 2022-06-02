@@ -12,14 +12,17 @@ from tqdm import tqdm
 #  currently trying to suppress just with -Wignore
 import wittgenstein as lw
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, \
+    StratifiedGroupKFold
 
+from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
 
 
 def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None, algorithm='IREP',
                      max_rules=None, max_rule_conds=None, max_total_conds=None, k=2, n_discretize_bins=7,
-                     dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None, skip_temporal_holdout=False
+                     dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None, skip_temporal_holdout=False,
+                     balance_classes=False,
                      ):
     if columns_to_ignore is None:
         columns_to_ignore = []
@@ -38,17 +41,31 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
 
         if skip_temporal_holdout:
             # This simple train/test split is incorrect; need time-aware splits; only used for baseline comparison against Illya
-            # balance ko'd/non ko'd cases
-            _by_case = _by_case.groupby("knocked_out_case")
-            _by_case = _by_case.apply(lambda x: x.sample(_by_case.size().min()).reset_index(drop=True))
-            _by_case = _by_case.reset_index(drop=True)
-            # split with the same proportion as Illya
-            train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
-                                           test_size=.2, stratify=_by_case["knocked_out_case"])
+
+            # split with the same proportion as Illya, 20% for final metrics calculation
+            _by_case, test = train_test_split(_by_case, test_size=.2)
+            test = test.drop(columns=columns_to_ignore, errors='ignore')
+
+            if balance_classes:
+                # with the remaining 80%, balance ko'd/non ko'd cases
+                train = _by_case.groupby("knocked_out_case")
+                train = train.apply(lambda x: x.sample(train.size().min()).reset_index(drop=True))
+                train = train.reset_index(drop=True)
+                train = train.drop(columns=columns_to_ignore, errors='ignore')
+            else:
+                train = _by_case.drop(columns=columns_to_ignore, errors='ignore')
+
         else:
-            _by_case = _by_case.sort_values(by=['start_timestamp'])
-            train, test = train_test_split(_by_case.drop(columns=columns_to_ignore, errors='ignore'),
-                                           test_size=.33, shuffle=False)
+            # Temporal holdout: take first 80% of cases, so that cases in test set happen after those in training set
+            _by_case = _by_case.sort_values(by=[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
+            train, test = train_test_split(_by_case, test_size=.2, shuffle=False)
+
+            # make sure that all cases in the test set are after the last timestamp of the training set
+            last_timestamp = train.iloc[-1][globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME]
+            assert test[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME].max() > last_timestamp
+
+            test = test.drop(columns=columns_to_ignore, errors='ignore')
+            train = train.drop(columns=columns_to_ignore, errors='ignore')
 
         if algorithm == "RIPPER":
             ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
@@ -92,7 +109,8 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
             metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
             metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
         except Exception:
-            pass
+            metrics['roc_auc_score'] = 0.5
+            metrics['roc_curve'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), None
 
         rulesets[activity] = (
             ruleset_model,
@@ -216,13 +234,14 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
 
     if skip_temporal_holdout:
         # Incorrect approach: non-time-aware splits; only to be used for baseline comparison against Illya
+        # sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True)
         grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1, cv=5)
     else:
         # Temporal split is the correct way to handle time-series data
         # In this way, we can still use grid search + cross validation, with time-aware splits
         # Source: https://stackoverflow.com/a/46918197/8522453
         #         https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html
-        tscv = TimeSeriesSplit(n_splits=5)
+        tscv = TimeSeriesSplit(gap=0, max_train_size=None, test_size=None, n_splits=3)
         grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1, cv=tscv)
 
     with shutup.mute_warnings:

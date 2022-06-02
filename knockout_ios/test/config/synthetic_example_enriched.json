@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../config_schema.json",
+  "$schema": "../../../config/config_schema.json",
   "log_path": "test/inputs/synthetic_example/synthetic_example_enriched.xes",
   "output": "test/outputs",
   "redesign_results_file_path": "test/outputs/synthetic_example_enriched.txt",

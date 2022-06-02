@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import pprint
+import traceback
 
 from copy import deepcopy
 from typing import Callable, Optional
@@ -283,9 +284,11 @@ class KnockoutAnalyzer:
                                         max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
-                                        skip_temporal_holdout=self.config.skip_temporal_holdout)
-        except Exception as e:
-            raise KnockoutRuleDiscoveryException(f"Error during rule discovery: {e}")
+                                        skip_temporal_holdout=self.config.skip_temporal_holdout,
+                                        balance_classes=self.config.balance_classes)
+        except Exception:
+            logging.error(traceback.format_exc())
+            raise KnockoutRuleDiscoveryException
 
         if algorithm == "RIPPER":
             self.RIPPER_rulesets = rulesets

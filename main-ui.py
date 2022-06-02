@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 import pandas as pd
 import streamlit as st
@@ -50,8 +51,8 @@ def load_log(config_dir, config_file_name, cache_dir):
 
         return pipeline, log_activities, log_attributes
 
-    except FileNotFoundError as e:
-        logging.error(e)
+    except FileNotFoundError:
+        logging.error(traceback.format_exc())
         st.error("Config file not found")
 
 
@@ -81,11 +82,11 @@ def load_log_wrapper():
                       'post_ko_activities': st.session_state['post_ko_activities']}
             logging.info(f"Read from config: {fields}")
 
-    except InvalidFileExtensionException as e:
-        logging.error(e)
+    except InvalidFileExtensionException:
+        logging.error(traceback.format_exc())
         st.error("Invalid file extension")
-    except Exception as e:
-        logging.error(e)
+    except Exception:
+        logging.error(traceback.format_exc())
         st.error("Error running analysis. Check the console for details.")
 
 
@@ -107,14 +108,14 @@ def run_analysis_wrapper():
             if not (st.session_state["ko_redesign_adviser"] is None):
                 data = pd.read_csv(st.session_state["ko_redesign_adviser"].knockout_analyzer.report_file_name)
                 st.table(data)
-        except KnockoutRuleDiscoveryException as e:
-            logging.error(e)
+        except KnockoutRuleDiscoveryException:
+            logging.error(traceback.format_exc())
             st.error("Error discovering Knockout Rules. Check the console for details.")
-        except KnockoutsDiscoveryException as e:
-            logging.error(e)
+        except KnockoutsDiscoveryException:
+            logging.error(traceback.format_exc())
             st.error("Error discovering Knockout Activities. Check the console for details.")
-        except Exception as e:
-            logging.error(e)
+        except Exception:
+            logging.error(traceback.format_exc())
             st.error("Error running analysis. Check the console for details.")
 
 

@@ -177,6 +177,10 @@
     "skip_temporal_holdout": {
       "type": "boolean",
       "default": false
+    },
+    "balance_classes": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../config_schema.json",
+  "$schema": "../../../config/config_schema.json",
   "log_path": "test/inputs/BPI Challenge 2017_1K_W.xes",
   "output": "test/outputs",
   "redesign_results_file_path": "test/outputs/bpi_2017_1k_W.txt",
