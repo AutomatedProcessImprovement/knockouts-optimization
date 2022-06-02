@@ -1,5 +1,5 @@
 {
-  "$schema": "../config_schema.json",
+  "$schema": "config_schema.json",
   "log_path": "data/inputs/Envpermit_complete_cases.xes",
   "output": "data/outputs",
   "redesign_results_file_path": "data/outputs/envpermit.txt",
@@ -16,6 +16,7 @@
   ],
   "rule_discovery_algorithm": "RIPPER",
   "skip_temporal_holdout": true,
+  "balance_classes": true,
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
   "always_force_recompute": true,

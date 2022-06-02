@@ -61,6 +61,7 @@ class Configuration:
     dl_allowance: Optional[int] = 1
     prune_size: Optional[float] = 0.8
     skip_temporal_holdout: Optional[bool] = False
+    balance_classes: Optional[bool] = False
 
     read_options: ReadOptions = ReadOptions(
         column_names=ReadOptions.column_names_default(),

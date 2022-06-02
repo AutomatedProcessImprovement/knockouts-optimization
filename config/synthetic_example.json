@@ -1,8 +1,8 @@
 {
-  "$schema": "../config_schema.json",
-  "log_path": "data/inputs/synthetic_example/synthetic_example_enriched.xes",
+  "$schema": "config_schema.json",
+  "log_path": "data/inputs/synthetic_example_enriched.xes",
   "output": "data/outputs",
-  "redesign_results_file_path": "data/outputs/synthetic_example_enriched.txt",
+  "redesign_results_file_path": "data/outputs/synthetic_example.txt",
   "cache_dir": "cache/synthetic_example_enriched",
   "start_activity": "Credit application received",
   "post_knockout_activities": [

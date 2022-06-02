@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../config_schema.json",
+  "$schema": "../../../config/config_schema.json",
   "log_path": "test/inputs/Envpermit_complete_cases.xes",
   "output": "test/outputs",
   "redesign_results_file_path": "test/outputs/envpermit_auto.txt",
