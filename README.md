@@ -45,16 +45,18 @@ On Mac/Linux or Windows with git bash, it can be launched with `bash ./test.sh`.
 
 The flag `-n auto` is used by pytest-xdist to run tests in parallel.
 
-## Notes
+---
 
-### About wittgenstein
+### Notes
 
-Excessive warnings are printed due to `frame.append` deprecation warnings.
+#### About wittgenstein & grid search
 
-Currently, they can just be suppressed by passing the `-Wignore` flag.
+- Excessive warnings are printed due to `frame.append` deprecation warnings in the `wittgenstein` package.
 
-Another situation where excessive warnings are printed, is during the parameter grid search, as some combinations may
-yield too small training sets or sets with no positive examples.
+- Currently, they can just be suppressed by passing the `-Wignore` flag.
 
-This can be safely ignored as long as the grid contains at least one parameter combination that results in a valid
-dataset, and the rule discovery module is able to return meaningful rules.
+- Another situation where excessive warnings are printed, is during the parameter grid search, as some combinations may
+  yield too small training sets or sets with no positive examples.
+
+- This can be safely ignored as long as the grid contains at least one parameter combination that results in a valid
+  dataset, and the rule discovery module is able to return meaningful rules.
