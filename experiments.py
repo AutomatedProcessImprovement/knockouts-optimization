@@ -1,4 +1,5 @@
 import logging
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -68,7 +69,7 @@ def get_roc_curves(adviser):
     plt.plot([0, 1], [0, 1], color="black", lw=2, linestyle="dotted")
     plt.legend(legends + ["Baseline"], loc="lower right")
 
-    plt.legend(legends, loc="lower right")
+    # plt.legend(legends, loc="lower right")
     plt.show()
 
 
@@ -122,28 +123,47 @@ def get_avg_roc_curves(advisers):
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
 
-    plt.legend(legends, loc="lower right")
+    plt.plot([0, 1], [0, 1], color="black", lw=2, linestyle="dotted")
+    plt.legend(legends + ["Baseline"], loc="lower right")
     plt.show()
 
 
 def synthetic_example():
-    advisers = []
-    for _ in tqdm(range(10), "Pipeline runs"):
-        advisers.append(Pipeline(config_dir="config",
-                                 config_file_name="synthetic_example.json",
-                                 cache_dir="cache/synthetic_example").run_pipeline())
+    try:
+        with open('data/outputs/synthetic_example_advisers.pkl', 'rb') as f:
+            advisers = pickle.load(f)
+            get_avg_roc_curves(advisers)
 
-    get_avg_roc_curves(advisers)
+    except FileNotFoundError:
+        advisers = []
+        for _ in tqdm(range(10), "Pipeline runs"):
+            advisers.append(Pipeline(config_dir="config",
+                                     config_file_name="synthetic_example.json",
+                                     cache_dir="cache/synthetic_example").run_pipeline())
+
+        with open("data/outputs/synthetic_example_advisers.pkl", "wb") as f:
+            pickle.dump(advisers, f)
+
+        get_avg_roc_curves(advisers)
 
 
 def envpermit():
-    advisers = []
-    for _ in tqdm(range(10), "Pipeline runs"):
-        advisers.append(Pipeline(config_dir="config",
-                                 config_file_name="envpermit.json",
-                                 cache_dir="cache/envpermit").run_pipeline())
+    try:
+        with open('data/outputs/envpermit_advisers.pkl', 'rb') as f:
+            advisers = pickle.load(f)
+            get_avg_roc_curves(advisers)
 
-    get_avg_roc_curves(advisers)
+    except FileNotFoundError:
+        advisers = []
+        for _ in tqdm(range(10), "Pipeline runs"):
+            advisers.append(Pipeline(config_dir="config",
+                                     config_file_name="envpermit.json",
+                                     cache_dir="cache/envpermit").run_pipeline())
+
+        with open("data/outputs/envpermit_advisers.pkl", "wb") as f:
+            pickle.dump(advisers, f)
+
+        get_avg_roc_curves(advisers)
 
 
 if __name__ == "__main__":

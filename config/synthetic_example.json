@@ -9,6 +9,7 @@
     "Notify rejection"
   ],
   "rule_discovery_algorithm": "IREP",
+  "skip_temporal_holdout": false,
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
   "max_rules": 3,
