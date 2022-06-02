@@ -1,0 +1,12 @@
+Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+O_Cancelled,2880,34.27 %,0:00:00,0.7 %,[[OfferedAmount=35000.0-45000.0^FirstWithdrawalAmount=6000.0-7270.62^CreditScore=<645.0]],0.0,"135 days, 6:07:26","20 days, 20:00:48",0:00:00,0:00:00
+A_Validating,14299,170.12 %,0:00:00,3.3 %,[[CreditScore=<648.0^EventOrigin=Workflow^MonthlyCost=90.0-100.0^FirstWithdrawalAmount=1451.0-2849.83^NumberOfTerms=127.0-134.0]],0.0,"4841 days, 7:35:30","1136 days, 1:07:06",0:00:00,0:00:00
+O_Created,11658,138.7 %,0:00:00,0.1 %,[[NumberOfTerms=100.0-118.0^OfferedAmount=14000.0-15000.0^EventOrigin=Workflow^FirstWithdrawalAmount=<146.0] V [NumberOfTerms=126.0-127.0^CreditScore=<631.0^EventOrigin=Workflow^MonthlyCost=147.2-150.0^FirstWithdrawalAmount=<146.0]],0.0,"19 days, 4:14:33","1 days, 0:42:40",0:00:00,0:00:00
+O_Sent (online only),650,7.73 %,0:00:00,0.7 %,[[NumberOfTerms=>134.0^FirstWithdrawalAmount=1500.0-2905.0^EventOrigin=Offer]],0.0,"67 days, 10:20:49","7 days, 9:05:18",0:00:00,0:00:00
+O_Returned,8939,106.35 %,0:00:00,12.2 %,[[CreditScore=<612.0^EventOrigin=Workflow^OfferedAmount=<6000.0] V [CreditScore=<612.0^EventOrigin=Workflow^NumberOfTerms=115.0-120.0]],0.0,"14766 days, 7:03:56","2342 days, 6:13:04",0:00:00,0:00:00
+O_Sent (mail and online),10687,127.15 %,0:00:00,0.0 %,[[MonthlyCost=118.15-147.0^FirstWithdrawalAmount=12000.0-15000.0^CreditScore=<631.0]],,"65 days, 16:16:55",0:29:57,0:00:00,0:00:00
+A_Incomplete,7381,87.82 %,0:00:00,1.1 %,[[CreditScore=<608.0^NumberOfTerms=58.0-60.0^MonthlyCost=271.94-299.46^EventOrigin=Workflow]],0.0,"1089 days, 0:41:55","253 days, 6:37:38",0:00:00,0:00:00
+W_Assess potential fraud,90,1.07 %,"2 days, 3:29:51",23.3 %,[[CreditScore=<618.0^FirstWithdrawalAmount=>24000.0^OfferedAmount=25000.0-30000.0^MonthlyCost=>585.4]],7956.74,"370 days, 15:09:14","84 days, 23:37:23",0:00:00,0:00:00
+A_Complete,8388,99.8 %,0:00:00,0.5 %,[[CreditScore=<615.0^EventOrigin=Offer^FirstWithdrawalAmount=1394.65-2664.0^MonthlyCost=100.0-118.15]],0.0,"239 days, 7:44:55","10 days, 11:37:31",0:00:00,0:00:00
+W_Validate application,7371,87.7 %,"2 days, 7:16:39",0.5 %,[[CreditScore=<635.0^NumberOfTerms=27.0-36.0^MonthlyCost=231.13-250.0^FirstWithdrawalAmount=2977.0-4452.0]],397998.38,"531 days, 19:13:50","151 days, 22:23:12",0:00:00,0:00:00
+W_Call incomplete files,1032,12.28 %,"2 days, 17:00:11",0.1 %,[],2340114.75,"33 days, 14:15:59","4 days, 22:25:47",0:00:00,0:00:00

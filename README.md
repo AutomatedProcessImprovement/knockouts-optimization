@@ -16,13 +16,13 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ## Usage
 
-Create a config file following the schema defined in `config_schema.json` (see [`config_examples`](./config_examples)
-directory). Then you can choose whether to:
+Create a config file following the schema defined in `config/config_schema.json` (the directory also contains examples).
+Then you can choose whether to:
 
 - Launch the tool as a web app (powered by [Streamlit](https://streamlit.io/)):
 
   ```bash
-  ./launch_ui.sh
+  ./start.sh
   ```
 
 - Or programmatically:
@@ -31,7 +31,7 @@ directory). Then you can choose whether to:
   
   from knockout_ios.pipeline_wrapper import Pipeline
   
-  ko_redesign_adviser = Pipeline(config_dir="config_examples",
+  ko_redesign_adviser = Pipeline(config_dir="config",
                                  config_file_name="synthetic_example.json",
                                  cache_dir="cache/synthetic_example").run_pipeline()
 

@@ -1,7 +1,8 @@
 import glob
+import logging
 import os
 import pprint
-import sys
+import traceback
 
 from copy import deepcopy
 from typing import Callable, Optional
@@ -11,6 +12,8 @@ from tabulate import tabulate
 from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
+from knockout_ios.utils.custom_exceptions import LogNotLoadedException, EmptyLogException, \
+    EmptyKnockoutActivitiesException, KnockoutRuleDiscoveryException
 from knockout_ios.utils.formatting import seconds_to_hms
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
     calc_processing_waste, calc_waiting_time_waste_v2
@@ -46,7 +49,6 @@ class KnockoutAnalyzer:
         # TODO: refactor the need for config_dir, cache_dir...
 
         os.makedirs(cache_dir, exist_ok=True)
-        os.makedirs("temp", exist_ok=True)
 
         self.quiet = quiet
         self.config = config
@@ -77,7 +79,7 @@ class KnockoutAnalyzer:
         if config.attributes_to_ignore is None:
             self.attributes_to_ignore = []
         else:
-            self.attributes_to_ignore = config.attributes_to_ignore
+            self.attributes_to_ignore = [c.replace(' ', '_') for c in config.attributes_to_ignore]
 
         log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
                                         globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
@@ -91,8 +93,6 @@ class KnockoutAnalyzer:
                                              quiet=quiet)
 
     def discover_knockouts(self, expected_kos=None):
-        # TODO: if ko activities are provided, skip ko discovery,
-        #  just mark the cases by which activity knocked it out (last one that appears)
         if not (self.config.known_ko_activities is None) and (len(self.config.known_ko_activities) > 0):
             self.discoverer.label_cases_with_known_ko_activities(self.config.known_ko_activities)
         else:
@@ -177,7 +177,7 @@ class KnockoutAnalyzer:
     def preprocess_for_rule_discovery(self, log, compute_columns_only=False):
 
         if log is None:
-            raise Exception("log not yet loaded")
+            raise LogNotLoadedException
 
         # Pre-processing
         columns_to_ignore = [globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
@@ -194,6 +194,7 @@ class KnockoutAnalyzer:
                              ]
 
         columns_to_ignore.extend(self.attributes_to_ignore)
+        logging.info(f"Ignoring columns: {columns_to_ignore}")
 
         columns_to_ignore.extend(list(filter(
             lambda c: ('@' in c) | ('id' in c.lower()) | ('daytime' in c) | ('weekday' in c) | ('month' in c) | (
@@ -219,7 +220,7 @@ class KnockoutAnalyzer:
         log = log.dropna(axis=1, how='all')
 
         if len(log.columns) == 0:
-            raise Exception("Log empty during pre-processing for rule discovery: all columns have nan values")
+            raise EmptyLogException("Log empty during pre-processing for rule discovery: all columns have nan values")
 
         # Select the last non-null value of each column
         log = log.groupby(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, as_index=False).last()
@@ -228,7 +229,7 @@ class KnockoutAnalyzer:
         log = log.dropna(how='any')
 
         if log.shape[0] == 0:
-            raise Exception("Log is empty after pre-processing for rule discovery: all rows have nan values")
+            raise EmptyLogException("Log is empty after pre-processing for rule discovery: all rows have nan values")
 
         return log, columns_to_ignore
 
@@ -249,10 +250,10 @@ class KnockoutAnalyzer:
                          print_rule_discovery_stats=True):
 
         if self.discoverer.log_df is None:
-            raise Exception("log not yet loaded")
+            raise LogNotLoadedException
 
         if self.discoverer.ko_activities is None:
-            raise Exception("ko ko_activities not yet discovered")
+            raise EmptyKnockoutActivitiesException
 
         # Discover rules in knockout ko_activities with chosen algorithm
         self.ruleset_algorithm = algorithm
@@ -278,16 +279,16 @@ class KnockoutAnalyzer:
 
         try:
             rulesets = find_ko_rulesets(self.rule_discovery_log_df, self.discoverer.ko_activities,
-                                        self.discoverer.config_file_name, self.cache_dir,
                                         available_cases_before_ko=self.available_cases_before_ko,
                                         columns_to_ignore=columns_to_ignore, algorithm=algorithm, max_rules=max_rules,
                                         max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
-                                        prune_size=prune_size, grid_search=grid_search, param_grid=param_grid)
-        except Exception as e:
-            print(f"Error: {e}")
-            print("\nDuring rule discovery. Try adjusting the parameters or balancing the data.")
-            sys.exit(1)
+                                        prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
+                                        skip_temporal_holdout=self.config.skip_temporal_holdout,
+                                        balance_classes=self.config.balance_classes)
+        except Exception:
+            logging.error(traceback.format_exc())
+            raise KnockoutRuleDiscoveryException
 
         if algorithm == "RIPPER":
             self.RIPPER_rulesets = rulesets
@@ -327,12 +328,8 @@ class KnockoutAnalyzer:
                 continue
 
             print(f"\n\"{key}\"")
-            print(f'# conditions: {metrics["condition_count"]}, # rules: {metrics["rule_count"]}')
-            print(
-                f"support: {metrics['support']:.2f}, confidence: {metrics['confidence']:.2f} "
-                f"\nroc_auc score: {metrics['roc_auc_score']:.2f}, f1 score: {metrics['f1_score']:.2f}, accuracy: {metrics['accuracy']:.2f}, precision: {metrics['precision']:.2f}, recall: {metrics['recall']:.2f}"
-            )
             print(f"{algorithm} parameters: ", params)
+            pprint.pprint(metrics)
 
     def build_report(self, omit=False, use_cache=False):
         if (not use_cache) or (self.report_df is None):
@@ -397,12 +394,12 @@ class KnockoutAnalyzer:
 
 
 if __name__ == "__main__":
-    _log, _config = read_log_and_config("config", "synthetic_example_enriched.json",
+    _log, _config = read_log_and_config("test/config", "synthetic_example_enriched.json",
                                         "cache/synthetic_example")
     analyzer = KnockoutAnalyzer(log_df=_log,
                                 config=_config,
                                 config_file_name="synthetic_example_enriched.json",
-                                config_dir="config",
+                                config_dir="test/config",
                                 cache_dir="cache/synthetic_example",
                                 always_force_recompute=False,
                                 quiet=True)

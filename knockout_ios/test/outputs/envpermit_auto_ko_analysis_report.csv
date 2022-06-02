@@ -1,0 +1,10 @@
+Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection
+T20 Print report Y to stop indication,18,1.34 %,77.78 %,[[org:group=Group2^(case)_responsible=Resource05] V [org:group=Group2^(case)_responsible=Resource11]],77.78
+T02 Check confirmation of receipt,1228,91.23 %,0.41 %,[[(case)_responsible=Resource23^org:group=EMPTY]],0.41
+T05 Print and send confirmation of receipt,1217,90.42 %,29.09 %,[[org:group=Group2]],29.09
+T11 Create document X request unlicensed,43,3.19 %,9.3 %,[],9.3
+T10 Determine necessity to stop indication,1200,89.15 %,66.25 %,[[org:group=Group1]],64.57
+T06 Determine necessity of stop advice,1223,90.86 %,1.23 %,[[(case)_responsible=Resource01^org:group=Group1] V [(case)_responsible=Resource03]],1.23
+T03 Adjust confirmation of receipt,2,0.15 %,50.0 %,[],50.0
+T13 Adjust document X request unlicensed,2,0.15 %,50.0 %,[],50.0
+T04 Determine confirmation of receipt,1219,90.56 %,0.16 %,[],0.16

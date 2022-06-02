@@ -8,12 +8,12 @@ from knockout_ios.utils.synthetic_example.preprocessors import enrich_log_with_f
 
 @pytest.mark.parametrize("algorithm", ["RIPPER", "IREP"])
 def test_report_creation(algorithm):
-    log, configuration = read_log_and_config("config", "synthetic_example.json",
+    log, configuration = read_log_and_config("test/config", "synthetic_example.json",
                                              "cache/synthetic_example")
 
     analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
                                 config_file_name="synthetic_example.json",
-                                config_dir="./config",
+                                config_dir="./test/config",
                                 cache_dir="./cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,

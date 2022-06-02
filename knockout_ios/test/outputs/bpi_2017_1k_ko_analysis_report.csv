@@ -1,0 +1,10 @@
+Knockout Check,Total frequency,Case frequency,Mean Duration,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+W_Assess potential fraud,7,0.49 %,15:39:51,42.9 %,[[MonthlyCost=400.0-466.19^Selected=0.0]],1314.49,"28 days, 11:37:19","5 days, 8:31:00",0:00:00,0:00:00
+O_Returned,1510,104.64 %,0:00:00,12.6 %,[[CreditScore=<722.0^Action=Deleted^Accepted=0.0] V [CreditScore=<722.0^Action=Deleted^NumberOfTerms=102.4-120.0^Selected=1.0]],0.0,"2384 days, 5:29:57","420 days, 18:02:16",0:00:00,0:00:00
+W_Validate application,1063,73.67 %,"2 days, 2:51:47",0.1 %,[],1831078.54,"9 days, 1:53:31","3 days, 0:08:52",0:00:00,0:00:00
+A_Validating,2356,163.27 %,0:00:00,2.9 %,[[CreditScore=<682.6^Action=Deleted^NumberOfTerms=51.0-57.0^OfferedAmount=10880.0-13000.0]],0.0,"620 days, 10:55:34","163 days, 4:55:45",0:00:00,0:00:00
+A_Complete,1441,99.86 %,0:00:00,0.8 %,[[Selected=0.0^MonthlyCost=250.0-274.92^FirstWithdrawalAmount=<354.0] V [MonthlyCost=300.0-303.93^FirstWithdrawalAmount=1361.2-2500.0]],0.0,"61 days, 0:05:27",0:54:42,0:00:00,0:00:00
+O_Cancelled,459,31.81 %,0:00:00,0.9 %,[[OfferedAmount=7480.0-8800.0^NumberOfTerms=111.0-120.0]],0.0,"50 days, 12:10:03","12 days, 5:55:23",0:00:00,0:00:00
+A_Incomplete,1071,74.22 %,0:00:00,0.9 %,[[OfferedAmount=12500.0-15000.0^CreditScore=<717.0^NumberOfTerms=58.0-60.0]],0.0,"82 days, 8:07:14","15 days, 18:03:59",0:00:00,0:00:00
+O_Sent (mail and online),1823,126.33 %,0:00:00,0.2 %,[],0.0,"65 days, 16:16:55",0:29:57,0:00:00,0:00:00
+O_Created,1977,137.01 %,0:00:00,0.1 %,[[NumberOfTerms=94.0-106.0^MonthlyCost=162.03-193.03]],0.0,"4 days, 19:04:40",4:14:30,0:00:00,0:00:00
