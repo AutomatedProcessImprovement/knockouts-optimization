@@ -356,6 +356,11 @@ class KnockoutAnalyzer:
 
             entries = []
             for ko in self.discoverer.ko_activities:
+
+                classifier = rulesets[ko][0]
+                metrics = rulesets[ko][2]
+                # TODO: decide what metric(s) to show in the main table... roc_auc_cv?
+
                 report_entry = {("%s" % globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK): ko,
                                 globalColumnNames.REPORT_COLUMN_TOTAL_FREQ:
                                     freqs[ko],
@@ -363,7 +368,8 @@ class KnockoutAnalyzer:
                                     f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
                                 f"{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})":
-                                    out_pretty(rulesets[ko][0].ruleset_),
+                                    out_pretty(classifier.ruleset_),
+                                # globalColumnNames.REPORT_COLUMN_BALANCED_ACCURACY: f"{round(100 * metrics['balanced_accuracy'], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO: round(
                                     self.ko_stats[ko][self.ruleset_algorithm]["effort"],
                                     ndigits=2)

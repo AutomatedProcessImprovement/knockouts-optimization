@@ -11,8 +11,9 @@ from tqdm import tqdm
 # TODO: Excessive wittgenstein frame.append deprecation warnings
 #  currently trying to suppress just with -Wignore
 import wittgenstein as lw
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve, \
+    balanced_accuracy_score, make_scorer
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, cross_validate
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
@@ -44,6 +45,10 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
 
             # split with the same proportion as Illya, 20% for final metrics calculation
             _by_case, test = train_test_split(_by_case, test_size=.2)
+
+            # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
+            _by_case_only_cases_in_test = test
+
             test = test.drop(columns=columns_to_ignore, errors='ignore')
 
             if balance_classes:
@@ -63,6 +68,9 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
             # make sure that all cases in the test set are after the last timestamp of the training set
             last_timestamp = train.iloc[-1][globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME]
             assert test[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME].max() > last_timestamp
+
+            # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
+            _by_case_only_cases_in_test = test
 
             test = test.drop(columns=columns_to_ignore, errors='ignore')
             train = train.drop(columns=columns_to_ignore, errors='ignore')
@@ -91,25 +99,63 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
         x_test = test.drop(['knocked_out_case'], axis=1)
         y_test = test['knocked_out_case']
 
+        X = _by_case.drop(columns_to_ignore + ['knocked_out_case'], axis=1, errors='ignore')
+        y = _by_case['knocked_out_case']
+
         support = calc_knockout_ruleset_support(ruleset_model, _by_case,
                                                 available_cases_before_ko=available_cases_before_ko[activity])
-        confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
 
-        metrics = {
-            'support': support,
-            'confidence': confidence,
-            'condition_count': ruleset_model.ruleset_.count_conds(),
-            'rule_count': ruleset_model.ruleset_.count_rules(),
-            'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
-            'precision': ruleset_model.score(x_test, y_test, precision_score),
-            'recall': ruleset_model.score(x_test, y_test, recall_score),
-            'f1_score': ruleset_model.score(x_test, y_test, f1_score)
-        }
-        try:
-            metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
-            metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
-        except Exception:
+        confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case_only_cases_in_test)
+
+        if skip_temporal_holdout:
+            metrics = {
+                'support': support,
+                'confidence': confidence,
+                'condition_count': ruleset_model.ruleset_.count_conds(),
+                'rule_count': ruleset_model.ruleset_.count_rules(),
+                'accuracy': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="accuracy").mean(),
+                'balanced_accuracy': cross_val_score(ruleset_model, x_test, y_test, cv=5,
+                                                     scoring="balanced_accuracy").mean(),
+                'precision': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="precision").mean(),
+                'recall': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="recall").mean(),
+                'f1_score': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="f1").mean(),
+                'roc_auc_cv': cross_val_score(ruleset_model, X, y, cv=5, scoring=make_scorer(roc_auc_score),
+                                              error_score=0.5).mean(),
+                # TODO: make custom function that splits & computes roc_curve per each configuration,
+                #  then returns mean of all (fpr, tpr, thresholds)
+                'roc_curve_cv': []
+                # 'roc_curve_cv': cross_validate(ruleset_model, X, y, cv=3,
+                #                                scoring=roc_curve,
+                #                                error_score=(np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), None))
+            }
+            try:
+                metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
+                metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
+            except Exception:
+                pass
+
+        else:
+            metrics = {
+                'support': support,
+                'confidence': confidence,
+                'condition_count': ruleset_model.ruleset_.count_conds(),
+                'rule_count': ruleset_model.ruleset_.count_rules(),
+                'balanced_accuracy': ruleset_model.score(x_test, y_test, balanced_accuracy_score),
+                'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
+                'precision': ruleset_model.score(x_test, y_test, precision_score),
+                'recall': ruleset_model.score(x_test, y_test, recall_score),
+                'f1_score': ruleset_model.score(x_test, y_test, f1_score)
+            }
+            try:
+                metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
+                metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
+            except Exception:
+                pass
+
+        if 'roc_auc_score' not in metrics:
             metrics['roc_auc_score'] = 0.5
+
+        if 'roc_curve' not in metrics:
             metrics['roc_curve'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), None
 
         rulesets[activity] = (
