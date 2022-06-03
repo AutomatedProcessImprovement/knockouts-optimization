@@ -1,10 +1,10 @@
-Knockouts Redesign Pipeline started @ 2022-06-02 04:19:50.351766
+Knockouts Redesign Pipeline started @ 2022-06-03 09:54:04.147861
 
 Input parameters:
 
 {'always_force_recompute': True,
  'attributes_to_ignore': ['concept:instance', 'user'],
- 'balance_classes': False,
+ 'balance_classes': True,
  'cache_dir': 'cache/envpermit',
  'confidence_threshold': 0.5,
  'config_dir': None,
@@ -14,7 +14,7 @@ Input parameters:
  'dl_allowance': 64,
  'end_activity': 'End',
  'exclude_from_ko_activities': None,
- 'grid_search': True,
+ 'grid_search': False,
  'ignore_log_parsing_cache': False,
  'k': 2,
  'known_ko_activities': ['T02 Check confirmation of receipt',
@@ -47,60 +47,60 @@ Input parameters:
  'support_threshold': 0.1}
 
 
-╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤══════════════════════════════════════════════════════════════════════════════╤════════════════════════╕
-│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)                                                      │   Effort per rejection │
-╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪══════════════════════════════════════════════════════════════════════════════╪════════════════════════╡
-│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY]]                                                          │                   0.41 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────┼────────────────────────┤
-│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01^org:group=Group1] V [(case)_channel=e-mail]] │                   1.23 │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────────┼────────────────────────┤
-│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]                                                         │                  65.72 │
-╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧══════════════════════════════════════════════════════════════════════════════╧════════════════════════╛
+╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═══════════════════════════════════╤════════════════════════╕
+│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)           │   Effort per rejection │
+╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═══════════════════════════════════╪════════════════════════╡
+│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]              │                  65.01 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
+│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY]]               │                   0.41 │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────┼────────────────────────┤
+│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01]] │                   1.23 │
+╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═══════════════════════════════════╧════════════════════════╛
 
 RIPPER
 
-"T02 Check confirmation of receipt"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 6, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
-{'accuracy': 0.9910714285714286,
+"T10 Determine necessity to stop indication"
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.001}
+{'accuracy': 0.3125,
  'condition_count': 1,
- 'confidence': 0.25,
+ 'confidence': 0.9813333333333333,
+ 'f1_score': 0.3063063063063063,
+ 'precision': 1.0,
+ 'recall': 0.18085106382978725,
+ 'roc_auc_score': 0.5904255319148937,
+ 'roc_curve': (array([0., 0., 1.]),
+               array([0.        , 0.18085106, 1.        ]),
+               array([2, 1, 0])),
+ 'rule_count': 1,
+ 'support': 0.3125}
+
+"T02 Check confirmation of receipt"
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.001}
+{'accuracy': 0.9821428571428571,
+ 'condition_count': 1,
+ 'confidence': 0.2727272727272727,
  'f1_score': 0.0,
  'precision': 0.0,
  'recall': 0.0,
  'roc_auc_score': 0.5,
  'roc_curve': (array([0. , 0.5, 1. ]), array([0. , 0.5, 1. ]), None),
  'rule_count': 1,
- 'support': 0.009771986970684038}
+ 'support': 0.008957654723127036}
 
 "T06 Determine necessity of stop advice"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 6, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.2}
-{'accuracy': 0.9642857142857143,
- 'condition_count': 3,
- 'confidence': 0.4,
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.001}
+{'accuracy': 0.9732142857142857,
+ 'condition_count': 1,
+ 'confidence': 0.1111111111111111,
  'f1_score': 0.0,
  'precision': 0.0,
  'recall': 0.0,
- 'roc_auc_score': 0.4909090909090909,
- 'roc_curve': (array([0.        , 0.01818182, 1.        ]),
+ 'roc_auc_score': 0.49099099099099097,
+ 'roc_curve': (array([0.        , 0.01801802, 1.        ]),
                array([0., 0., 1.]),
                array([2, 1, 0])),
- 'rule_count': 2,
- 'support': 0.008176614881439084}
-
-"T10 Determine necessity to stop indication"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
-{'accuracy': 0.33035714285714285,
- 'condition_count': 1,
- 'confidence': 0.9919786096256684,
- 'f1_score': 0.33628318584070793,
- 'precision': 0.8636363636363636,
- 'recall': 0.2087912087912088,
- 'roc_auc_score': 0.532967032967033,
- 'roc_curve': (array([0.        , 0.14285714, 1.        ]),
-               array([0.        , 0.20879121, 1.        ]),
-               array([2, 1, 0])),
  'rule_count': 1,
- 'support': 0.31166666666666665}
+ 'support': 0.014717906786590351}
 
 ** Redesign options **
 
@@ -110,9 +110,7 @@ RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds
 ╒════════════════════════════════════════════╤═══════════════════════════════════════════════════════════════════════════════════╕
 │ Knockout Check                             │ Dependencies                                                                      │
 ╞════════════════════════════════════════════╪═══════════════════════════════════════════════════════════════════════════════════╡
-│ T06 Determine necessity of stop advice     │ '(case) channel' available after activity 'Start'                                 │
-│                                            │ 'org:group' available after activity 'T05 Print and send confirmation of receipt' │
-│                                            │ '(case) responsible' available after activity 'Start'                             │
+│ T06 Determine necessity of stop advice     │ '(case) responsible' available after activity 'Start'                             │
 ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
 │ T10 Determine necessity to stop indication │ 'org:group' available after activity 'T05 Print and send confirmation of receipt' │
 ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
@@ -136,58 +134,58 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │ Variant / Relocation Suggestion                                                                                                                                                                                                                                                                                                                                                                                                              │
 ╞══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T10 Determine necessity to stop indication -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T10 Determine necessity to stop indication -> T11 Create document X request unlicensed -> T12 Check document X request unlicensed -> T14 Determine document X request unlicensed -> T15 Print document X request unlicensed -> End │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> T11 Create document X request unlicensed -> T12 Check document X request unlicensed -> T14 Determine document X request unlicensed -> T15 Print document X request unlicensed -> End │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> T11 Create document X request unlicensed -> T12 Check document X request unlicensed -> T14 Determine document X request unlicensed -> T15 Print document X request unlicensed -> End │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T06 Determine necessity of stop advice -> T10 Determine necessity to stop indication -> T05 Print and send confirmation of receipt -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> End                                                                                                                                                                                                                                │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> End                                                                                                                                                                                                                                │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> End                                                                                                                                                                                                                                │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T06 Determine necessity of stop advice -> T10 Determine necessity to stop indication -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T06 Determine necessity of stop advice -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
 │ Start -> Confirmation of receipt -> T02 Check confirmation of receipt -> T06 Determine necessity of stop advice -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
-│ Start -> Confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
+│ Start -> Confirmation of receipt -> T06 Determine necessity of stop advice -> T02 Check confirmation of receipt -> T04 Determine confirmation of receipt -> T05 Print and send confirmation of receipt -> T10 Determine necessity to stop indication -> End                                                                                                                                                                                  │
 ╘══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
 
 
 > Knock-out rule value ranges
 
-╒════════════════════════════════════════════╤══════════════════════════════════════════════════════════════════════════════╕
-│ Knockout Check                             │ Observation                                                                  │
-╞════════════════════════════════════════════╪══════════════════════════════════════════════════════════════════════════════╡
-│ T02 Check confirmation of receipt          │ Rule:                                                                        │
-│                                            │ [[org:group=EMPTY]]                                                          │
-│                                            │                                                                              │
-│                                            │ No numerical attributes found in rule.                                       │
-├────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
-│ T06 Determine necessity of stop advice     │ Rule:                                                                        │
-│                                            │ [[(case)_responsible=Resource01^org:group=Group1] V [(case)_channel=e-mail]] │
-│                                            │                                                                              │
-│                                            │ No numerical attributes found in rule.                                       │
-├────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
-│ T10 Determine necessity to stop indication │ Rule:                                                                        │
-│                                            │ [[org:group=Group1]]                                                         │
-│                                            │                                                                              │
-│                                            │ No numerical attributes found in rule.                                       │
-╘════════════════════════════════════════════╧══════════════════════════════════════════════════════════════════════════════╛
+╒════════════════════════════════════════════╤════════════════════════════════════════╕
+│ Knockout Check                             │ Observation                            │
+╞════════════════════════════════════════════╪════════════════════════════════════════╡
+│ T10 Determine necessity to stop indication │ Rule:                                  │
+│                                            │ [[org:group=Group1]]                   │
+│                                            │                                        │
+│                                            │ No numerical attributes found in rule. │
+├────────────────────────────────────────────┼────────────────────────────────────────┤
+│ T02 Check confirmation of receipt          │ Rule:                                  │
+│                                            │ [[org:group=EMPTY]]                    │
+│                                            │                                        │
+│                                            │ No numerical attributes found in rule. │
+├────────────────────────────────────────────┼────────────────────────────────────────┤
+│ T06 Determine necessity of stop advice     │ Rule:                                  │
+│                                            │ [[(case)_responsible=Resource01]]      │
+│                                            │                                        │
+│                                            │ No numerical attributes found in rule. │
+╘════════════════════════════════════════════╧════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-06-02 04:20:03.549958
+Knockouts Redesign Pipeline ended @ 2022-06-03 09:54:07.294866
 
-Wall-clock execution time:  0:00:13.197465
+Wall-clock execution time:  0:00:03.145979

@@ -396,3 +396,20 @@ def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95
             adjusted_values[ko_activity][attribute] = (np.min(column), np.max(column))
 
     return adjusted_values, raw_rulesets
+
+
+def simplify_rule(ruleset: str) -> str:
+    """
+    intended to simplify redundant rule intervals, for example:
+
+    1) [[Loan_Ammount=11693.71-16840.45] V [Loan_Ammount=>16840.45]]
+        to:
+       [[Loan_Ammount=>11693.71]]
+
+    2) [[Monthly_Income=555.77-830.79] V [Monthly_Income=<555.77] V [Monthly_Income=830.79-1019.68]]
+        to:
+        [[Monthly_Income=<1019.68]]
+
+    # TODO: First version: skips rules with ^ (more complex)
+    """
+    return ""

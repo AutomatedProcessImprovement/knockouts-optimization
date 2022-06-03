@@ -23,7 +23,7 @@
   "read_options": {
     "one_timestamp": true
   },
-  "grid_search": true,
+  "grid_search": false,
   "param_grid": {
     "prune_size": [
       0.1,

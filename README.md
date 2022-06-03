@@ -22,7 +22,7 @@ Then you can choose whether to:
 - Launch the tool as a web app (powered by [Streamlit](https://streamlit.io/)):
 
   ```bash
-  ./start.sh
+  bash ./start.sh
   ```
 
 - Or programmatically:
@@ -31,30 +31,34 @@ Then you can choose whether to:
   
   from knockout_ios.pipeline_wrapper import Pipeline
   
-  ko_redesign_adviser = Pipeline(config_dir="config",
-                                 config_file_name="synthetic_example.json",
-                                 cache_dir="cache/synthetic_example").run_pipeline()
+  ko_redesign_adviser = Pipeline(config_file_name="synthetic_example.json").run_pipeline()
 
   ```
+  In both cases, if using the default settings, output will be written to `.csv` and `txt` files in
+  the `data/outputs` folder.
 
 ## Running tests
 
-A shell script is provided, which runs pytest in the relevant modules.
+A shell script is provided, which runs the tests in parallel (thanks to pytest-xdist).
 
-On Mac/Linux or Windows with git bash, it can be launched with `bash ./test.sh`.
+On Mac/Linux or Windows with git bash:
 
-The flag `-n auto` is used by pytest-xdist to run tests in parallel.
+```bash
+bash ./test.sh
+```
 
-## Notes
+---
 
-### About wittgenstein
+### Notes
 
-Excessive warnings are printed due to `frame.append` deprecation warnings.
+#### About wittgenstein & grid search
 
-Currently, they can just be suppressed by passing the `-Wignore` flag.
+- Excessive warnings are printed due to `frame.append` deprecation warnings in the `wittgenstein` package.
 
-Another situation where excessive warnings are printed, is during the parameter grid search, as some combinations may
-yield too small training sets or sets with no positive examples.
+- Currently, they can just be suppressed by passing the `-Wignore` flag.
 
-This can be safely ignored as long as the grid contains at least one parameter combination that results in a valid
-dataset, and the rule discovery module is able to return meaningful rules.
+- Another situation where excessive warnings are printed, is during the parameter grid search, as some combinations may
+  yield too small training sets or sets with no positive examples.
+
+- This can be safely ignored as long as the grid contains at least one parameter combination that results in a valid
+  dataset, and the rule discovery module is able to return meaningful rules.
