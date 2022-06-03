@@ -1,5 +1,7 @@
 # knockouts-redesign
 
+[![Build & Test on Windows](https://github.com/AutomatedProcessImprovement/knockouts-redesign/actions/workflows/build-test-windows.yml/badge.svg?branch=main)](https://github.com/AutomatedProcessImprovement/knockouts-redesign/actions/workflows/build-test-windows.yml)
+
 This project is about discovering improvement opportunities in Knock-out checks performed within Business Processes.
 
 ## Set-up
