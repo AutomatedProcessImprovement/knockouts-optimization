@@ -14,7 +14,7 @@ def test_report_creation(algorithm):
     analyzer = KnockoutAnalyzer(log_df=log, config=configuration,
                                 config_file_name="synthetic_example.json",
                                 config_dir="./test/config",
-                                cache_dir="./cache/synthetic_example",
+                                cache_dir="cache/synthetic_example",
                                 always_force_recompute=True,
                                 quiet=True,
                                 custom_log_preprocessing_function=enrich_log_with_fully_known_attributes)

@@ -14,7 +14,7 @@ from pm4py.statistics.sojourn_time.pandas import get as soj_time_get
 from knockout_ios.knockout_discoverer import KnockoutDiscoverer
 from knockout_ios.utils.custom_exceptions import LogNotLoadedException, EmptyLogException, \
     EmptyKnockoutActivitiesException, KnockoutRuleDiscoveryException
-from knockout_ios.utils.formatting import seconds_to_hms
+from knockout_ios.utils.formatting import seconds_to_hms, out_pretty
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
     calc_processing_waste, calc_waiting_time_waste_v2
 
@@ -363,7 +363,7 @@ class KnockoutAnalyzer:
                                     f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
                                 f"{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})":
-                                    rulesets[ko][0].ruleset_,
+                                    out_pretty(rulesets[ko][0].ruleset_),
                                 globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO: round(
                                     self.ko_stats[ko][self.ruleset_algorithm]["effort"],
                                     ndigits=2)

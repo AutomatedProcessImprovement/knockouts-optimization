@@ -1,7 +1,6 @@
 import logging
 import traceback
 
-import pandas as pd
 import streamlit as st
 
 from knockout_ios.pipeline_wrapper import Pipeline
@@ -9,8 +8,19 @@ from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.custom_exceptions import KnockoutsDiscoveryException, InvalidFileExtensionException, \
     KnockoutRuleDiscoveryException
 
-initial_state = [("config_dir", "config"), ("config_file_name", "envpermit.json"),
-                 ("cache_dir", "cache"),
+st.set_page_config(
+    page_title="Knockouts Redesign Tool",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues',
+        'Report a bug': "https://github.com/AutomatedProcessImprovement/knockouts-redesign/issues",
+        'About': "This project is about discovering improvement opportunities in Knock-out checks performed within Business Processes."
+    }
+)
+
+initial_state = [("config_dir", "config"), ("config_file_name", "synthetic_example.json"),
+                 ("cache_dir", "cache/synthetic_example"),
                  ("pipeline", None), ('log_activities', []), ('log_attributes', []), ('ko_redesign_adviser', None),
                  ('attributes_to_consider', []), ('known_ko_activities', []), ('post_ko_activities', []),
                  ]
@@ -94,20 +104,38 @@ def run_analysis():
     if st.session_state['pipeline'] is None:
         return
 
-    _ko_redesign_adviser = st.session_state['pipeline'].run_analysis()
+    _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports = st.session_state['pipeline'].run_analysis()
 
-    return _ko_redesign_adviser
+    return _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports
 
 
 def run_analysis_wrapper():
     with st.spinner('Running pipeline...'):
         try:
-            st.session_state['ko_redesign_adviser'] = run_analysis()
+            st.session_state['ko_redesign_adviser'], ko_analysis_report, ko_redesign_report = run_analysis()
 
-            # TODO: find better way to display results; raw tables are really ugly...
             if not (st.session_state["ko_redesign_adviser"] is None):
-                data = pd.read_csv(st.session_state["ko_redesign_adviser"].knockout_analyzer.report_file_name)
-                st.table(data)
+                st.markdown("### Knockouts Analysis")
+                # TODO: show rule discovery metrics in a container collapsed by default
+                st.table(ko_analysis_report)
+
+                st.markdown("### Reordering Options")
+                # TODO: add "X/N non-knocked out cases follow it"
+
+                st.table(ko_redesign_report['dependencies'])
+                st.write("Optimal Order of Knock-out checks (taking into account attribute dependencies):")
+                st.write(ko_redesign_report['reordering'])
+
+                st.markdown("### Relocation Options")
+                # TODO: display this in a more readable way; highlight the changes!
+                st.table(ko_redesign_report['relocation'])
+
+                st.markdown("### Rule value ranges")
+                # TODO: replace this ugly thing with plot of distributions of numerical attributes appearing in each rule,
+                #  and overlay the range captured by rules!
+                st.table(ko_redesign_report["rule_change"])
+
+
         except KnockoutRuleDiscoveryException:
             logging.error(traceback.format_exc())
             st.error("Error discovering Knockout Rules. Check the console for details.")

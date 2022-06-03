@@ -1,11 +1,12 @@
-import logging
 import pickle
+from typing import Callable
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
+from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
 from knockout_ios.pipeline_wrapper import Pipeline
 
 from sklearn.model_selection import cross_val_score
@@ -128,44 +129,34 @@ def get_avg_roc_curves(advisers):
     plt.show()
 
 
-def synthetic_example():
+def get_experiment_averages(experiment: Callable[[], KnockoutRedesignAdviser], cache_file, nruns):
     try:
-        with open('data/outputs/synthetic_example_advisers.pkl', 'rb') as f:
+        with open(cache_file, 'rb') as f:
             advisers = pickle.load(f)
             get_avg_roc_curves(advisers)
 
     except FileNotFoundError:
         advisers = []
-        for _ in tqdm(range(10), "Pipeline runs"):
-            advisers.append(Pipeline(config_dir="config",
-                                     config_file_name="synthetic_example.json",
-                                     cache_dir="cache/synthetic_example").run_pipeline())
+        for _ in tqdm(range(nruns), "Pipeline runs"):
+            advisers.append(experiment())
 
-        with open("data/outputs/synthetic_example_advisers.pkl", "wb") as f:
+        with open(cache_file, "wb") as f:
             pickle.dump(advisers, f)
 
         get_avg_roc_curves(advisers)
+
+
+def synthetic_example():
+    adviser = Pipeline(config_file_name="synthetic_example.json", cache_dir="cache/synthetic_example").run_pipeline()
+    return adviser
 
 
 def envpermit():
-    try:
-        with open('data/outputs/envpermit_advisers.pkl', 'rb') as f:
-            advisers = pickle.load(f)
-            get_avg_roc_curves(advisers)
-
-    except FileNotFoundError:
-        advisers = []
-        for _ in tqdm(range(10), "Pipeline runs"):
-            advisers.append(Pipeline(config_dir="config",
-                                     config_file_name="envpermit.json",
-                                     cache_dir="cache/envpermit").run_pipeline())
-
-        with open("data/outputs/envpermit_advisers.pkl", "wb") as f:
-            pickle.dump(advisers, f)
-
-        get_avg_roc_curves(advisers)
+    adviser = Pipeline(config_file_name="envpermit.json", cache_dir="cache/envpermit").run_pipeline()
+    return adviser
 
 
 if __name__ == "__main__":
-    synthetic_example()
-    envpermit()
+    get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10)
+    get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
+                            nruns=10)

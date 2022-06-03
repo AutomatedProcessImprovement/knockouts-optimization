@@ -18,10 +18,10 @@ credit_app_scenarios = [
 
 @pytest.mark.parametrize("config_file, expected_outcomes, expected_kos", credit_app_scenarios)
 def test_credit_app(config_file, expected_outcomes, expected_kos):
-    log, configuration = read_log_and_config("test/config", config_file, "./cache/credit_app")
+    log, configuration = read_log_and_config("test/config", config_file, "cache/credit_app")
 
     analyzer = KnockoutDiscoverer(log_df=log, config=configuration, config_file_name=config_file,
-                                  cache_dir="./cache/credit_app",
+                                  cache_dir="cache/credit_app",
                                   always_force_recompute=True, quiet=True)
     analyzer.find_ko_activities()
 

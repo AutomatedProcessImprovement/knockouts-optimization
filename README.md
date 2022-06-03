@@ -22,7 +22,7 @@ Then you can choose whether to:
 - Launch the tool as a web app (powered by [Streamlit](https://streamlit.io/)):
 
   ```bash
-  ./start.sh
+  bash ./start.sh
   ```
 
 - Or programmatically:
@@ -31,19 +31,21 @@ Then you can choose whether to:
   
   from knockout_ios.pipeline_wrapper import Pipeline
   
-  ko_redesign_adviser = Pipeline(config_dir="config",
-                                 config_file_name="synthetic_example.json",
-                                 cache_dir="cache/synthetic_example").run_pipeline()
+  ko_redesign_adviser = Pipeline(config_file_name="synthetic_example.json").run_pipeline()
 
   ```
+  In both cases, if using the default settings, output will be written to `.csv` and `txt` files in
+  the `data/outputs` folder.
 
 ## Running tests
 
-A shell script is provided, which runs pytest in the relevant modules.
+A shell script is provided, which runs the tests in parallel (thanks to pytest-xdist).
 
-On Mac/Linux or Windows with git bash, it can be launched with `bash ./test.sh`.
+On Mac/Linux or Windows with git bash:
 
-The flag `-n auto` is used by pytest-xdist to run tests in parallel.
+```bash
+bash ./test.sh
+```
 
 ---
 
