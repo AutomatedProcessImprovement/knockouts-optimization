@@ -23,6 +23,11 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip'
+      
+      - name: Create & activate venv
+        run: |
+          py -m venv env
+          .\env\Scripts\activate
 
       - name: Install dependencies
         run: |
