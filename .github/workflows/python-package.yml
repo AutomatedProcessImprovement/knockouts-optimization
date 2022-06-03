@@ -31,7 +31,7 @@ jobs:
         pip install -r requirements.txt
     - name: Install graphviz backend
       run: |
-        sudo apt install graphviz
+        choco install graphviz
     - name: Test with pytest
       run: |
         cd knockout_ios && pytest . -x -n auto --disable-warnings
