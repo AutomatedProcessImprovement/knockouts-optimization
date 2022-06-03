@@ -10,28 +10,25 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-
+  build-and-test-windows:
+  
     runs-on: windows-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        python-version: ["3.9"]
-
+    
     steps:
+    
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    
+    - name: Setup Python 3.9
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+          python-version: '3.9'
+          cache: 'pip'
+          
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pytest
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
+      
     - name: Install graphviz backend
-      run: |
-        choco install graphviz
-    - name: Test with pytest
-      run: |
-        cd knockout_ios && pytest . -x -n auto --disable-warnings
+      run: choco install graphviz
+      
+    - name: Run pytest (parallel)
+      run: cd knockout_ios && pytest . -x -n auto --disable-warnings
