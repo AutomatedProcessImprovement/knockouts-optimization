@@ -15,9 +15,13 @@ from knockout_ios.utils.synthetic_example.preprocessors import preprocessors_dic
 
 class Pipeline:
 
-    def __init__(self, config_file_name, cache_dir, config_dir):
+    def __init__(self, config_file_name, cache_dir=None, config_dir="config"):
+        if cache_dir is None:
+            self.cache_dir = f"cache/{config_file_name}_{int(time.time())}"
+        else:
+            self.cache_dir = cache_dir
+
         self.config_file_name = config_file_name
-        self.cache_dir = cache_dir
         self.config_dir = config_dir
         self.log_df = None
         self.config = None
@@ -85,17 +89,17 @@ class Pipeline:
                                               )
 
                 _adviser = KnockoutRedesignAdviser(analyzer)
-                _adviser.compute_redesign_options()
+                _, ko_redesign_reports = _adviser.compute_redesign_options()
 
                 toc = time.perf_counter()
                 print("\n" + f"Knockouts Redesign Pipeline ended @ {datetime.datetime.now()}")
                 print("\n" + f"Wall-clock execution time:  {str(datetime.timedelta(seconds=toc - tic))}")
 
-                return _adviser
+                return _adviser, analyzer.report_df, ko_redesign_reports
 
     def run_pipeline(self):
         self.read_log_and_config()
-        self.adviser = self.run_analysis()
+        self.adviser, _, _ = self.run_analysis()
         return self.adviser
 
     def update_known_ko_activities(self, known_ko_activities):

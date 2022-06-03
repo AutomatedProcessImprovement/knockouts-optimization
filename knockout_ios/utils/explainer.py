@@ -37,6 +37,7 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
         # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
         # (attributes remain the same throughout the case)
         _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
+        columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
 
         if skip_temporal_holdout:
             # This simple train/test split is incorrect; need time-aware splits; only used for baseline comparison against Illya
