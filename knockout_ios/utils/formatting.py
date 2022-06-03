@@ -84,3 +84,15 @@ def get_edits_string(old, new):
         elif code[0] == "replace":
             result += (green(new[code[3]:code[4]]))
     return result
+
+
+def out_pretty(ruleset):
+    """Print Ruleset line-by-line."""
+    ruleset_str = (
+        str([str(rule) for rule in ruleset])
+            .replace(" ", "")
+            .replace(",", " V\n")
+            .replace("'", "")
+            .replace("^", " ^ ")
+    )
+    return ruleset_str

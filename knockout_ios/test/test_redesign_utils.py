@@ -7,7 +7,7 @@ from collections import Counter
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.redesign import get_ko_activities_sorted_with_dependencies, find_producers, get_relocated_kos, \
-    find_ko_activity_dependencies, evaluate_knockout_reordering_io
+    find_ko_activity_dependencies, evaluate_knockout_reordering_io, simplify_rule
 
 
 def test_pure_relocation_1():
@@ -371,3 +371,17 @@ def test_find_producer_activity_advanced():
 
     assert len(producers) > 0
     assert Counter(producers).most_common(1)[0][0] == "D"
+
+
+@pytest.mark.skip(reason="Not yet implemented")
+def test_simplify_rule_1():
+    ruleset = "[[Loan_Ammount=11693.71-16840.45] V [Loan_Ammount=>16840.45]]"
+    simplified_ruleset = "[[Loan_Ammount=>11693.71]]"
+    assert simplify_rule(ruleset) == simplified_ruleset
+
+
+@pytest.mark.skip(reason="Not yet implemented")
+def test_simplify_rule_2():
+    ruleset = "[[Monthly_Income=555.77-830.79] V [Monthly_Income=<555.77] V [Monthly_Income=830.79-1019.68]]"
+    simplified_ruleset = "[[Monthly_Income=<1019.68]]"
+    assert simplify_rule(ruleset) == simplified_ruleset
