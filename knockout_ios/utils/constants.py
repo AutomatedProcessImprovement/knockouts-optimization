@@ -30,6 +30,8 @@ class ColumnNames:
     REPORT_COLUMN_TOTAL_FREQ = "Total frequency"
     REPORT_COLUMN_KNOCKOUT_CHECK = "Knockout Check"
     REPORT_COLUMN_REJECTION_RULE = "Rejection rule"
+    REPORT_COLUMN_CONFIDENCE = "Confidence"
+    REPORT_COLUMN_BALANCED_ACCURACY = "Balanced Accuracy"
 
 
 globalColumnNames = ColumnNames()
