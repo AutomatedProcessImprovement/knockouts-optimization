@@ -1,5 +1,7 @@
 # knockouts-redesign
 
+[![Build & Test on Windows](https://github.com/AutomatedProcessImprovement/knockouts-redesign/actions/workflows/build-test-windows.yml/badge.svg?branch=main)](https://github.com/AutomatedProcessImprovement/knockouts-redesign/actions/workflows/build-test-windows.yml)
+
 This project is about discovering improvement opportunities in Knock-out checks performed within Business Processes.
 
 ## Set-up
@@ -11,8 +13,11 @@ This project is about discovering improvement opportunities in Knock-out checks 
     source venv/Scripts/activate
     pip install -r requirements.txt
     ```
-- Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`:
-  [graphviz downloads page](https://graphviz.org/download/#windows).
+- Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`
+  (see also: [graphviz downloads page](https://graphviz.org/download/#windows)):
+    - Windows: `choco install graphviz`
+    - Linux: `sudo apt install graphviz`
+    - Mac: `brew install graphviz`
 
 ## Usage
 
