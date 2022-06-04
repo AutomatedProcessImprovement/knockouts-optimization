@@ -181,6 +181,14 @@
     "balance_classes": {
       "type": "boolean",
       "default": false
+    },
+    "relocation_variants_min_coverage_percentage": {
+      "type": "number",
+      "default": 0.001
+    },
+    "skip_slow_time_waste_metrics": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

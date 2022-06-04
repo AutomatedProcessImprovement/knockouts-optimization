@@ -22,14 +22,6 @@ import yaml
 class Configuration:
     # TODO: add sensible default values
 
-    # Rule discovery
-    rule_discovery_algorithm: Optional[str] = "RIPPER"
-    confidence_threshold: Optional[float] = 0.5
-    support_threshold: Optional[float] = 0.5
-    print_rule_discovery_stats: Optional[bool] = False
-    grid_search: Optional[bool] = False
-    param_grid: Optional[dict[str, list]] = None
-
     # General
     redesign_results_file_path: Optional[str] = None
     config_file_name: Optional[str] = None
@@ -51,7 +43,13 @@ class Configuration:
     ko_count_threshold: Optional[int] = None
     attributes_to_ignore: Optional[list[str]] = None
 
-    # Rule discovery (optionals)
+    # Rule discovery
+    rule_discovery_algorithm: Optional[str] = "RIPPER"
+    confidence_threshold: Optional[float] = 0.5
+    support_threshold: Optional[float] = 0.5
+    print_rule_discovery_stats: Optional[bool] = False
+    grid_search: Optional[bool] = False
+    param_grid: Optional[dict[str, list]] = None
     custom_log_preprocessing_function: Optional[Callable[
         ['KnockoutAnalyzer', pd.DataFrame, Optional[str], ...], pd.DataFrame]] = None
     max_rules: Optional[int] = None
@@ -62,6 +60,10 @@ class Configuration:
     prune_size: Optional[float] = 0.8
     skip_temporal_holdout: Optional[bool] = False
     balance_classes: Optional[bool] = False
+
+    # Redesign options
+    relocation_variants_min_coverage_percentage: Optional[float] = 0.001
+    skip_slow_time_waste_metrics: Optional[bool] = False
 
     read_options: ReadOptions = ReadOptions(
         column_names=ReadOptions.column_names_default(),

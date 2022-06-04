@@ -1,11 +1,11 @@
 Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (IREP),Effort per rejection
-Check Monthly Income,1674,55.8 %,50.06 %,"[[Monthly_Income=555.77-830.79] V
-[Monthly_Income=<555.77] V
-[Monthly_Income=830.79-1019.68]]",47.25
+Assess application,836,27.87 %,80.02 %,"[[External_Risk_Score=>0.64] V
+[External_Risk_Score=0.35-0.64] V
+[External_Risk_Score=0.27-0.35 ^ Loan_Ammount=4782.7-5976.69 ^ Owns_Vehicle=TRUE]]",78.83
 Check Liability,3000,100.0 %,20.17 %,"[[Total_Debt=>5200.1] V
 [Owns_Vehicle=FALSE]]",20.17
+Check Monthly Income,1674,55.8 %,50.06 %,"[[Monthly_Income=<555.77] V
+[Monthly_Income=830.79-1019.68] V
+[Monthly_Income=555.77-830.79]]",47.25
 Check Risk,2395,79.83 %,30.1 %,"[[Loan_Ammount=>16840.45] V
-[Loan_Ammount=11693.71-16840.45] V
-[Loan_Ammount=9345.84-11693.71 ^ External_Risk_Score=0.27-0.35 ^ Aggregated_Risk_Score=0.12-0.17]]",30.1
-Assess application,836,27.87 %,80.02 %,"[[External_Risk_Score=>0.64] V
-[External_Risk_Score=0.35-0.64]]",80.02
+[Loan_Ammount=11693.71-16840.45]]",30.1

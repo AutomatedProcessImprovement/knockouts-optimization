@@ -116,10 +116,13 @@ class KnockoutRedesignAdviser(object):
 
         if "relocation" in self.redesign_options:
             print("\n\n> Knock-out Re-location\n")
+
+            total_cases = self.knockout_analyzer.get_total_cases()
             entries = []
             for item in self.redesign_options["relocation"].items():
                 entries.append(
                     {"Case count": variants[item[0]],
+                     "Cases Covered": f"{round(100 * (variants[item[0]] / total_cases), ndigits=1)} %",
                      "As-is / To-be": " -> ".join(item[0]) + '\n'
                                       + get_edits_string(" -> ".join(item[0]),
                                                          " -> ".join(item[1]))})
@@ -127,7 +130,7 @@ class KnockoutRedesignAdviser(object):
             df = pd.DataFrame(entries)
             df.index.name = "Variant"
             df = df.sort_values(by="Case count", ascending=False, ignore_index=True)
-            reports["relocation"] = df
+            reports["relocation"] = df[["Cases Covered", "As-is / To-be"]]
             print(tabulate(df, headers='keys', showindex="true", tablefmt="fancy_grid"))
 
         if "rule_change" in self.redesign_options:
