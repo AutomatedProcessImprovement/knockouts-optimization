@@ -31,6 +31,7 @@
     },
     "one_timestamp": true
   },
+  "relocation_variants_min_coverage_percentage": 0.05,
   "k": 2,
   "n_discretize_bins": 20,
   "dl_allowance": 64,

@@ -134,4 +134,4 @@ if __name__ == "__main__":
     #                         nruns=10)
 
     get_roc_curves(envpermit())
-    get_roc_curves(synthetic_example())
+    # get_roc_curves(synthetic_example())
