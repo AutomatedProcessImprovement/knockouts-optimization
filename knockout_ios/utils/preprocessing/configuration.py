@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 
 import json
+
+from jsonschema import validate
+
 import pm4py
 
 from knockout_ios.utils.custom_exceptions import InvalidFileExtensionException
@@ -142,6 +145,16 @@ def config_data_from_yaml(config_path: Path) -> dict:
 def config_data_from_json(config_path: Path) -> dict:
     with config_path.open("r") as f:
         config_data = json.load(f)
+
+    # Enforce compliance with config json schema, only when not testing
+    running_tests = os.getenv("RUNNING_TESTS", False)
+    if not running_tests:
+        config_schema_path = Path("config/config_schema.json")
+        with config_schema_path.open("r") as f:
+            config_schema = json.load(f)
+
+        # Throws jsonschema.exceptions.ValidationError
+        validate(instance=config_data, schema=config_schema)
 
     config_data = config_data_with_datastructures(config_data)
     return config_data
