@@ -2,6 +2,7 @@ import logging
 import traceback
 
 import streamlit as st
+from tabulate import tabulate
 
 from knockout_ios.pipeline_wrapper import Pipeline
 from knockout_ios.utils.constants import globalColumnNames
@@ -119,21 +120,23 @@ def run_analysis_wrapper():
                 # TODO: show rule discovery metrics in a container collapsed by default
                 st.table(ko_analysis_report)
 
+                st.markdown("---")
                 st.markdown("### Reordering Options")
-                # TODO: add "X/N non-knocked out cases follow it"
 
-                st.table(ko_redesign_report['dependencies'])
+                st.markdown(ko_redesign_report['dependencies'].to_markdown())
+                st.text(" \n")
                 st.write("Optimal Order of Knock-out checks (taking into account attribute dependencies):")
                 st.write(ko_redesign_report['reordering'])
 
+                st.text(" \n")
                 st.markdown("### Relocation Options")
-                # TODO: display this in a more readable way; highlight the changes!
-                st.table(ko_redesign_report['relocation'])
+                st.markdown(ko_redesign_report['relocation'].to_markdown(), unsafe_allow_html=True)
 
-                st.markdown("### Rule value ranges")
+                st.text(" \n")
+                st.markdown("### Rule-change Options")
                 # TODO: replace this ugly thing with plot of distributions of numerical attributes appearing in each rule,
                 #  and overlay the range captured by rules!
-                st.table(ko_redesign_report["rule_change"])
+                st.markdown(ko_redesign_report["rule_change"].to_markdown())
 
 
         except KnockoutRuleDiscoveryException:

@@ -8,12 +8,10 @@ import pandas as pd
 import shutup
 from tqdm import tqdm
 
-# TODO: Excessive wittgenstein frame.append deprecation warnings
-#  currently trying to suppress just with -Wignore
 import wittgenstein as lw
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve, \
     balanced_accuracy_score, make_scorer
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, cross_validate
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
@@ -35,33 +33,28 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
         _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
         _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
 
-        # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
-        # (attributes remain the same throughout the case)
+        # Workaround to avoid any confusion with attributes that sometimes have whitespaces and sometimes have _
         _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
         columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
 
+        # Data splitting techniques:
+        # - Simple train/test split for comparison against Illya's paper (baseline) + optional class balance
+        # - Temporal holdout for every other log (we need time-aware splits), no class balancing nor shuffling
         if skip_temporal_holdout:
-            # This simple train/test split is incorrect; need time-aware splits; only used for baseline comparison against Illya
 
-            # split with the same proportion as Illya, 20% for final metrics calculation
+            # Split with the same proportion as Illya, 20% for final metrics calculation
             _by_case, test = train_test_split(_by_case, test_size=.2)
 
-            # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
-            _by_case_only_cases_in_test = test
-
-            test = test.drop(columns=columns_to_ignore, errors='ignore')
-
             if balance_classes:
-                # with the remaining 80%, balance ko'd/non ko'd cases
+                # with the remaining 80%, balance ko'd/non ko'd cases (as in Illya's paper)
                 train = _by_case.groupby("knocked_out_case")
                 train = train.apply(lambda x: x.sample(train.size().min()).reset_index(drop=True))
                 train = train.reset_index(drop=True)
-                train = train.drop(columns=columns_to_ignore, errors='ignore')
             else:
-                train = _by_case.drop(columns=columns_to_ignore, errors='ignore')
+                train = _by_case
 
         else:
-            # Temporal holdout: take first 80% of cases, so that cases in test set happen after those in training set
+            # Temporal holdout: take first 80% of cases for train set, so that cases in test set happen after those
             _by_case = _by_case.sort_values(by=[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
             train, test = train_test_split(_by_case, test_size=.2, shuffle=False)
 
@@ -69,11 +62,12 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
             last_timestamp = train.iloc[-1][globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME]
             assert test[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME].max() > last_timestamp
 
-            # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
-            _by_case_only_cases_in_test = test
+        # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
+        _by_case_only_cases_in_test = test
 
-            test = test.drop(columns=columns_to_ignore, errors='ignore')
-            train = train.drop(columns=columns_to_ignore, errors='ignore')
+        # After splitting and/or balancing as requested, drop all columns that are not needed for the analysis
+        test = test.drop(columns=columns_to_ignore, errors='ignore')
+        train = train.drop(columns=columns_to_ignore, errors='ignore')
 
         if algorithm == "RIPPER":
             ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
@@ -120,7 +114,7 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                 'recall': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="recall").mean(),
                 'f1_score': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="f1").mean(),
                 'roc_auc_cv': cross_val_score(ruleset_model, X, y, cv=5, scoring=make_scorer(roc_auc_score),
-                                              error_score=0.5).mean(),
+                                              error_score=0).mean(),
                 # TODO: make custom function that splits & computes roc_curve per each configuration,
                 #  then returns mean of all (fpr, tpr, thresholds)
                 'roc_curve_cv': []

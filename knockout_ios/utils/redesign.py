@@ -289,19 +289,19 @@ def confidence_intervals_t_student(x, confidence=0.95):
 
 
 def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: dict[str, List[tuple[str, str]]],
-                                    optimal_ko_order=None, start_activity_constraint=None) -> dict[
-    tuple[str], List[str]]:
-    # TODO: get min_coverage_percentage or K as a parameter in config file
+                                    optimal_ko_order=None, start_activity_constraint=None) -> tuple[
+    dict[tuple[str], List[str]], dict]:
     log = deepcopy(analyzer.discoverer.log_df)
     log.sort_values(
         by=[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME,
-            globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME],
+            globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
+    # TODO: get min_coverage_percentage or K as a parameter in config file
     # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df, min_coverage_percentage=0.01)
     # flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df,
     # min_coverage_percentage=analyzer.config.relocation_variants_min_coverage_percentage)
-    flt = pm4py.filter_variants_top_k(analyzer.discoverer.log_df, k=10)
+    flt = pm4py.filter_variants_top_k(log, k=10)
     variants = pm4py.get_variants_as_tuples(flt)
 
     proposed_relocations = {}
@@ -311,7 +311,7 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
                                                           dependencies=dependencies,
                                                           start_activity_constraint=start_activity_constraint)
 
-    return proposed_relocations
+    return proposed_relocations, variants
 
 
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
