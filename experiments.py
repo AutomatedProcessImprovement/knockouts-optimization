@@ -9,7 +9,12 @@ from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
 from knockout_ios.pipeline_wrapper import Pipeline
 
 
-def get_roc_curves(adviser):
+def get_roc_curves(adviser, use_cv=False):
+    if use_cv:
+        curve = 'roc_curve_cv'
+    else:
+        curve = 'roc_curve'
+
     classifiers_data = adviser.knockout_analyzer.RIPPER_rulesets
     if classifiers_data is None:
         classifiers_data = adviser.knockout_analyzer.IREP_rulesets
@@ -21,18 +26,16 @@ def get_roc_curves(adviser):
         classifier = classifiers_data[activity]
 
         ruleset = classifier[0].ruleset_.rules
-        if (len(ruleset) == 0) or ('roc_curve' not in classifier[2]):
-            continue
 
-        fpr, tpr, _ = classifier[2]['roc_curve']
-        if any(np.isnan(fpr)) or any(np.isnan(tpr)):
-            continue
+        fpr, tpr, _ = classifier[2][curve]
+        if (len(ruleset) == 0) or any(np.isnan(fpr)) or any(np.isnan(tpr)):
+            fpr, tpr = np.array([0, 0.5, 1]), np.array([0, 0.5, 1])
 
         plt.plot(
             fpr,
             tpr,
             lw=2,
-            linestyle=np.random.choice(["dashed", "dotted", "dashdot"])
+            linestyle="solid"  # np.random.choice(["dashed", "dotted", "dashdot"])
         )
         legends.append(activity)
 
@@ -47,7 +50,12 @@ def get_roc_curves(adviser):
     plt.show()
 
 
-def get_avg_roc_curves(advisers):
+def get_avg_roc_curves(advisers, use_cv=False):
+    if use_cv:
+        curve = 'roc_curve_cv'
+    else:
+        curve = 'roc_curve'
+
     data = {}
     for adviser in advisers:
         classifiers_data = adviser.knockout_analyzer.RIPPER_rulesets
@@ -59,12 +67,10 @@ def get_avg_roc_curves(advisers):
             classifier = classifiers_data[activity]
 
             ruleset = classifier[0].ruleset_.rules
-            if (len(ruleset) == 0) or ('roc_curve' not in classifier[2]):
-                continue
 
-            fpr, tpr, _ = classifier[2]['roc_curve']
-            if any(np.isnan(fpr)) or any(np.isnan(tpr)):
-                continue
+            fpr, tpr, _ = classifier[2][curve]
+            if (len(ruleset) == 0) or any(np.isnan(fpr)) or any(np.isnan(tpr)):
+                fpr, tpr = np.array([0, 0.5, 1]), np.array([0, 0.5, 1])
 
             if activity in data:
                 data[activity].append((fpr, tpr))
@@ -87,7 +93,7 @@ def get_avg_roc_curves(advisers):
             avg_fpr,
             avg_tpr,
             lw=2,
-            linestyle=np.random.choice(["dashed", "dotted", "dashdot"])
+            linestyle="solid"  # np.random.choice(["dashed", "dotted", "dashdot"])
         )
         legends.append(activity)
 
@@ -101,11 +107,11 @@ def get_avg_roc_curves(advisers):
     plt.show()
 
 
-def get_experiment_averages(experiment: Callable[[], KnockoutRedesignAdviser], cache_file, nruns):
+def get_experiment_averages(experiment: Callable[[], KnockoutRedesignAdviser], cache_file, nruns, use_cv=False):
     try:
         with open(cache_file, 'rb') as f:
             advisers = pickle.load(f)
-            get_avg_roc_curves(advisers)
+            get_avg_roc_curves(advisers, use_cv=use_cv)
 
     except FileNotFoundError:
         advisers = []
@@ -115,7 +121,7 @@ def get_experiment_averages(experiment: Callable[[], KnockoutRedesignAdviser], c
         with open(cache_file, "wb") as f:
             pickle.dump(advisers, f)
 
-        get_avg_roc_curves(advisers)
+        get_avg_roc_curves(advisers, use_cv=use_cv)
 
 
 def synthetic_example():
@@ -129,9 +135,10 @@ def envpermit():
 
 
 if __name__ == "__main__":
-    # get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10)
-    # get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
-    #                         nruns=10)
+    get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10,
+                            use_cv=True)
+    get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
+                            nruns=10)
 
-    get_roc_curves(envpermit())
+    # get_roc_curves(envpermit(), use_cv=True)
     # get_roc_curves(synthetic_example())

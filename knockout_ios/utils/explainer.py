@@ -1,4 +1,5 @@
 import logging
+import math
 
 from copy import deepcopy
 from sys import stdout
@@ -11,10 +12,64 @@ from tqdm import tqdm
 import wittgenstein as lw
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve, \
     balanced_accuracy_score, make_scorer
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, KFold, \
+    StratifiedKFold
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
+
+
+def get_roc_curve_cv(ruleset_model, X, y, cv):
+    # Splits & computes roc_curve per each configuration,
+    # then returns mean of all (fpr, tpr, thresholds)
+
+    # kf = KFold(n_splits=cv)
+    # kf = TimeSeriesSplit(gap=0, max_train_size=None, test_size=None, n_splits=cv)
+    kf = StratifiedKFold(n_splits=cv)
+    curves: list[tuple] = []
+    max_fpr_len, max_tpr_len, max_thresholds_len = 0, 0, 0
+
+    for train, test in kf.split(X, y):
+        X_train, X_test = X.iloc[train], X.iloc[test]
+        y_train, y_test = y.iloc[train], y.iloc[test]
+        try:
+            if len(curves) > 0:
+                max_fpr_len = max([len(curve[0]) for curve in curves])
+                max_tpr_len = max([len(curve[1]) for curve in curves])
+                max_thresholds_len = max([len(curve[2]) for curve in curves])
+
+            ruleset_model.fit(X_train, y=y_train)
+            if ruleset_model.ruleset_.isuniversal() or ruleset_model.ruleset_.isnull():
+                raise Exception
+
+            curve = ruleset_model.score(X_test, y_test, roc_curve)
+            for e in curve:
+                if np.isnan(e).any():
+                    raise Exception
+
+            if (len(curve[0]) < max_fpr_len) or (len(curve[1]) < max_tpr_len) or (len(curve[2]) < max_thresholds_len):
+                raise Exception
+
+            curves.append(curve)
+
+        except Exception:
+            pass
+
+    # if all curves had an issue, raise Exception
+    # to signal the caller to return default "random" classifier curve
+    if len(curves) == 0:
+        raise Exception
+
+    # average all the elements of the roc curve tuples
+    fprs = np.array([t[0] for t in curves])
+    tprs = np.array([t[1] for t in curves])
+    thresholds = np.array([t[2] for t in curves])
+
+    avg = np.average(np.array(fprs), axis=0), \
+          np.average(np.array(tprs), axis=0), \
+          np.average(np.array(thresholds), axis=0)
+
+    return avg
 
 
 def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None, algorithm='IREP',
@@ -113,20 +168,25 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                 'precision': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="precision").mean(),
                 'recall': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="recall").mean(),
                 'f1_score': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="f1").mean(),
-                'roc_auc_cv': cross_val_score(ruleset_model, X, y, cv=5, scoring=make_scorer(roc_auc_score),
-                                              error_score=0).mean(),
-                # TODO: make custom function that splits & computes roc_curve per each configuration,
-                #  then returns mean of all (fpr, tpr, thresholds)
-                'roc_curve_cv': []
-                # 'roc_curve_cv': cross_validate(ruleset_model, X, y, cv=3,
-                #                                scoring=roc_curve,
-                #                                error_score=(np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), None))
             }
+
+            # Get roc metrics with cross validation, as in Illya's paper
+            # includes a workaround for greatly imbalanced datasets such as envpermit,
+            # where roc_auc_score gets heavily biased. Fallback to values of random classifier.
             try:
-                metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
-                metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
+                if math.isclose(metrics["confidence"], 0):
+                    raise Exception
+                metrics['roc_auc_cv'] = cross_val_score(ruleset_model, X, y, cv=5, scoring=make_scorer(roc_auc_score),
+                                                        error_score=0).mean()
             except Exception:
-                pass
+                metrics['roc_auc_cv'] = 0.5
+
+            try:
+                if math.isclose(metrics["confidence"], 0):
+                    raise Exception
+                metrics['roc_curve_cv'] = get_roc_curve_cv(ruleset_model, X, y, cv=5)
+            except Exception:
+                metrics['roc_curve_cv'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), np.array([0, 0, 0])
 
         else:
             metrics = {
@@ -142,15 +202,13 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
             }
             try:
                 metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
+            except Exception:
+                metrics['roc_auc_score'] = 0.5
+
+            try:
                 metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
             except Exception:
-                pass
-
-        if 'roc_auc_score' not in metrics:
-            metrics['roc_auc_score'] = 0.5
-
-        if 'roc_curve' not in metrics:
-            metrics['roc_curve'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), None
+                metrics['roc_curve'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), np.array([0, 0, 0])
 
         rulesets[activity] = (
             ruleset_model,
