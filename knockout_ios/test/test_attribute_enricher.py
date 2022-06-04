@@ -1,9 +1,13 @@
 import pandas as pd
 
+from knockout_ios.utils.platform_check import is_windows
 from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_df
 
 
 def test_attribute_enricher():
+    if not is_windows():
+        pass
+
     # Verify that conditions hold
 
     original = pd.read_pickle('test/test_fixtures/synthetic_example_raw_df.pkl')
