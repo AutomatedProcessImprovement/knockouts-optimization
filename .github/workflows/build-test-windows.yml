@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip'
-      
+
       - name: Create & activate venv
         run: |
           py -m venv env
@@ -39,4 +39,6 @@ jobs:
         run: choco install graphviz
 
       - name: Run pytest (parallel)
-        run: cd knockout_ios && pytest . -x -n auto --disable-warnings
+        run: |
+          export RUNNING_TESTS=true
+          cd knockout_ios && pytest . -x -n auto --disable-warnings
