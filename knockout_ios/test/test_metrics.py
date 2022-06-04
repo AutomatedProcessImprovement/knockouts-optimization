@@ -6,6 +6,7 @@ from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
     calc_overlapping_time_ko_and_non_ko, calc_waiting_time_waste_v2
+from knockout_ios.utils.platform_check import is_windows
 
 log = [
     # 1 Knocked out case (contains check_A and did not pass it)
@@ -105,6 +106,9 @@ def test_partially_correct_kos():
 
 
 def test_available_cases_before_ko_calculation():
+    if not is_windows():
+        pass
+
     log_df = pd.read_pickle('test/test_fixtures/log_df.pkl')
 
     activities = ["Check Liability", "Check Risk", "Check Monthly Income"]

@@ -6,6 +6,7 @@ from pandas import Timestamp
 from collections import Counter
 
 from knockout_ios.utils.constants import globalColumnNames
+from knockout_ios.utils.platform_check import is_windows
 from knockout_ios.utils.redesign import get_ko_activities_sorted_with_dependencies, find_producers, get_relocated_kos, \
     find_ko_activity_dependencies, evaluate_knockout_reordering_io, simplify_rule
 
@@ -64,6 +65,9 @@ def test_pure_relocation_3():
 
 
 def test_relocation_BPI():
+    if not is_windows():
+        pass
+
     bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
 
     dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
@@ -103,6 +107,8 @@ def test_relocation_BPI():
 
 
 def test_relocation_BPI_2():
+    if not is_windows():
+        pass
     bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W_2")
 
     dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
