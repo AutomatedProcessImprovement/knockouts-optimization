@@ -40,5 +40,5 @@ jobs:
 
       - name: Run pytest (parallel)
         run: |
-          export RUNNING_TESTS=true
+          SET RUNNING_TESTS=true
           cd knockout_ios && pytest . -x -n auto --disable-warnings
