@@ -92,6 +92,9 @@ class KnockoutAnalyzer:
                                              always_force_recompute=always_force_recompute,
                                              quiet=quiet)
 
+    def get_total_cases(self):
+        return self.discoverer.log_df[globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME].nunique()
+
     def discover_knockouts(self, expected_kos=None):
         if not (self.config.known_ko_activities is None) and (len(self.config.known_ko_activities) > 0):
             self.discoverer.label_cases_with_known_ko_activities(self.config.known_ko_activities)
@@ -349,13 +352,23 @@ class KnockoutAnalyzer:
             if not self.one_timestamp:
                 overprocessing_waste = calc_overprocessing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
                 processing_waste = calc_processing_waste(self.discoverer.ko_activities, self.discoverer.log_df)
-                waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities, self.discoverer.log_df)
+
+                if self.config.skip_slow_time_waste_metrics:
+                    waiting_time_waste = {activity: 0 for activity in self.discoverer.ko_activities}
+                else:
+                    waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
+                                                                    self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
             total_non_ko_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
 
             entries = []
             for ko in self.discoverer.ko_activities:
+
+                classifier = rulesets[ko][0]
+                metrics = rulesets[ko][2]
+                # TODO: decide what metric(s) to show in the main table... roc_auc_cv?
+
                 report_entry = {("%s" % globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK): ko,
                                 globalColumnNames.REPORT_COLUMN_TOTAL_FREQ:
                                     freqs[ko],
@@ -363,7 +376,8 @@ class KnockoutAnalyzer:
                                     f"{round(100 * freqs[ko] / _by_case.shape[0], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
                                 f"{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})":
-                                    out_pretty(rulesets[ko][0].ruleset_),
+                                    out_pretty(classifier.ruleset_),
+                                # globalColumnNames.REPORT_COLUMN_BALANCED_ACCURACY: f"{round(100 * metrics['balanced_accuracy'], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO: round(
                                     self.ko_stats[ko][self.ruleset_algorithm]["effort"],
                                     ndigits=2)
@@ -385,6 +399,8 @@ class KnockoutAnalyzer:
                 entries.append(report_entry)
 
             self.report_df = pd.DataFrame(entries)
+            self.report_df.sort_values(by=[globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK], inplace=True,
+                                       ignore_index=True)
 
         if not omit:
             self.report_df.to_csv(self.report_file_name, index=False)

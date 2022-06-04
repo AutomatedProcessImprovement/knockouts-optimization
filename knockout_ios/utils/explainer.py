@@ -1,4 +1,5 @@
 import logging
+import math
 
 from copy import deepcopy
 from sys import stdout
@@ -8,14 +9,67 @@ import pandas as pd
 import shutup
 from tqdm import tqdm
 
-# TODO: Excessive wittgenstein frame.append deprecation warnings
-#  currently trying to suppress just with -Wignore
 import wittgenstein as lw
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve, \
+    balanced_accuracy_score, make_scorer
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, KFold, \
+    StratifiedKFold
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
+
+
+def get_roc_curve_cv(ruleset_model, X, y, cv):
+    # Splits & computes roc_curve per each configuration,
+    # then returns mean of all (fpr, tpr, thresholds)
+
+    # kf = KFold(n_splits=cv)
+    # kf = TimeSeriesSplit(gap=0, max_train_size=None, test_size=None, n_splits=cv)
+    kf = StratifiedKFold(n_splits=cv)
+    curves: list[tuple] = []
+    max_fpr_len, max_tpr_len, max_thresholds_len = 0, 0, 0
+
+    for train, test in kf.split(X, y):
+        X_train, X_test = X.iloc[train], X.iloc[test]
+        y_train, y_test = y.iloc[train], y.iloc[test]
+        try:
+            if len(curves) > 0:
+                max_fpr_len = max([len(curve[0]) for curve in curves])
+                max_tpr_len = max([len(curve[1]) for curve in curves])
+                max_thresholds_len = max([len(curve[2]) for curve in curves])
+
+            ruleset_model.fit(X_train, y=y_train)
+            if ruleset_model.ruleset_.isuniversal() or ruleset_model.ruleset_.isnull():
+                raise Exception
+
+            curve = ruleset_model.score(X_test, y_test, roc_curve)
+            for e in curve:
+                if np.isnan(e).any():
+                    raise Exception
+
+            if (len(curve[0]) < max_fpr_len) or (len(curve[1]) < max_tpr_len) or (len(curve[2]) < max_thresholds_len):
+                raise Exception
+
+            curves.append(curve)
+
+        except Exception:
+            pass
+
+    # if all curves had an issue, raise Exception
+    # to signal the caller to return default "random" classifier curve
+    if len(curves) == 0:
+        raise Exception
+
+    # average all the elements of the roc curve tuples
+    fprs = np.array([t[0] for t in curves])
+    tprs = np.array([t[1] for t in curves])
+    thresholds = np.array([t[2] for t in curves])
+
+    avg = np.average(np.array(fprs), axis=0), \
+          np.average(np.array(tprs), axis=0), \
+          np.average(np.array(thresholds), axis=0)
+
+    return avg
 
 
 def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None, algorithm='IREP',
@@ -34,29 +88,28 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
         _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
         _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
 
-        # Replace blank spaces in _by_case column names with underscores and keep only 1 event per caseid
-        # (attributes remain the same throughout the case)
+        # Workaround to avoid any confusion with attributes that sometimes have whitespaces and sometimes have _
         _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
         columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
 
+        # Data splitting techniques:
+        # - Simple train/test split for comparison against Illya's paper (baseline) + optional class balance
+        # - Temporal holdout for every other log (we need time-aware splits), no class balancing nor shuffling
         if skip_temporal_holdout:
-            # This simple train/test split is incorrect; need time-aware splits; only used for baseline comparison against Illya
 
-            # split with the same proportion as Illya, 20% for final metrics calculation
+            # Split with the same proportion as Illya, 20% for final metrics calculation
             _by_case, test = train_test_split(_by_case, test_size=.2)
-            test = test.drop(columns=columns_to_ignore, errors='ignore')
 
             if balance_classes:
-                # with the remaining 80%, balance ko'd/non ko'd cases
+                # with the remaining 80%, balance ko'd/non ko'd cases (as in Illya's paper)
                 train = _by_case.groupby("knocked_out_case")
                 train = train.apply(lambda x: x.sample(train.size().min()).reset_index(drop=True))
                 train = train.reset_index(drop=True)
-                train = train.drop(columns=columns_to_ignore, errors='ignore')
             else:
-                train = _by_case.drop(columns=columns_to_ignore, errors='ignore')
+                train = _by_case
 
         else:
-            # Temporal holdout: take first 80% of cases, so that cases in test set happen after those in training set
+            # Temporal holdout: take first 80% of cases for train set, so that cases in test set happen after those
             _by_case = _by_case.sort_values(by=[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
             train, test = train_test_split(_by_case, test_size=.2, shuffle=False)
 
@@ -64,8 +117,12 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
             last_timestamp = train.iloc[-1][globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME]
             assert test[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME].max() > last_timestamp
 
-            test = test.drop(columns=columns_to_ignore, errors='ignore')
-            train = train.drop(columns=columns_to_ignore, errors='ignore')
+        # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
+        _by_case_only_cases_in_test = test
+
+        # After splitting and/or balancing as requested, drop all columns that are not needed for the analysis
+        test = test.drop(columns=columns_to_ignore, errors='ignore')
+        train = train.drop(columns=columns_to_ignore, errors='ignore')
 
         if algorithm == "RIPPER":
             ruleset_model, ruleset_params = RIPPER_wrapper(train, activity, max_rules=max_rules,
@@ -91,26 +148,67 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
         x_test = test.drop(['knocked_out_case'], axis=1)
         y_test = test['knocked_out_case']
 
+        X = _by_case.drop(columns_to_ignore + ['knocked_out_case'], axis=1, errors='ignore')
+        y = _by_case['knocked_out_case']
+
         support = calc_knockout_ruleset_support(ruleset_model, _by_case,
                                                 available_cases_before_ko=available_cases_before_ko[activity])
-        confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
 
-        metrics = {
-            'support': support,
-            'confidence': confidence,
-            'condition_count': ruleset_model.ruleset_.count_conds(),
-            'rule_count': ruleset_model.ruleset_.count_rules(),
-            'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
-            'precision': ruleset_model.score(x_test, y_test, precision_score),
-            'recall': ruleset_model.score(x_test, y_test, recall_score),
-            'f1_score': ruleset_model.score(x_test, y_test, f1_score)
-        }
-        try:
-            metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
-            metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
-        except Exception:
-            metrics['roc_auc_score'] = 0.5
-            metrics['roc_curve'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), None
+        confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case_only_cases_in_test)
+
+        if skip_temporal_holdout:
+            metrics = {
+                'support': support,
+                'confidence': confidence,
+                'condition_count': ruleset_model.ruleset_.count_conds(),
+                'rule_count': ruleset_model.ruleset_.count_rules(),
+                'accuracy': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="accuracy").mean(),
+                'balanced_accuracy': cross_val_score(ruleset_model, x_test, y_test, cv=5,
+                                                     scoring="balanced_accuracy").mean(),
+                'precision': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="precision").mean(),
+                'recall': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="recall").mean(),
+                'f1_score': cross_val_score(ruleset_model, x_test, y_test, cv=5, scoring="f1").mean(),
+            }
+
+            # Get roc metrics with cross validation, as in Illya's paper
+            # includes a workaround for greatly imbalanced datasets such as envpermit,
+            # where roc_auc_score gets heavily biased. Fallback to values of random classifier.
+            try:
+                if math.isclose(metrics["confidence"], 0):
+                    raise Exception
+                metrics['roc_auc_cv'] = cross_val_score(ruleset_model, X, y, cv=5, scoring=make_scorer(roc_auc_score),
+                                                        error_score=0).mean()
+            except Exception:
+                metrics['roc_auc_cv'] = 0.5
+
+            try:
+                if math.isclose(metrics["confidence"], 0):
+                    raise Exception
+                metrics['roc_curve_cv'] = get_roc_curve_cv(ruleset_model, X, y, cv=5)
+            except Exception:
+                metrics['roc_curve_cv'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), np.array([0, 0, 0])
+
+        else:
+            metrics = {
+                'support': support,
+                'confidence': confidence,
+                'condition_count': ruleset_model.ruleset_.count_conds(),
+                'rule_count': ruleset_model.ruleset_.count_rules(),
+                'balanced_accuracy': ruleset_model.score(x_test, y_test, balanced_accuracy_score),
+                'accuracy': ruleset_model.score(x_test, y_test, accuracy_score),
+                'precision': ruleset_model.score(x_test, y_test, precision_score),
+                'recall': ruleset_model.score(x_test, y_test, recall_score),
+                'f1_score': ruleset_model.score(x_test, y_test, f1_score)
+            }
+            try:
+                metrics['roc_auc_score'] = ruleset_model.score(x_test, y_test, roc_auc_score)
+            except Exception:
+                metrics['roc_auc_score'] = 0.5
+
+            try:
+                metrics['roc_curve'] = ruleset_model.score(x_test, y_test, roc_curve)
+            except Exception:
+                metrics['roc_curve'] = np.array([0, 0.5, 1]), np.array([0, 0.5, 1]), np.array([0, 0, 0])
 
         rulesets[activity] = (
             ruleset_model,

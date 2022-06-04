@@ -21,8 +21,10 @@
   "always_force_recompute": false,
   "print_rule_discovery_stats": true,
   "read_options": {
-    "one_timestamp": true
+    "one_timestamp": false
   },
+  "relocation_variants_min_coverage_percentage": 0.001,
+  "skip_slow_time_waste_metrics": true,
   "grid_search": false,
   "param_grid": {
     "prune_size": [

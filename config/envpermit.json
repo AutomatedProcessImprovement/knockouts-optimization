@@ -31,11 +31,12 @@
     },
     "one_timestamp": true
   },
+  "relocation_variants_min_coverage_percentage": 0.05,
   "k": 2,
   "n_discretize_bins": 20,
   "dl_allowance": 64,
   "prune_size": 0.001,
-  "grid_search": false,
+  "grid_search": true,
   "param_grid": {
     "prune_size": [
       0.0001,
