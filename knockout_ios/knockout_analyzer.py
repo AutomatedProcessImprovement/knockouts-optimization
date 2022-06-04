@@ -391,6 +391,8 @@ class KnockoutAnalyzer:
                 entries.append(report_entry)
 
             self.report_df = pd.DataFrame(entries)
+            self.report_df.sort_values(by=[globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK], inplace=True,
+                                       ignore_index=True)
 
         if not omit:
             self.report_df.to_csv(self.report_file_name, index=False)

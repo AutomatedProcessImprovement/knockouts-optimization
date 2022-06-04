@@ -35,7 +35,7 @@
   "n_discretize_bins": 20,
   "dl_allowance": 64,
   "prune_size": 0.001,
-  "grid_search": true,
+  "grid_search": false,
   "param_grid": {
     "prune_size": [
       0.0001,

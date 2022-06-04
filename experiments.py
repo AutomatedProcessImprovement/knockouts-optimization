@@ -2,37 +2,11 @@ import pickle
 from typing import Callable
 
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
 from knockout_ios.pipeline_wrapper import Pipeline
-
-from sklearn.model_selection import cross_val_score
-
-
-def get_cross_val_scores(adviser, cv=5):
-    classifiers_data = adviser.knockout_analyzer.RIPPER_rulesets
-    if classifiers_data is None:
-        classifiers_data = adviser.knockout_analyzer.IREP_rulesets
-
-    cross_val_scores = {k: 0 for k in classifiers_data.keys()}
-    for activity in classifiers_data.keys():
-        classifier = classifiers_data[activity]
-
-        ruleset = classifier[0].ruleset_.rules
-        if (len(ruleset) == 0) or ('roc_curve' not in classifier[2]):
-            continue
-
-        train = classifier[2]["dataset"]
-        X_train = train.drop(['knocked_out_case'], axis=1)
-        y_train = train['knocked_out_case']
-
-        X_train = pd.get_dummies(X_train, columns=X_train.select_dtypes('object').columns)
-        y_train = y_train.map(lambda x: 1 if x == 'p' else 0)
-
-        cross_val_scores[activity] = cross_val_score(classifier, X_train, y_train, cv=cv)
 
 
 def get_roc_curves(adviser):
@@ -70,12 +44,10 @@ def get_roc_curves(adviser):
     plt.plot([0, 1], [0, 1], color="black", lw=2, linestyle="dotted")
     plt.legend(legends + ["Baseline"], loc="lower right")
 
-    # plt.legend(legends, loc="lower right")
     plt.show()
 
 
 def get_avg_roc_curves(advisers):
-    # data = {activity: [] for activity in advisers[0].discoverer.ko_activities}
     data = {}
     for adviser in advisers:
         classifiers_data = adviser.knockout_analyzer.RIPPER_rulesets
@@ -160,6 +132,6 @@ if __name__ == "__main__":
     # get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10)
     # get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
     #                         nruns=10)
-    
+
     get_roc_curves(envpermit())
-    # get_roc_curves(synthetic_example())
+    get_roc_curves(synthetic_example())

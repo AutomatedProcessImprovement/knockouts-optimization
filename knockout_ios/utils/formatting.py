@@ -63,15 +63,17 @@ def seconds_to_hms(seconds):
     return f'{h:d}:{m:02d}:{s:02d}'
 
 
-red = lambda text: f"\033[38;2;255;0;0m{text}\033[38;2;255;255;255m"
-green = lambda text: f"\033[38;2;0;255;0m{text}\033[38;2;255;255;255m"
-blue = lambda text: f"\033[38;2;0;0;255m{text}\033[38;2;255;255;255m"
-white = lambda text: f"\033[38;2;255;255;255m{text}\033[38;2;255;255;255m"
+# red = lambda text: f"\033[38;2;255;0;0m{text}\033[38;2;255;255;255m"
+# green = lambda text: f"\033[38;2;0;255;0m{text}\033[38;2;255;255;255m"
+# blue = lambda text: f"\033[38;2;0;0;255m{text}\033[38;2;255;255;255m"
+# white = lambda text: f"\033[38;2;255;255;255m{text}\033[38;2;255;255;255m"
+
+# TODO: find way to output colored for UI but not for .txt
+green = lambda text: f'<span style="color:Green;">{text}</span>'
+white = lambda text: text
 
 
 def get_edits_string(old, new):
-    return new
-
     # Source: https://stackoverflow.com/a/64404008/8522453
 
     result = ""

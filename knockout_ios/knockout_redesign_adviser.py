@@ -61,14 +61,14 @@ class KnockoutRedesignAdviser(object):
         self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
                                                                               dependencies)
 
-        self.redesign_options["relocation"] = evaluate_knockout_relocation_io(self.knockout_analyzer,
-                                                                              dependencies,
-                                                                              optimal_ko_order=
-                                                                              self.redesign_options[
-                                                                                  "reordering"][
-                                                                                  "optimal_ko_order"],
-                                                                              start_activity_constraint=
-                                                                              self.knockout_analyzer.start_activity)
+        self.redesign_options["relocation"], variants = evaluate_knockout_relocation_io(self.knockout_analyzer,
+                                                                                        dependencies,
+                                                                                        optimal_ko_order=
+                                                                                        self.redesign_options[
+                                                                                            "reordering"][
+                                                                                            "optimal_ko_order"],
+                                                                                        start_activity_constraint=
+                                                                                        self.knockout_analyzer.start_activity)
 
         self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
                                                                                               self.attribute_range_confidence_interval)
@@ -97,7 +97,7 @@ class KnockoutRedesignAdviser(object):
                      "Dependencies": dependencies_str})
 
             df = pd.DataFrame(entries)
-            df.sort_values(by="Dependencies", inplace=True)
+            df.sort_values(by=globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK, ignore_index=True, inplace=True)
             reports["dependencies"] = df
             print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
@@ -110,20 +110,25 @@ class KnockoutRedesignAdviser(object):
 
             print(
                 "Optimal Order of Knock-out checks (taking into account attribute dependencies):\n" + f"{''.join(optimal_order)}\n{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it.")
-            reports["reordering"] = ''.join(optimal_order)
+
+            reports["reordering"] = ''.join(
+                optimal_order) + "\n" + f"{cases_respecting_order}/{total_cases} non-knocked-out case(s) follow it."
 
         if "relocation" in self.redesign_options:
             print("\n\n> Knock-out Re-location\n")
             entries = []
             for item in self.redesign_options["relocation"].items():
                 entries.append(
-                    {"Variant / Relocation Suggestion": " -> ".join(item[0]) + '\n'
-                                                        + get_edits_string(" -> ".join(item[0]),
-                                                                           " -> ".join(item[1]))})
+                    {"Case count": variants[item[0]],
+                     "As-is / To-be": " -> ".join(item[0]) + '\n'
+                                      + get_edits_string(" -> ".join(item[0]),
+                                                         " -> ".join(item[1]))})
 
             df = pd.DataFrame(entries)
+            df.index.name = "Variant"
+            df = df.sort_values(by="Case count", ascending=False, ignore_index=True)
             reports["relocation"] = df
-            print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
+            print(tabulate(df, headers='keys', showindex="true", tablefmt="fancy_grid"))
 
         if "rule_change" in self.redesign_options:
             print("\n\n> Knock-out rule value ranges\n")
@@ -132,14 +137,14 @@ class KnockoutRedesignAdviser(object):
 
             rule_attribute_ranges_dict = self.redesign_options["rule_change"]
             for activity in rule_attribute_ranges_dict.keys():
-                confidence_intervals_string = f"Rule:\n{raw_rulesets[activity]}"
+                confidence_intervals_string = f"{raw_rulesets[activity]}"
                 if not (len(raw_rulesets[activity]) > 0):
                     continue
 
                 if len(rule_attribute_ranges_dict[activity]) > 0:
-                    confidence_intervals_string += f"\n\nValue ranges of knocked-out cases:"
+                    confidence_intervals_string += f"\nValue ranges of knocked-out cases:"
                 else:
-                    confidence_intervals_string += f"\n\nNo numerical attributes found in rule."
+                    confidence_intervals_string += f"\nNo numerical attributes found in rule."
                 for attribute in rule_attribute_ranges_dict[activity]:
                     confidence_intervals_string += f"\n- {attribute}: {rule_attribute_ranges_dict[activity][attribute][0]:.2f} - {rule_attribute_ranges_dict[activity][attribute][1]:.2f}"
 
@@ -149,6 +154,7 @@ class KnockoutRedesignAdviser(object):
                      "Observation": confidence_intervals_string})
 
             df = pd.DataFrame(entries)
+            df.sort_values(by=globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK, ignore_index=True, inplace=True)
             reports["rule_change"] = df
             print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
