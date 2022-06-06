@@ -5,6 +5,7 @@
   "post_knockout_activities": [
     "Notify rejection"
   ],
+  "skip_slow_time_waste_metrics": true,
   "success_activities": [],
   "known_ko_activities": []
 }

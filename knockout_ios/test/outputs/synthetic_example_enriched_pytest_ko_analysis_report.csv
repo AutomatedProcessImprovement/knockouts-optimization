@@ -1,10 +1,10 @@
 Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Mean Duration,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
 Assess application,836,27.87 %,80.02 %,"[[External_Risk_Score=>0.64] V
 [External_Risk_Score=0.35-0.64]]",50.2,1:06:57,"178 days, 0:35:20","172 days, 22:02:52",0:00:00,0:00:00
-Check Liability,3000,100.0 %,20.17 %,"[[Total_Debt=>5200.1] V
-[Owns_Vehicle=FALSE]]",202.83,1:08:10,"55 days, 18:56:48","55 days, 5:47:50",0:00:00,0:00:00
-Check Monthly Income,1674,55.8 %,50.06 %,"[[Monthly_Income=<555.77] V
-[Monthly_Income=555.77-830.79] V
+Check Liability,3000,100.0 %,20.17 %,"[[Owns_Vehicle=FALSE] V
+[Total_Debt=>5200.1]]",202.83,1:08:10,"55 days, 18:56:48","55 days, 5:47:50",0:00:00,0:00:00
+Check Monthly Income,1674,55.8 %,50.06 %,"[[Monthly_Income=555.77-830.79] V
+[Monthly_Income=<555.77] V
 [Monthly_Income=830.79-1019.68]]",40.66,0:35:56,"139 days, 4:24:45","126 days, 8:02:16",0:00:00,0:00:00
 Check Risk,2395,79.83 %,30.1 %,"[[Loan_Ammount=11693.71-16840.45] V
 [Loan_Ammount=>16840.45] V
