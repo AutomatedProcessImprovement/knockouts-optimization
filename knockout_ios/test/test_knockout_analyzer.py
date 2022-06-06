@@ -50,6 +50,3 @@ def test_report_creation(algorithm):
 
     # assert that there are no rows with negative values
     assert df.loc[df['Effort per rejection'] < 0].shape[0] == 0
-
-    # assert that there are no rows where 'Rejection rule' is empty
-    # assert df.loc[df[f'Rejection rule ({algorithm})'] == "[]", f'Rejection rule ({algorithm})'].shape[0] == 0

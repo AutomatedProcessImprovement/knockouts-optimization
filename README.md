@@ -6,6 +6,24 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ## Set-up
 
+### Using a `setup` script
+
+- (Experimental) setup scripts are provided for Windows & Linux, which perform the steps described in the "Manual steps"
+  section.
+- Requirements:
+    - Cloning the repository
+    - Python 3.9+ installed
+
+  ```bash
+  # Windows: 
+  setup.bat
+       
+  # Linux: 
+  bash setup.sh
+   ```
+
+### Manual steps
+
 - Clone the repo
 - [Create a virtual environment with venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment)
 - In the directory that contains the newly created `venv` folder, run:
@@ -15,9 +33,17 @@ This project is about discovering improvement opportunities in Knock-out checks 
     ```
 - Depending on your platform, install graphviz (v 3.0.0+) separately, and make sure it's in your `PATH`
   (see also: [graphviz downloads page](https://graphviz.org/download/#windows)):
-    - Windows: `choco install graphviz`
-    - Linux: `sudo apt install graphviz`
-    - Mac: `brew install graphviz`
+
+     ```bash
+      # Windows: 
+      choco install graphviz
+      
+      # Linux: 
+      sudo apt install graphviz
+      
+      # Mac:
+      brew install graphviz
+    ```
 
 ## Usage
 
@@ -27,7 +53,11 @@ Then you can choose whether to:
 - Launch the tool as a web app (powered by [Streamlit](https://streamlit.io/)):
 
   ```bash
-  bash ./start.sh
+     # Windows: 
+     start.bat
+     
+     # Linux: 
+     bash start.sh
   ```
 
 - Or programmatically:
@@ -44,12 +74,14 @@ Then you can choose whether to:
 
 ## Running tests
 
-A shell script is provided, which runs the tests in parallel (thanks to pytest-xdist).
-
-On Mac/Linux or Windows with git bash:
+Shell scripts are provided, which run the tests in parallel (thanks to pytest-xdist).
 
 ```bash
-bash ./test.sh
+ # Windows: 
+ test.bat
+ 
+ # Linux: 
+ bash test.sh
 ```
 
 ---

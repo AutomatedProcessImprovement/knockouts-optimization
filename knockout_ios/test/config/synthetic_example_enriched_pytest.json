@@ -9,6 +9,7 @@
     "Notify rejection"
   ],
   "rule_discovery_algorithm": "RIPPER",
+  "skip_slow_time_waste_metrics": true,
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
   "max_rules": 3,
