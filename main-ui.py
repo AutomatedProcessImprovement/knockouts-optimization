@@ -169,6 +169,7 @@ def run_analysis_wrapper():
 
                         for attribute in rule_change[ko_activity]:
                             hist = sns.histplot(aggregated_df, x=attribute, ax=ax)
+                            ax.set(ylabel='Cases')
 
                             # Overlay the range of current attribute captured by the rules of current ko activity
                             for rule in ruleset.rules:
