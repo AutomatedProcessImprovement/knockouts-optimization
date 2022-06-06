@@ -12,3 +12,5 @@ REM Test the installation
 SET RUNNING_TESTS=true
 cd knockout_ios
 pytest -m "pipeline" --disable-warnings
+
+pause
