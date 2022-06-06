@@ -89,3 +89,4 @@ DateTimeRange==1.2.0
 streamlit==1.9.0
 shutup==0.2.0
 jsonschema~=4.5.1
+mplcursors~=0.5.1
