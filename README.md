@@ -8,12 +8,12 @@ This project is about discovering improvement opportunities in Knock-out checks 
 
 ### Using a `setup` script
 
-- (Experimental) setup scripts are provided for Windows & Linux, which perform the steps described in the "Manual steps"
+- Setup scripts are provided for Windows & Linux, which perform the steps described in the "Manual steps"
   section.
 - Requirements:
-    - Cloning the repository
+    - Having cloned the repository
     - Python 3.9+ installed
-
+- Commands:
   ```bash
   # Windows: 
   setup.bat
