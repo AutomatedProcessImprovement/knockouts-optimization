@@ -90,17 +90,17 @@ class Pipeline:
                     )
 
                 _adviser = KnockoutRedesignAdviser(analyzer)
-                _, ko_redesign_reports = _adviser.compute_redesign_options()
+                redesign_options, ko_redesign_reports = _adviser.compute_redesign_options()
 
                 toc = time.perf_counter()
                 print("\n" + f"Knockouts Redesign Pipeline ended @ {datetime.datetime.now()}")
                 print("\n" + f"Wall-clock execution time:  {str(datetime.timedelta(seconds=toc - tic))}")
 
-                return _adviser, analyzer.report_df, ko_redesign_reports, ko_rule_discovery_stats
+                return _adviser, analyzer.report_df, ko_redesign_reports, ko_rule_discovery_stats, redesign_options
 
     def run_pipeline(self):
         self.read_log_and_config()
-        self.adviser, _, _, _ = self.run_analysis()
+        self.adviser, _, _, _, _ = self.run_analysis()
         return self.adviser
 
     def update_known_ko_activities(self, known_ko_activities):
