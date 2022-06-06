@@ -135,11 +135,10 @@ def envpermit():
 
 
 if __name__ == "__main__":
-    # get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10,
-    #                         use_cv=True)
-    # get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
-    #                         nruns=10)
+    get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10,
+                            use_cv=True)
+    get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
+                            nruns=10)
 
     # get_roc_curves(envpermit(), use_cv=True)
     # get_roc_curves(synthetic_example())
-    synthetic_example()
