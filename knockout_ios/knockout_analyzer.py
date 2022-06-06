@@ -303,12 +303,13 @@ class KnockoutAnalyzer:
 
         self.report_df = self.build_report(omit=omit_report)
 
+        ko_rule_discovery_stats = {}
         if print_rule_discovery_stats:
-            self.print_ko_rulesets_stats(algorithm=algorithm)
+            ko_rule_discovery_stats = self.get_ko_rulesets_stats(algorithm=algorithm)
 
-        return self.report_df, self
+        return self.report_df, self, ko_rule_discovery_stats
 
-    def print_ko_rulesets_stats(self, algorithm):
+    def get_ko_rulesets_stats(self, algorithm):
 
         rulesets = None
         if algorithm == "RIPPER":
@@ -321,6 +322,7 @@ class KnockoutAnalyzer:
 
         print(f"\n{algorithm}")
 
+        ko_rule_discovery_stats = {}
         for key in rulesets.keys():
             entry = rulesets[key]
             model = entry[0]
@@ -333,6 +335,9 @@ class KnockoutAnalyzer:
             print(f"\n\"{key}\"")
             print(f"{algorithm} parameters: ", params)
             pprint.pprint(metrics)
+            ko_rule_discovery_stats[key] = metrics
+
+        return ko_rule_discovery_stats
 
     def build_report(self, omit=False, use_cache=False):
         if (not use_cache) or (self.report_df is None):
