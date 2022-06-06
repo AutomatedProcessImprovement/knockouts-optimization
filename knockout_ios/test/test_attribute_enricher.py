@@ -6,7 +6,7 @@ from knockout_ios.utils.synthetic_example.attribute_enricher import enrich_log_d
 
 def test_attribute_enricher():
     if not is_windows():
-        pass
+        return
 
     # Verify that conditions hold
 

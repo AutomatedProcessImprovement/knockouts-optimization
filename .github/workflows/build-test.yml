@@ -37,11 +37,14 @@ jobs:
       - name: Install graphviz backend
         run: sudo apt install graphviz
 
-      - name: Run pytest (parallel)
+      - name: Pre-flight check (test only pipeline)
         run: |
           export RUNNING_TESTS=true
           cd knockout_ios
           pytest -m "pipeline" --disable-warnings
+
+      - name: Run full test suite (pytest parallel)
+        run: |
           pytest . -x -n auto --disable-warnings
 
   build-test-windows:
@@ -73,11 +76,12 @@ jobs:
       - name: Install graphviz backend
         run: choco install graphviz
 
-      - name: Run pytest (parallel)
+      - name: Pre-flight check (test only pipeline)
         run: |
           SET RUNNING_TESTS=true
           cd knockout_ios
           pytest -m "pipeline" --disable-warnings
+
+      - name: Run full test suite (pytest parallel)
+        run: |
           pytest . -x -n auto --disable-warnings
-    
-    

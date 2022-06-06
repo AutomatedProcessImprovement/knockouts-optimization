@@ -66,7 +66,7 @@ def test_pure_relocation_3():
 
 def test_relocation_BPI():
     if not is_windows():
-        pass
+        return
 
     bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W")
 
@@ -108,7 +108,8 @@ def test_relocation_BPI():
 
 def test_relocation_BPI_2():
     if not is_windows():
-        pass
+        return
+
     bpi_knockout_analyzer = pd.read_pickle("test/test_fixtures/bpi_2017_1k_W_2")
 
     dependencies = find_ko_activity_dependencies(bpi_knockout_analyzer)
