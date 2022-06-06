@@ -45,6 +45,8 @@ jobs:
 
       - name: Run full test suite (pytest parallel)
         run: |
+          SET RUNNING_TESTS=true
+          cd knockout_ios
           pytest . -x -n auto --disable-warnings
 
   build-test-windows:
@@ -84,4 +86,6 @@ jobs:
 
       - name: Run full test suite (pytest parallel)
         run: |
+          SET RUNNING_TESTS=true
+          cd knockout_ios
           pytest . -x -n auto --disable-warnings
