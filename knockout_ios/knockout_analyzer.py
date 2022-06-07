@@ -153,7 +153,7 @@ class KnockoutAnalyzer:
 
             if self.one_timestamp:
                 self.ko_stats[key]['mean_pt'] = 0
-                effort = (100 * self.ko_stats[key]['rejection_rate'])
+                effort = 1 / (100 * self.ko_stats[key]['rejection_rate'])
             else:
                 # Mean Processing Time does not depend on rejection rule confidence or support
                 self.ko_stats[key]['mean_pt'] = soj_time[key]
@@ -371,8 +371,6 @@ class KnockoutAnalyzer:
             for ko in self.discoverer.ko_activities:
 
                 classifier = rulesets[ko][0]
-                metrics = rulesets[ko][2]
-                # TODO: decide what metric(s) to show in the main table... roc_auc_cv?
 
                 report_entry = {("%s" % globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK): ko,
                                 globalColumnNames.REPORT_COLUMN_TOTAL_FREQ:
@@ -382,7 +380,6 @@ class KnockoutAnalyzer:
                                 globalColumnNames.REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
                                 f"{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})":
                                     out_pretty(classifier.ruleset_),
-                                # globalColumnNames.REPORT_COLUMN_BALANCED_ACCURACY: f"{round(100 * metrics['balanced_accuracy'], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO: round(
                                     self.ko_stats[ko][self.ruleset_algorithm]["effort"],
                                     ndigits=2)
