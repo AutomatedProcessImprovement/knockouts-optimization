@@ -27,7 +27,12 @@ def get_roc_curves(adviser, use_cv=False):
 
         ruleset = classifier[0].ruleset_.rules
 
+        if curve not in classifier[2]:
+            print(f"No curve for activity {activity}")
+            continue
+
         fpr, tpr, _ = classifier[2][curve]
+
         if (len(ruleset) == 0) or any(np.isnan(fpr)) or any(np.isnan(tpr)):
             fpr, tpr = np.array([0, 0.5, 1]), np.array([0, 0.5, 1])
 
@@ -134,11 +139,22 @@ def envpermit():
     return adviser
 
 
-if __name__ == "__main__":
-    get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl", nruns=10,
-                            use_cv=True)
-    get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
-                            nruns=10)
+def envpermit_temp_holdout():
+    adviser = Pipeline(config_file_name="envpermit_temp_holdout.json",
+                       cache_dir="cache/envpermit_temp_holdout").run_pipeline()
+    return adviser
 
-    # get_roc_curves(envpermit(), use_cv=True)
-    # get_roc_curves(synthetic_example())
+
+if __name__ == "__main__":
+    # get_experiment_averages(experiment=envpermit, cache_file="data/outputs/envpermit_advisers.pkl",
+    #                         nruns=10,
+    #                         use_cv=True)
+    # get_experiment_averages(experiment=envpermit_temp_holdout,
+    #                         cache_file="data/outputs/envpermit_temp_holdout_advisers.pkl",
+    #                         nruns=10)
+    # get_experiment_averages(experiment=synthetic_example, cache_file="data/outputs/synthetic_example_advisers.pkl",
+    #                         nruns=10)
+
+    get_roc_curves(envpermit(), use_cv=True)
+    # get_roc_curves(envpermit_temp_holdout())
+    get_roc_curves(synthetic_example())
