@@ -2,12 +2,24 @@ import logging
 import traceback
 
 import streamlit as st
-from tabulate import tabulate
+from matplotlib import pyplot as plt
+import seaborn as sns
+from matplotlib.patches import Patch
 
 from knockout_ios.pipeline_wrapper import Pipeline
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.custom_exceptions import KnockoutsDiscoveryException, InvalidFileExtensionException, \
     KnockoutRuleDiscoveryException
+from knockout_ios.utils.ui import get_rectangle_from_rule
+
+SMALL_FONT = 6
+plt.rc('font', size=SMALL_FONT)  # controls default text sizes
+plt.rc('axes', titlesize=SMALL_FONT)  # fontsize of the axes title
+plt.rc('axes', labelsize=SMALL_FONT)  # fontsize of the x and y labels
+plt.rc('xtick', labelsize=SMALL_FONT)  # fontsize of the tick labels
+plt.rc('ytick', labelsize=SMALL_FONT)  # fontsize of the tick labels
+plt.rc('legend', fontsize=SMALL_FONT)  # legend fontsize
+plt.rc('figure', titlesize=SMALL_FONT)  # fontsize of the figure title
 
 st.set_page_config(
     page_title="Knockouts Redesign Tool",
@@ -105,22 +117,26 @@ def run_analysis():
     if st.session_state['pipeline'] is None:
         return
 
-    _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports = st.session_state['pipeline'].run_analysis()
+    _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports, ko_rule_discovery_stats, redesign_options = \
+        st.session_state[
+            'pipeline'].run_analysis()
 
-    return _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports
+    return _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports, ko_rule_discovery_stats, redesign_options
 
 
 def run_analysis_wrapper():
     with st.spinner('Running pipeline...'):
         try:
-            st.session_state['ko_redesign_adviser'], ko_analysis_report, ko_redesign_report = run_analysis()
+            st.session_state[
+                'ko_redesign_adviser'], ko_analysis_report, ko_redesign_report, ko_rule_discovery_stats, redesign_options = run_analysis()
 
             if not (st.session_state["ko_redesign_adviser"] is None):
                 st.markdown("### Knockouts Analysis")
-                # TODO: show rule discovery metrics in a container collapsed by default
                 st.table(ko_analysis_report)
+                # Show rule discovery metrics in a container collapsed by default
+                with st.expander("See rule discovery stats", expanded=False):
+                    st.json(ko_rule_discovery_stats)
 
-                st.markdown("---")
                 st.markdown("### Reordering Options")
 
                 st.markdown(ko_redesign_report['dependencies'].to_markdown())
@@ -133,11 +149,46 @@ def run_analysis_wrapper():
                 st.markdown(ko_redesign_report['relocation'].to_markdown(), unsafe_allow_html=True)
 
                 st.text(" \n")
-                st.markdown("### Rule-change Options")
-                # TODO: replace this ugly thing with plot of distributions of numerical attributes appearing in each rule,
-                #  and overlay the range captured by rules!
-                st.markdown(ko_redesign_report["rule_change"].to_markdown())
+                st.markdown("### Rule-change Options (numerical attributes)")
+                # Plot distributions of numerical attributes appearing in each rule,
+                # and overlay the range captured by rules
 
+                rule_change = redesign_options["rule_change"]
+                aggregated_df = st.session_state['ko_redesign_adviser'].knockout_analyzer.rule_discovery_log_df
+                classifiers = st.session_state['ko_redesign_adviser'].knockout_analyzer.RIPPER_rulesets
+
+                if classifiers is None:
+                    classifiers = st.session_state['ko_redesign_adviser'].knockout_analyzer.IREP_rulesets
+
+                for ko_activity in redesign_options["rule_change"]:
+                    st.markdown(f"#### {ko_activity}")
+                    try:
+
+                        fig, ax = plt.subplots(len(rule_change[ko_activity]), 1, squeeze=True)
+                        ruleset = classifiers[ko_activity][0].ruleset_
+
+                        for attribute in rule_change[ko_activity]:
+                            hist = sns.histplot(aggregated_df, x=attribute, ax=ax)
+                            ax.set(ylabel='Cases')
+
+                            # Overlay the range of current attribute captured by the rules of current ko activity
+                            for rule in ruleset.rules:
+                                rectangles = get_rectangle_from_rule(rule, hist.dataLim, hist.viewLim, attribute)
+                                for rect in rectangles:
+                                    hist.add_patch(rect)
+
+                            legend_elements = [
+                                Patch(facecolor="#5799C6",
+                                      label=f'Values of \"{attribute}\" across cases'),
+                                Patch(facecolor='red', alpha=0.1, label='Knocked-out cases')]
+
+                            ax.legend(handles=legend_elements, loc='upper right')
+
+                        fig.tight_layout(rect=(0, 0, 1, 0.35))
+                        st.pyplot(fig)
+
+                    except:
+                        st.write("No numerical attributes found in the rules of this activity")
 
         except KnockoutRuleDiscoveryException:
             logging.error(traceback.format_exc())

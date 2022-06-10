@@ -297,7 +297,7 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
             globalColumnNames.SIMOD_END_TIMESTAMP_COLUMN_NAME],
         inplace=True)
 
-    flt = pm4py.filter_variants_by_coverage_percentage(analyzer.discoverer.log_df,
+    flt = pm4py.filter_variants_by_coverage_percentage(log,
                                                        min_coverage_percentage=analyzer.config.relocation_variants_min_coverage_percentage)
     variants = pm4py.get_variants_as_tuples(flt)
 
