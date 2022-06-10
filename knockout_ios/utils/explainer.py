@@ -42,6 +42,7 @@ def get_roc_curve_cv(ruleset_model, X, y, cv):
             if ruleset_model.ruleset_.isuniversal() or ruleset_model.ruleset_.isnull():
                 raise Exception
 
+            # TODO: investigate more about thresholds, predict proba / decisions, how to get more points in the curve...
             curve = ruleset_model.score(X_test, y_test, roc_curve)
             for e in curve:
                 if np.isnan(e).any():

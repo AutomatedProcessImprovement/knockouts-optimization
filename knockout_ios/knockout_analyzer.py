@@ -153,7 +153,7 @@ class KnockoutAnalyzer:
 
             if self.one_timestamp:
                 self.ko_stats[key]['mean_pt'] = 0
-                effort = (100 * self.ko_stats[key]['rejection_rate'])
+                effort = 1 / (100 * self.ko_stats[key]['rejection_rate'])
             else:
                 # Mean Processing Time does not depend on rejection rule confidence or support
                 self.ko_stats[key]['mean_pt'] = soj_time[key]
@@ -303,12 +303,13 @@ class KnockoutAnalyzer:
 
         self.report_df = self.build_report(omit=omit_report)
 
+        ko_rule_discovery_stats = {}
         if print_rule_discovery_stats:
-            self.print_ko_rulesets_stats(algorithm=algorithm)
+            ko_rule_discovery_stats = self.get_ko_rulesets_stats(algorithm=algorithm)
 
-        return self.report_df, self
+        return self.report_df, self, ko_rule_discovery_stats
 
-    def print_ko_rulesets_stats(self, algorithm):
+    def get_ko_rulesets_stats(self, algorithm):
 
         rulesets = None
         if algorithm == "RIPPER":
@@ -321,6 +322,7 @@ class KnockoutAnalyzer:
 
         print(f"\n{algorithm}")
 
+        ko_rule_discovery_stats = {}
         for key in rulesets.keys():
             entry = rulesets[key]
             model = entry[0]
@@ -333,6 +335,9 @@ class KnockoutAnalyzer:
             print(f"\n\"{key}\"")
             print(f"{algorithm} parameters: ", params)
             pprint.pprint(metrics)
+            ko_rule_discovery_stats[key] = metrics
+
+        return ko_rule_discovery_stats
 
     def build_report(self, omit=False, use_cache=False):
         if (not use_cache) or (self.report_df is None):
@@ -366,8 +371,6 @@ class KnockoutAnalyzer:
             for ko in self.discoverer.ko_activities:
 
                 classifier = rulesets[ko][0]
-                metrics = rulesets[ko][2]
-                # TODO: decide what metric(s) to show in the main table... roc_auc_cv?
 
                 report_entry = {("%s" % globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK): ko,
                                 globalColumnNames.REPORT_COLUMN_TOTAL_FREQ:
@@ -377,7 +380,6 @@ class KnockoutAnalyzer:
                                 globalColumnNames.REPORT_COLUMN_REJECTION_RATE: f"{round(100 * self.ko_stats[ko]['rejection_rate'], ndigits=2)} %",
                                 f"{globalColumnNames.REPORT_COLUMN_REJECTION_RULE} ({self.ruleset_algorithm})":
                                     out_pretty(classifier.ruleset_),
-                                # globalColumnNames.REPORT_COLUMN_BALANCED_ACCURACY: f"{round(100 * metrics['balanced_accuracy'], ndigits=2)} %",
                                 globalColumnNames.REPORT_COLUMN_EFFORT_PER_KO: round(
                                     self.ko_stats[ko][self.ruleset_algorithm]["effort"],
                                     ndigits=2)

@@ -74,32 +74,33 @@ class Pipeline:
 
                     analyzer.discover_knockouts()
 
-                    analyzer.compute_ko_rules(algorithm=pipeline_config.rule_discovery_algorithm,
-                                              confidence_threshold=pipeline_config.confidence_threshold,
-                                              support_threshold=pipeline_config.support_threshold,
-                                              print_rule_discovery_stats=pipeline_config.print_rule_discovery_stats,
-                                              max_rules=pipeline_config.max_rules,
-                                              max_rule_conds=pipeline_config.max_rule_conds,
-                                              grid_search=pipeline_config.grid_search,
-                                              dl_allowance=pipeline_config.dl_allowance,
-                                              k=pipeline_config.k,
-                                              n_discretize_bins=pipeline_config.n_discretize_bins,
-                                              prune_size=pipeline_config.prune_size,
-                                              param_grid=pipeline_config.param_grid,
-                                              )
+                    _, _, ko_rule_discovery_stats = analyzer.compute_ko_rules(
+                        algorithm=pipeline_config.rule_discovery_algorithm,
+                        confidence_threshold=pipeline_config.confidence_threshold,
+                        support_threshold=pipeline_config.support_threshold,
+                        print_rule_discovery_stats=pipeline_config.print_rule_discovery_stats,
+                        max_rules=pipeline_config.max_rules,
+                        max_rule_conds=pipeline_config.max_rule_conds,
+                        grid_search=pipeline_config.grid_search,
+                        dl_allowance=pipeline_config.dl_allowance,
+                        k=pipeline_config.k,
+                        n_discretize_bins=pipeline_config.n_discretize_bins,
+                        prune_size=pipeline_config.prune_size,
+                        param_grid=pipeline_config.param_grid,
+                    )
 
                 _adviser = KnockoutRedesignAdviser(analyzer)
-                _, ko_redesign_reports = _adviser.compute_redesign_options()
+                redesign_options, ko_redesign_reports = _adviser.compute_redesign_options()
 
                 toc = time.perf_counter()
                 print("\n" + f"Knockouts Redesign Pipeline ended @ {datetime.datetime.now()}")
                 print("\n" + f"Wall-clock execution time:  {str(datetime.timedelta(seconds=toc - tic))}")
 
-                return _adviser, analyzer.report_df, ko_redesign_reports
+                return _adviser, analyzer.report_df, ko_redesign_reports, ko_rule_discovery_stats, redesign_options
 
     def run_pipeline(self):
         self.read_log_and_config()
-        self.adviser, _, _ = self.run_analysis()
+        self.adviser, _, _, _, _ = self.run_analysis()
         return self.adviser
 
     def update_known_ko_activities(self, known_ko_activities):

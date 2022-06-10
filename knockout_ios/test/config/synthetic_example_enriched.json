@@ -1,6 +1,6 @@
 {
-  "$schema": "../../../config/config_schema.json",
-  "log_path": "test/inputs/synthetic_example/synthetic_example_enriched.xes",
+  "$schema": "config_schema.json",
+  "log_path": "test/inputs/synthetic_example_enriched.xes",
   "output": "test/outputs",
   "redesign_results_file_path": "test/outputs/synthetic_example_enriched.txt",
   "cache_dir": "cache/synthetic_example_enriched",
@@ -9,6 +9,7 @@
     "Notify rejection"
   ],
   "rule_discovery_algorithm": "IREP",
+  "skip_temporal_holdout": false,
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
   "max_rules": 3,
@@ -20,9 +21,11 @@
   "always_force_recompute": false,
   "print_rule_discovery_stats": true,
   "read_options": {
-    "one_timestamp": true
+    "one_timestamp": false
   },
-  "grid_search": true,
+  "relocation_variants_min_coverage_percentage": 0.001,
+  "skip_slow_time_waste_metrics": true,
+  "grid_search": false,
   "param_grid": {
     "prune_size": [
       0.1,
