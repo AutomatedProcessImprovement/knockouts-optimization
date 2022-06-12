@@ -157,4 +157,4 @@ if __name__ == "__main__":
 
     get_roc_curves(envpermit(), use_cv=True)
     # get_roc_curves(envpermit_temp_holdout())
-    get_roc_curves(synthetic_example())
+    # get_roc_curves(synthetic_example())

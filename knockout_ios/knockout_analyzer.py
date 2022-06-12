@@ -161,9 +161,10 @@ class KnockoutAnalyzer:
                 # Effort per rejection = Average PT / Rejection rate
                 effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold):
+            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold) and (
+                    metrics['confidence'] > 0):
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
-                effort = effort * metrics['confidence']
+                effort = effort / metrics['confidence']
 
             # confidence and support are dependent on the rule discovery algorithm used
             self.ko_stats[key][algorithm] = {'effort': 0}
@@ -409,6 +410,35 @@ class KnockoutAnalyzer:
             print(tabulate(self.report_df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
         return self.report_df
+
+    def filter_ko_activities_with_low_confidence_rules(self):
+        # Identify and optionally filter out ko activities with rules below confidence threshold
+        warnings = []
+
+        rulesets = None
+        if self.ruleset_algorithm == "RIPPER":
+            rulesets = self.RIPPER_rulesets
+        elif self.ruleset_algorithm == "IREP":
+            rulesets = self.IREP_rulesets
+        if rulesets is None:
+            return warnings
+
+        conf_threshold = self.config.confidence_threshold
+        raw_ko_activities = deepcopy(self.discoverer.ko_activities)
+        for activity in raw_ko_activities:
+            metrics = rulesets[activity][2]
+            if metrics["confidence"] < conf_threshold:
+                warning = f"Warning: \"{activity}\" knock-out rule confidence is below threshold ({round(metrics['confidence'], ndigits=3)} < {conf_threshold})"
+                warnings.append(warning)
+                print("\n" + warning)
+
+                if self.config.drop_low_confidence_rules:
+                    self.discoverer.ko_activities.remove(activity)
+                    del rulesets[activity]
+                    self.report_df = self.report_df[
+                        self.report_df[globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK] != activity]
+
+        return warnings
 
 
 if __name__ == "__main__":
