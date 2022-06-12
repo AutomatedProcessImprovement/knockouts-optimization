@@ -117,22 +117,26 @@ def run_analysis():
     if st.session_state['pipeline'] is None:
         return
 
-    _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports, ko_rule_discovery_stats, redesign_options = \
+    _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports, ko_rule_discovery_stats, redesign_options, low_confidence_warnings = \
         st.session_state[
             'pipeline'].run_analysis()
 
-    return _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports, ko_rule_discovery_stats, redesign_options
+    return _ko_redesign_adviser, ko_analysis_report, ko_redesign_reports, ko_rule_discovery_stats, redesign_options, low_confidence_warnings
 
 
 def run_analysis_wrapper():
     with st.spinner('Running pipeline...'):
         try:
             st.session_state[
-                'ko_redesign_adviser'], ko_analysis_report, ko_redesign_report, ko_rule_discovery_stats, redesign_options = run_analysis()
+                'ko_redesign_adviser'], ko_analysis_report, ko_redesign_report, ko_rule_discovery_stats, redesign_options, low_confidence_warnings = run_analysis()
 
             if not (st.session_state["ko_redesign_adviser"] is None):
                 st.markdown("### Knockouts Analysis")
                 st.table(ko_analysis_report)
+
+                for warning in low_confidence_warnings:
+                    st.warning(warning)
+
                 # Show rule discovery metrics in a container collapsed by default
                 with st.expander("See rule discovery stats", expanded=False):
                     st.json(ko_rule_discovery_stats)

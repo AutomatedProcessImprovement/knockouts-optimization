@@ -19,6 +19,7 @@
   "balance_classes": true,
   "confidence_threshold": 0.5,
   "support_threshold": 0.1,
+  "drop_low_confidence_rules": false,
   "always_force_recompute": true,
   "ignore_log_parsing_cache": false,
   "print_rule_discovery_stats": true,
