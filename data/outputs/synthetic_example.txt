@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-06-12 17:53:38.246840
+Knockouts Redesign Pipeline started @ 2022-06-13 12:06:29.153686
 
 Input parameters:
 
@@ -12,6 +12,7 @@ Input parameters:
  'config_path': None,
  'custom_log_preprocessing_function': None,
  'dl_allowance': 1,
+ 'drop_low_confidence_rules': False,
  'end_activity': 'End',
  'exclude_from_ko_activities': None,
  'grid_search': False,
@@ -67,37 +68,21 @@ Input parameters:
 
 IREP
 
-"Check Liability"
+"Check Risk"
 IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
-{'accuracy': 0.9916666666666667,
- 'balanced_accuracy': 0.9791666666666667,
+{'accuracy': 0.9716666666666667,
+ 'balanced_accuracy': 0.9392857142857143,
  'condition_count': 2,
  'confidence': 1.0,
- 'f1_score': 0.9787234042553191,
+ 'f1_score': 0.935361216730038,
  'precision': 1.0,
- 'recall': 0.9583333333333334,
- 'roc_auc_score': 0.9791666666666667,
+ 'recall': 0.8785714285714286,
+ 'roc_auc_score': 0.9392857142857143,
  'roc_curve': (array([0., 0., 1.]),
-               array([0.        , 0.95833333, 1.        ]),
+               array([0.        , 0.87857143, 1.        ]),
                array([2, 1, 0])),
  'rule_count': 2,
- 'support': 0.19266666666666668}
-
-"Check Monthly Income"
-IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
-{'accuracy': 0.9816666666666667,
- 'balanced_accuracy': 0.9854497354497355,
- 'condition_count': 3,
- 'confidence': 0.9438202247191011,
- 'f1_score': 0.9681159420289855,
- 'precision': 0.943502824858757,
- 'recall': 0.9940476190476191,
- 'roc_auc_score': 0.9854497354497355,
- 'roc_curve': (array([0.        , 0.02314815, 1.        ]),
-               array([0.        , 0.99404762, 1.        ]),
-               array([2, 1, 0])),
- 'rule_count': 3,
- 'support': 0.5364396654719236}
+ 'support': 0.25177453027139873}
 
 "Assess application"
 IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
@@ -115,21 +100,37 @@ IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None,
  'rule_count': 2,
  'support': 0.7320574162679426}
 
-"Check Risk"
+"Check Monthly Income"
 IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
-{'accuracy': 0.9716666666666667,
- 'balanced_accuracy': 0.9392857142857143,
+{'accuracy': 0.9816666666666667,
+ 'balanced_accuracy': 0.9854497354497355,
+ 'condition_count': 3,
+ 'confidence': 0.9438202247191011,
+ 'f1_score': 0.9681159420289855,
+ 'precision': 0.943502824858757,
+ 'recall': 0.9940476190476191,
+ 'roc_auc_score': 0.9854497354497355,
+ 'roc_curve': (array([0.        , 0.02314815, 1.        ]),
+               array([0.        , 0.99404762, 1.        ]),
+               array([2, 1, 0])),
+ 'rule_count': 3,
+ 'support': 0.5364396654719236}
+
+"Check Liability"
+IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'accuracy': 0.9916666666666667,
+ 'balanced_accuracy': 0.9791666666666667,
  'condition_count': 2,
  'confidence': 1.0,
- 'f1_score': 0.935361216730038,
+ 'f1_score': 0.9787234042553191,
  'precision': 1.0,
- 'recall': 0.8785714285714286,
- 'roc_auc_score': 0.9392857142857143,
+ 'recall': 0.9583333333333334,
+ 'roc_auc_score': 0.9791666666666667,
  'roc_curve': (array([0., 0., 1.]),
-               array([0.        , 0.87857143, 1.        ]),
+               array([0.        , 0.95833333, 1.        ]),
                array([2, 1, 0])),
  'rule_count': 2,
- 'support': 0.25177453027139873}
+ 'support': 0.19266666666666668}
 
 ** Redesign options **
 
@@ -205,6 +206,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                      │ - Loan Ammount: 10003.42 - 40181.17                                                           │
 ╘══════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-06-12 17:53:54.397839
+Knockouts Redesign Pipeline ended @ 2022-06-13 12:06:46.200154
 
-Wall-clock execution time:  0:00:16.150623
+Wall-clock execution time:  0:00:17.045348

@@ -7,7 +7,7 @@ import time
 from dataclasses import asdict
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
-from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser, read_analyzer_cache
+from knockout_ios.knockout_redesign_adviser import KnockoutRedesignAdviser
 
 from knockout_ios.utils.preprocessing.configuration import read_log_and_config
 from knockout_ios.utils.synthetic_example.preprocessors import preprocessors_dict
@@ -46,48 +46,38 @@ class Pipeline:
 
         with open(file_path, "w", encoding="utf-8") as o:
             with contextlib.redirect_stdout(o):
-
                 print(f"Knockouts Redesign Pipeline started @ {datetime.datetime.now()}")
                 print("\nInput parameters:\n")
                 pprint.pprint(asdict(pipeline_config))
                 print("\n")
                 tic = time.perf_counter()
 
-                try:
-                    if pipeline_config.always_force_recompute:
-                        raise FileNotFoundError
+                analyzer = KnockoutAnalyzer(log_df=log_df,
+                                            config=pipeline_config,
+                                            config_file_name=self.config_file_name,
+                                            config_dir=self.config_dir,
+                                            cache_dir=self.cache_dir,
+                                            always_force_recompute=pipeline_config.always_force_recompute,
+                                            quiet=True,
+                                            custom_log_preprocessing_function=pipeline_config.custom_log_preprocessing_function)
 
-                    analyzer = read_analyzer_cache(self.cache_dir,
-                                                   self.config_file_name.split('.')[0])
-                    analyzer.build_report(use_cache=True)
+                analyzer.discover_knockouts()
 
-                except FileNotFoundError:
+                _, _, ko_rule_discovery_stats = analyzer.compute_ko_rules(
+                    algorithm=pipeline_config.rule_discovery_algorithm,
+                    confidence_threshold=pipeline_config.confidence_threshold,
+                    support_threshold=pipeline_config.support_threshold,
+                    print_rule_discovery_stats=pipeline_config.print_rule_discovery_stats,
+                    max_rules=pipeline_config.max_rules,
+                    max_rule_conds=pipeline_config.max_rule_conds,
+                    grid_search=pipeline_config.grid_search,
+                    dl_allowance=pipeline_config.dl_allowance,
+                    k=pipeline_config.k,
+                    n_discretize_bins=pipeline_config.n_discretize_bins,
+                    prune_size=pipeline_config.prune_size,
+                    param_grid=pipeline_config.param_grid,
+                )
 
-                    analyzer = KnockoutAnalyzer(log_df=log_df,
-                                                config=pipeline_config,
-                                                config_file_name=self.config_file_name,
-                                                config_dir=self.config_dir,
-                                                cache_dir=self.cache_dir,
-                                                always_force_recompute=pipeline_config.always_force_recompute,
-                                                quiet=True,
-                                                custom_log_preprocessing_function=pipeline_config.custom_log_preprocessing_function)
-
-                    analyzer.discover_knockouts()
-
-                    _, _, ko_rule_discovery_stats = analyzer.compute_ko_rules(
-                        algorithm=pipeline_config.rule_discovery_algorithm,
-                        confidence_threshold=pipeline_config.confidence_threshold,
-                        support_threshold=pipeline_config.support_threshold,
-                        print_rule_discovery_stats=pipeline_config.print_rule_discovery_stats,
-                        max_rules=pipeline_config.max_rules,
-                        max_rule_conds=pipeline_config.max_rule_conds,
-                        grid_search=pipeline_config.grid_search,
-                        dl_allowance=pipeline_config.dl_allowance,
-                        k=pipeline_config.k,
-                        n_discretize_bins=pipeline_config.n_discretize_bins,
-                        prune_size=pipeline_config.prune_size,
-                        param_grid=pipeline_config.param_grid,
-                    )
                 raw_report = analyzer.report_df
                 low_confidence_warnings = analyzer.filter_ko_activities_with_low_confidence_rules()
 
