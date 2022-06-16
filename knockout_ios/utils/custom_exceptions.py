@@ -28,3 +28,7 @@ class InvalidFileExtensionException(Exception):
 
 class KnockoutRuleDiscoveryException(Exception):
     pass
+
+
+class NoResourcesInLogException(Exception):
+    pass
