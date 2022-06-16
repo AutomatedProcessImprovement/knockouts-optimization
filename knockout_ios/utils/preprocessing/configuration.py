@@ -50,6 +50,7 @@ class Configuration:
     rule_discovery_algorithm: Optional[str] = "RIPPER"
     confidence_threshold: Optional[float] = 0.5
     support_threshold: Optional[float] = 0.5
+    drop_low_confidence_rules: Optional[bool] = False
     print_rule_discovery_stats: Optional[bool] = False
     grid_search: Optional[bool] = False
     param_grid: Optional[dict[str, list]] = None

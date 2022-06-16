@@ -1,52 +1,10 @@
 import collections
-import pickle
 from itertools import chain
 
 import pm4py
 from pm4py import filter_eventually_follows_relation, filter_directly_follows_relation
 
 from knockout_ios.utils.constants import globalColumnNames
-
-
-def extract_ko_config_fields(config):
-    return [config.log_path,
-            config.start_activity,
-            ",".join(config.post_knockout_activities),
-            ",".join(config.known_ko_activities),
-            config.ko_count_threshold
-            ]
-
-
-def config_hash_changed(config_1, config_2):
-    h1 = hash(frozenset(extract_ko_config_fields(config_1)))
-    h2 = hash(frozenset(extract_ko_config_fields(config_2)))
-    return h1 != h2
-
-
-def read_config_cache(config_file_name, cache_dir):
-    binary_file = open(f'{cache_dir}/{config_file_name}_config', 'rb')
-    config_cache = pickle.load(binary_file)
-    binary_file.close()
-    return config_cache
-
-
-def dump_config_cache(config_file_name, config, cache_dir):
-    binary_file = open(f'{cache_dir}/{config_file_name}_config', 'wb')
-    pickle.dump(config, binary_file)
-    binary_file.close()
-
-
-def read_variants_cache(config_file_name, cache_dir):
-    binary_file = open(f'{cache_dir}/{config_file_name}_variants', 'rb')
-    variants = pickle.load(binary_file)
-    binary_file.close()
-    return variants
-
-
-def dump_variants_cache(config_file_name, variants, cache_dir):
-    binary_file = open(f'{cache_dir}/{config_file_name}_variants', 'wb')
-    pickle.dump(variants, binary_file)
-    binary_file.close()
 
 
 def get_sorted_variants(df):
@@ -76,17 +34,6 @@ def find_most_frequent_tuple(tuples_dict):
         return collections.Counter(flat_values).most_common()[0]
 
     return ()
-
-
-def print_characteristic_transitions(variants):
-    for i in range(0, len(variants)):
-        variant = variants[i]
-        ko_info = variant['most_frequent_differentiating_transition']
-
-        if len(ko_info) > 0:
-            print(f"Variant {i} - prefix len: {variant['prefix_len']:>2} - cases: {variant['case_count']:>5} "
-                  f"- characteristic: {'(' + ko_info[0][0] + ' -> ' + ko_info[0][1] + ')':75} "
-                  f"- outcome: {variant['prefix'][-2]:>25}")
 
 
 def get_possible_ko_sequences(variants, limit):

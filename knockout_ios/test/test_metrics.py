@@ -5,7 +5,7 @@ from pandas import Timestamp
 from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
-    calc_overlapping_time_ko_and_non_ko, calc_waiting_time_waste_v2
+    calc_waiting_time_waste
 from knockout_ios.utils.platform_check import is_windows
 
 log = [
@@ -120,76 +120,6 @@ def test_available_cases_before_ko_calculation():
     assert counts["Check Monthly Income"] == 350
 
 
-def test_overlapping_time_ko_and_non_ko():
-    events = [
-        # Case that will be knocked out
-        {
-            globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME: 0,
-            'knockout_activity': 'ko_1',
-            'knocked_out_case': True,
-            globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
-            globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:00:00"),
-            globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
-        },
-        {
-            globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME: 0,
-            'knockout_activity': 'ko_1',
-            'knocked_out_case': True,
-            globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
-            globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 09:05:00"),
-            globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
-        },
-        {
-            globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME: 0,
-            'knockout_activity': 'ko_1',
-            'knocked_out_case': True,
-            globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME: 'End',
-            globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:00:00"),
-            globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 14:05:00"),
-        },
-
-        # Non knocked out case that has to wait
-        {
-            globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME: 1,
-            'knockout_activity': False,
-            'knocked_out_case': False,
-            globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME: 'Start',
-            globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:00:00"),
-            globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
-        },
-        {
-            globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME: 1,
-            'knockout_activity': False,
-            'knocked_out_case': False,
-            globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME: 'Work',
-            globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 13:05:00"),
-            globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
-        },
-        {
-            globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME: 1,
-            'knockout_activity': False,
-            'knocked_out_case': False,
-            globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME: 'End',
-            globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME: 'R1',
-            globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:00:00"),
-            globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: Timestamp("2022-02-17 16:05:00"),
-        }
-
-    ]
-
-    ko_activities = ["ko_1"]
-
-    waste = calc_overlapping_time_ko_and_non_ko(ko_activities, pd.DataFrame(events))
-
-    # 65 mins. between 13:00 (start case 1) and 14:05 (finish case 0)
-    assert waste["ko_1"] == pytest.approx(3900)
-
-
 def test_waiting_time_waste_v2_easy():
     events = [
         # Case that will be knocked out
@@ -283,7 +213,7 @@ def test_waiting_time_waste_v2_easy():
 
     ko_activities = ["ko_1"]
 
-    waste = calc_waiting_time_waste_v2(ko_activities, pd.DataFrame(events))
+    waste = calc_waiting_time_waste(ko_activities, pd.DataFrame(events))
 
     # at 10:00 work on cases 1 and 2 is started.
     # at 10:05 work on cases 1 and 2 is stopped to work on case 0.
