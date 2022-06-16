@@ -14,7 +14,7 @@ def envpermit():
 
 
 if __name__ == "__main__":
-    # os.environ['DISABLE_PARALLELIZATION'] = "1"
+    os.environ['DISABLE_PARALLELIZATION'] = "1"
     os.environ['ENABLE_ROC_PLOTS'] = "1"
 
     envpermit()
