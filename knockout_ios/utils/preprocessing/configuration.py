@@ -149,14 +149,14 @@ def config_data_from_json(config_path: Path) -> dict:
 
     # Enforce compliance with config json schema, only when not testing
     # TODO: fix env variable issue on github workflow and bring this back!
-    # running_tests = os.getenv("RUNNING_TESTS", False)
-    # if not running_tests:
-    #     config_schema_path = Path("config/config_schema.json")
-    #     with config_schema_path.open("r") as f:
-    #         config_schema = json.load(f)
-    #
-    #     # Throws jsonschema.exceptions.ValidationError
-    #     validate(instance=config_data, schema=config_schema)
+    running_tests = os.getenv("RUNNING_TESTS", False)
+    if not running_tests:
+        config_schema_path = Path("config/config_schema.json")
+        with config_schema_path.open("r") as f:
+            config_schema = json.load(f)
+
+        # Throws jsonschema.exceptions.ValidationError
+        validate(instance=config_data, schema=config_schema)
 
     config_data = config_data_with_datastructures(config_data)
     return config_data

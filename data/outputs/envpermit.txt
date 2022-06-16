@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-06-16 17:54:51.540981
+Knockouts Redesign Pipeline started @ 2022-06-16 18:31:08.641765
 
 Input parameters:
 
@@ -63,42 +63,40 @@ Input parameters:
 
 RIPPER
 
-"T06 Determine necessity of stop advice"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.001}
-{'condition_count': 2,
- 'confidence': 0.0,
- 'f1_score': 0.0,
- 'precision': 0.0,
- 'recall': 0.0,
- 'roc_auc_score': 0.6408287407784269,
- 'rule_count': 2,
- 'support': 0.04088307440719542}
-
-"T10 Determine necessity to stop indication"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
-{'condition_count': 1,
- 'confidence': 1.0,
- 'f1_score': 0.3157894736842105,
- 'precision': 1.0,
- 'recall': 0.1875,
- 'roc_auc_score': 0.5717454173012562,
- 'rule_count': 1,
- 'support': 0.39166666666666666}
-
 "T02 Check confirmation of receipt"
 RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
 {'condition_count': 1,
- 'confidence': 0.0,
- 'f1_score': 0.0,
- 'precision': 0.0,
- 'recall': 0.0,
+ 'confidence': 1.0,
+ 'f1_score': 0.6666666666666666,
+ 'precision': 1.0,
+ 'recall': 0.5,
  'roc_auc_score': 0.7440998110097358,
  'rule_count': 1,
  'support': 0.010586319218241042}
 
-Warning: "T06 Determine necessity of stop advice" knock-out rule confidence is below threshold (0.0 < 0.5)
+"T10 Determine necessity to stop indication"
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.001}
+{'condition_count': 1,
+ 'confidence': 0.9897959183673469,
+ 'f1_score': 0.3130434782608696,
+ 'precision': 1.0,
+ 'recall': 0.18556701030927836,
+ 'roc_auc_score': 0.5717454173012562,
+ 'rule_count': 1,
+ 'support': 0.39166666666666666}
 
-Warning: "T02 Check confirmation of receipt" knock-out rule confidence is below threshold (0.0 < 0.5)
+"T06 Determine necessity of stop advice"
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
+{'condition_count': 1,
+ 'confidence': 0.0,
+ 'f1_score': 0.0,
+ 'precision': 0.0,
+ 'recall': 0.0,
+ 'roc_auc_score': 0.6417293418678318,
+ 'rule_count': 1,
+ 'support': 0.018806214227309895}
+
+Warning: "T06 Determine necessity of stop advice" knock-out rule confidence is below threshold (0.0 < 0.5)
 
 ** Redesign options **
 
@@ -160,6 +158,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                                            │ No numerical attributes found in rule.                              │
 ╘════════════════════════════════════════════╧═════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-06-16 17:55:11.134353
+Knockouts Redesign Pipeline ended @ 2022-06-16 18:31:29.310778
 
-Wall-clock execution time:  0:00:19.592573
+Wall-clock execution time:  0:00:20.666854
