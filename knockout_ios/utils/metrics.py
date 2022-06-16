@@ -1,10 +1,14 @@
+import logging
 import os
 import pickle
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from datetime import datetime
 from typing import List
 
 import numpy as np
 import pandas as pd
 from datetimerange import DateTimeRange
+from numba import njit
 from numpy import nan
 from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
@@ -168,68 +172,74 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     return counts
 
 
-def calc_overlapping_time_ko_and_non_ko(ko_activities: List[str], log_df: pd.DataFrame):
-    """
-    - computes overlap between events of ko case and non-ko case,
-        not yet overlap between ko case and "empty spaces" between non-ko case events
-    - slow, even with swifter - DateTimeRange package comparison slows it down
-    """
-    waste = {}
+def do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, disable_parallelization):
+    waste = 0
 
-    # Aggregate by case and take into account most frequent resource;
-    # this allows just a rough estimate, because at the event level, resource varies.
-    # Here we just check for resource contention based on the most common resource per case.
-    # log_df = log_df.groupby(PM4PY_CASE_ID_COLUMN_NAME).agg(
-    #     {PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min', PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max',
-    #      'knockout_activity': 'first', '@@startevent_Resource': lambda x: x.value_counts().index[0]})
+    # consider only events knocked out by the current activity
+    knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
 
-    for activity in ko_activities:
-        waste[activity] = 0
+    for resource in knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME].unique():
+        if pd.isnull(resource):
+            continue
 
-        knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
-        non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
+        # consider only events that share the same resource
+        knocked_out = knocked_out_case_events[
+            knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource]
+        non_knocked_out = non_knocked_out_case_events[
+            non_knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource]
+
+        # find indexes of columns in non_knocked_out, for an apply() call later using the 'raw' flag
+        end_timestamp_index = non_knocked_out.columns.get_loc(globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME)
+        next_activity_start_index = non_knocked_out.columns.get_loc("next_activity_start")
+
+        # find indexes of columns in knocked_out, for an apply() call later using the 'raw' flag
+        start_timestamp_index = knocked_out.columns.get_loc(globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME)
+        ko_end_timestamp_index = knocked_out.columns.get_loc(globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME)
 
         def compute_overlaps(non_ko_case_event):
-            # Get the overlapping time between non_ko_case_event and every knocked_out_case by the current activity
-            # that shares the same resource
 
-            resource = non_ko_case_event[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME]
+            # handle these cases:
+            # - value of NaT in last activity of every case
+            # - cases with no "idle time" between its ko_activities
 
-            knocked_out = knocked_out_case_events[
-                (knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource)]
+            if (pd.isnull(non_ko_case_event[next_activity_start_index])) or (
+                    non_ko_case_event[next_activity_start_index] <= non_ko_case_event[end_timestamp_index]):
+                return 0
 
-            total_overlap = 0
-            time_range1 = DateTimeRange(
-                non_ko_case_event[globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME],
-                non_ko_case_event[globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME]
+            # Get the overlapping time between idle intervals of non_ko_case_event and knocked out cases
+
+            idle_time = DateTimeRange(
+                non_ko_case_event[end_timestamp_index],
+                non_ko_case_event[next_activity_start_index]
             )
 
-            for knocked_out_case_event in knocked_out.iterrows():
+            def compute_intersections_with_non_ko_case_event(knocked_out_case_event):
                 time_range2 = DateTimeRange(
-                    knocked_out_case_event[1][globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME],
-                    knocked_out_case_event[1][globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME]
+                    knocked_out_case_event[start_timestamp_index],
+                    knocked_out_case_event[ko_end_timestamp_index]
                 )
 
                 try:
-                    total_overlap += time_range1.intersection(time_range2).timedelta.total_seconds()
+                    return idle_time.intersection(time_range2).timedelta.total_seconds()
                 except TypeError:  # like this we save up 1 call to is_intersection()
-                    continue
+                    return 0
 
-            return total_overlap
+            total_overlap = knocked_out.apply(compute_intersections_with_non_ko_case_event, axis=1, raw=True)
 
-        overlaps = non_knocked_out_case_events.swifter.progress_bar(False).apply(compute_overlaps, axis=1)
-        waste[activity] = overlaps.sum()
+            return total_overlap.sum()
 
-    return waste
+        overlaps = non_knocked_out.apply(compute_overlaps, axis=1, raw=True)
+
+        waste += overlaps.sum()
+
+    return {"activity": activity, "waste": waste}
 
 
-# TODO: still very slow, but calls to apply are optimized as much as possible using swifter
-#  and raw ndarrays in the calls to apply()
-def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
+def calc_waiting_time_waste(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {activity: 0 for activity in ko_activities}
 
     if not (globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
-        print(f"The log does not contain column {globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME} (to identify resources)")
+        print("The log does not contain resources")
         return waste
 
     log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
@@ -243,65 +253,26 @@ def calc_waiting_time_waste_v2(ko_activities: List[str], log_df: pd.DataFrame):
 
     non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
 
-    for activity in ko_activities:
-        waste[activity] = 0
+    disable_parallelization = os.getenv('DISABLE_PARALLELIZATION', False)
 
-        # consider only events knocked out by the current activity
-        knocked_out_case_events = log_df[log_df['knockout_activity'] == activity]
+    if disable_parallelization:
+        logging.info("Parallelization disabled for waiting time waste calculation")
 
-        for resource in knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME].unique():
-            if pd.isnull(resource):
-                continue
+        for activity in ko_activities:
+            result = do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, True)
+            waste[result["activity"]] = result["waste"]
+    else:
+        logging.info("Computing waiting time waste in parallel")
 
-            # consider only events that share the same resource
-            knocked_out = knocked_out_case_events[
-                knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource]
-            non_knocked_out = non_knocked_out_case_events[
-                non_knocked_out_case_events[globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME] == resource]
+        with ProcessPoolExecutor() as executor:
+            futures = []
+            for activity in ko_activities:
+                futures.append(
+                    executor.submit(do_waiting_time_waste_calc, log_df, non_knocked_out_case_events, activity,
+                                    False))
 
-            # find indexes of columns in non_knocked_out, for an apply() call later using the 'raw' flag
-            end_timestamp_index = non_knocked_out.columns.get_loc(globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME)
-            next_activity_start_index = non_knocked_out.columns.get_loc("next_activity_start")
-
-            # find indexes of columns in knocked_out, for an apply() call later using the 'raw' flag
-            start_timestamp_index = knocked_out.columns.get_loc(globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME)
-            ko_end_timestamp_index = knocked_out.columns.get_loc(globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME)
-
-            def compute_overlaps(non_ko_case_event):
-
-                # handle these cases:
-                # - value of NaT in last activity of every case
-                # - cases with no "idle time" between its ko_activities
-
-                if (pd.isnull(non_ko_case_event[next_activity_start_index])) or (
-                        non_ko_case_event[next_activity_start_index] <= non_ko_case_event[end_timestamp_index]):
-                    return 0
-
-                # Get the overlapping time between idle intervals of non_ko_case_event and knocked out cases
-
-                idle_time = DateTimeRange(
-                    non_ko_case_event[end_timestamp_index],
-                    non_ko_case_event[next_activity_start_index]
-                )
-
-                def compute_intersections_with_non_ko_case_event(knocked_out_case_event):
-                    time_range2 = DateTimeRange(
-                        knocked_out_case_event[start_timestamp_index],
-                        knocked_out_case_event[ko_end_timestamp_index]
-                    )
-
-                    try:
-                        return idle_time.intersection(time_range2).timedelta.total_seconds()
-                    except TypeError:  # like this we save up 1 call to is_intersection()
-                        return 0
-
-                total_overlap = knocked_out.swifter.progress_bar(False).apply(
-                    compute_intersections_with_non_ko_case_event, axis=1, raw=True)
-
-                return total_overlap.sum()
-
-            overlaps = non_knocked_out.swifter.progress_bar(False).apply(compute_overlaps, axis=1, raw=True)
-            waste[activity] = overlaps.sum()
-            continue
+            for future in futures:
+                result = future.result()
+                waste[result["activity"]] = result["waste"]
 
     return waste

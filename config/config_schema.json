@@ -189,6 +189,10 @@
     "skip_slow_time_waste_metrics": {
       "type": "boolean",
       "default": false
+    },
+    "drop_low_confidence_rules": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

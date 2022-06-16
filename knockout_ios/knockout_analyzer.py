@@ -16,7 +16,7 @@ from knockout_ios.utils.custom_exceptions import LogNotLoadedException, EmptyLog
     EmptyKnockoutActivitiesException, KnockoutRuleDiscoveryException
 from knockout_ios.utils.formatting import seconds_to_hms, out_pretty
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
-    calc_processing_waste, calc_waiting_time_waste_v2
+    calc_processing_waste, calc_waiting_time_waste
 
 from knockout_ios.utils.constants import globalColumnNames
 
@@ -161,9 +161,10 @@ class KnockoutAnalyzer:
                 # Effort per rejection = Average PT / Rejection rate
                 effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold):
+            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold) and (
+                    metrics['confidence'] > 0):
                 # Effort per rejection = (Average PT / Rejection rate) * Confidence
-                effort = effort * metrics['confidence']
+                effort = effort / metrics['confidence']
 
             # confidence and support are dependent on the rule discovery algorithm used
             self.ko_stats[key][algorithm] = {'effort': 0}
@@ -283,7 +284,8 @@ class KnockoutAnalyzer:
         try:
             rulesets = find_ko_rulesets(self.rule_discovery_log_df, self.discoverer.ko_activities,
                                         available_cases_before_ko=self.available_cases_before_ko,
-                                        columns_to_ignore=columns_to_ignore, algorithm=algorithm, max_rules=max_rules,
+                                        columns_to_ignore=columns_to_ignore, algorithm=algorithm,
+                                        max_rules=max_rules,
                                         max_rule_conds=max_rule_conds, max_total_conds=max_total_conds, k=k,
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
@@ -361,8 +363,8 @@ class KnockoutAnalyzer:
                 if self.config.skip_slow_time_waste_metrics:
                     waiting_time_waste = {activity: 0 for activity in self.discoverer.ko_activities}
                 else:
-                    waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
-                                                                    self.discoverer.log_df)
+                    waiting_time_waste = calc_waiting_time_waste(self.discoverer.ko_activities,
+                                                                 self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
             total_non_ko_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
@@ -409,6 +411,35 @@ class KnockoutAnalyzer:
             print(tabulate(self.report_df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
         return self.report_df
+
+    def filter_ko_activities_with_low_confidence_rules(self):
+        # Identify and optionally filter out ko activities with rules below confidence threshold
+        warnings = []
+
+        rulesets = None
+        if self.ruleset_algorithm == "RIPPER":
+            rulesets = self.RIPPER_rulesets
+        elif self.ruleset_algorithm == "IREP":
+            rulesets = self.IREP_rulesets
+        if rulesets is None:
+            return warnings
+
+        conf_threshold = self.config.confidence_threshold
+        raw_ko_activities = deepcopy(self.discoverer.ko_activities)
+        for activity in raw_ko_activities:
+            metrics = rulesets[activity][2]
+            if metrics["confidence"] < conf_threshold:
+                warning = f"Warning: \"{activity}\" knock-out rule confidence is below threshold ({round(metrics['confidence'], ndigits=3)} < {conf_threshold})"
+                warnings.append(warning)
+                print("\n" + warning)
+
+                if self.config.drop_low_confidence_rules:
+                    self.discoverer.ko_activities.remove(activity)
+                    del rulesets[activity]
+                    self.report_df = self.report_df[
+                        self.report_df[globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK] != activity]
+
+        return warnings
 
 
 if __name__ == "__main__":

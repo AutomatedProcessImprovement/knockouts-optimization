@@ -35,19 +35,6 @@ NOT IN CURRENT SCOPE:
 '''
 
 
-def read_analyzer_cache(cache_dir, cache_name) -> KnockoutAnalyzer:
-    binary_file = open(f'{cache_dir}/{cache_name}', 'rb')
-    ko_analyzer = pickle.load(binary_file)
-    binary_file.close()
-    return ko_analyzer
-
-
-def dump_analyzer_cache(ko_analyzer: KnockoutAnalyzer, cache_dir, cache_name):
-    binary_file = open(f'{cache_dir}/{cache_name}', 'wb')
-    pickle.dump(ko_analyzer, binary_file)
-    binary_file.close()
-
-
 class KnockoutRedesignAdviser(object):
     def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=False, attribute_range_confidence_interval=0.99):
         self.knockout_analyzer = knockout_analyzer
