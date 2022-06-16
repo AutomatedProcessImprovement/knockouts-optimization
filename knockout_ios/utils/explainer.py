@@ -1,5 +1,7 @@
 import logging
 import math
+import os
+from concurrent.futures import ProcessPoolExecutor
 
 from copy import deepcopy
 from sys import stdout
@@ -19,9 +21,49 @@ from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
 
 
-def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None, algorithm='IREP',
+def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, balance_classes, algorithm, max_rules,
+                  max_rule_conds, max_total_conds,
+                  k, dl_allowance, n_discretize_bins, prune_size,
+                  grid_search, param_grid, available_cases_before_ko):
+    # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
+    # _by_case = deepcopy(log_df)
+    _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
+    _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
+
+    # Workaround to avoid any confusion with attributes that sometimes have whitespaces and sometimes have _
+    _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
+    columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
+
+    train, test = split_train_test(skip_temporal_holdout, balance_classes, _by_case)
+
+    # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
+    _by_case_only_cases_in_test = test
+
+    # After splitting and/or balancing as requested, drop all columns that are not needed for the analysis
+    test = test.drop(columns=columns_to_ignore, errors='ignore')
+    train = train.drop(columns=columns_to_ignore, errors='ignore')
+
+    ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
+                                                      k, dl_allowance, n_discretize_bins, prune_size,
+                                                      grid_search, activity, train, param_grid)
+
+    # Performance metrics
+    metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
+                                      ruleset_model, available_cases_before_ko, activity,
+                                      _by_case_only_cases_in_test, skip_temporal_holdout)
+
+    return {"activity": activity, "rulesets_data": (
+        ruleset_model,
+        ruleset_params,
+        metrics
+    )}
+
+
+def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None,
+                     algorithm='IREP',
                      max_rules=None, max_rule_conds=None, max_total_conds=None, k=2, n_discretize_bins=7,
-                     dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None, skip_temporal_holdout=False,
+                     dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None,
+                     skip_temporal_holdout=False,
                      balance_classes=False,
                      ):
     if columns_to_ignore is None:
@@ -29,40 +71,33 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
 
     rulesets = {}
 
-    for activity in tqdm(ko_activities, desc='Finding rules of Knockout Activities'):
-        # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
-        _by_case = deepcopy(log_df)
-        _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
-        _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
+    disable_parallelization = os.getenv('DISABLE_PARALLELIZATION', False)
 
-        # Workaround to avoid any confusion with attributes that sometimes have whitespaces and sometimes have _
-        _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
-        columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
+    if disable_parallelization:
 
-        train, test = split_train_test(skip_temporal_holdout, balance_classes, _by_case)
+        for activity in tqdm(ko_activities, desc='Finding rules of Knockout Activities (sequential)'):
+            result = do_find_rules(deepcopy(log_df), activity, columns_to_ignore, skip_temporal_holdout,
+                                   balance_classes, algorithm, max_rules,
+                                   max_rule_conds, max_total_conds,
+                                   k, dl_allowance, n_discretize_bins, prune_size,
+                                   grid_search, param_grid, available_cases_before_ko)
 
-        # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
-        _by_case_only_cases_in_test = test
+            rulesets[result["activity"]] = result["rulesets_data"]
 
-        # After splitting and/or balancing as requested, drop all columns that are not needed for the analysis
-        test = test.drop(columns=columns_to_ignore, errors='ignore')
-        train = train.drop(columns=columns_to_ignore, errors='ignore')
+    else:
+        with ProcessPoolExecutor() as executor:
+            futures = []
+            for activity in ko_activities:
+                futures.append(
+                    executor.submit(do_find_rules, deepcopy(log_df), activity, columns_to_ignore, skip_temporal_holdout,
+                                    balance_classes, algorithm, max_rules,
+                                    max_rule_conds, max_total_conds,
+                                    k, dl_allowance, n_discretize_bins, prune_size,
+                                    grid_search, param_grid, available_cases_before_ko))
 
-        ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
-                                                          k, dl_allowance, n_discretize_bins, prune_size,
-                                                          grid_search, activity, train, param_grid)
-
-        # Performance metrics
-        metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
-                                          ruleset_model, available_cases_before_ko, activity,
-                                          _by_case_only_cases_in_test, skip_temporal_holdout)
-
-        rulesets[activity] = (
-            ruleset_model,
-            ruleset_params,
-            metrics
-        )
-        stdout.flush()
+            for future in tqdm(futures, desc='Finding rules of Knockout Activities (parallel)'):
+                result = future.result()
+                rulesets[result["activity"]] = result["rulesets_data"]
 
     return rulesets
 
@@ -178,14 +213,14 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
     if skip_temporal_holdout:
         # Incorrect approach: non-time-aware splits; only to be used for baseline comparison against Illya
         # sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True)
-        grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1, cv=5)
+        grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=1, cv=5)
     else:
         # Temporal split is the correct way to handle time-series data
         # In this way, we can still use grid search + cross validation, with time-aware splits
         # Source: https://stackoverflow.com/a/46918197/8522453
         #         https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html
         tscv = TimeSeriesSplit(gap=0, max_train_size=None, test_size=None, n_splits=3)
-        grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=-1, cv=tscv)
+        grid = GridSearchCV(estimator=ruleset_model, param_grid=param_grid, scoring="f1", n_jobs=1, cv=tscv)
 
     with shutup.mute_warnings:
         grid.fit(x_train, y_train)

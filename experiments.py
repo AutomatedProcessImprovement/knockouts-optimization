@@ -1,5 +1,3 @@
-from concurrent.futures import ProcessPoolExecutor
-
 import numpy as np
 from matplotlib import pyplot as plt
 from knockout_ios.pipeline_wrapper import Pipeline
@@ -68,6 +66,6 @@ def envpermit_temp_holdout():
 
 
 if __name__ == "__main__":
-    # get_roc_curves(envpermit(), use_cv=True)
-    # get_roc_curves(envpermit_temp_holdout())
+    get_roc_curves(envpermit(), use_cv=True)
+    get_roc_curves(envpermit_temp_holdout())
     get_roc_curves(synthetic_example())

@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-06-16 12:57:51.135343
+Knockouts Redesign Pipeline started @ 2022-06-16 14:17:33.959895
 
 Input parameters:
 
@@ -53,8 +53,7 @@ Input parameters:
 ╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤════════════════════════════════════╤════════════════════════╕
 │ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)            │   Effort per rejection │
 ╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪════════════════════════════════════╪════════════════════════╡
-│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY] V               │                   2.46 │
-│                                            │                   │                  │                  │ [org:group=Group4]]                │                        │
+│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY]]                │                   2.46 │
 ├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼────────────────────────────────────┼────────────────────────┤
 │ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01] V │                   0.82 │
 │                                            │                   │                  │                  │ [(case)_responsible=Resource03]]   │                        │
@@ -97,10 +96,10 @@ RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds
  'support': 0.024529844644317254}
 
 "T02 Check confirmation of receipt"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 64, 'n_discretize_bins': 20, 'prune_size': 0.2}
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 6, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.1}
 {'accuracy': 0.9910714285714286,
  'balanced_accuracy': 0.9910714285714286,
- 'condition_count': 2,
+ 'condition_count': 1,
  'confidence': 0.0,
  'f1_score': 0.0,
  'precision': 0.0,
@@ -109,8 +108,8 @@ RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds
  'roc_curve': (array([0.        , 0.00892857, 1.        ]),
                array([nan, nan, nan]),
                array([2, 1, 0])),
- 'rule_count': 2,
- 'support': 0.011400651465798045}
+ 'rule_count': 1,
+ 'support': 0.010586319218241042}
 
 Warning: "T02 Check confirmation of receipt" knock-out rule confidence is below threshold (0.0 < 0.5)
 
@@ -164,7 +163,7 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 ╒════════════════════════════════════════════╤═════════════════════════════════════════════════════════════════════╕
 │ Knockout Check                             │ Observation                                                         │
 ╞════════════════════════════════════════════╪═════════════════════════════════════════════════════════════════════╡
-│ T02 Check confirmation of receipt          │ [[org:group=EMPTY] V [org:group=Group4]]                            │
+│ T02 Check confirmation of receipt          │ [[org:group=EMPTY]]                                                 │
 │                                            │ No numerical attributes found in rule.                              │
 ├────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────┤
 │ T06 Determine necessity of stop advice     │ [[(case)_responsible=Resource01] V [(case)_responsible=Resource03]] │
@@ -174,6 +173,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                                            │ No numerical attributes found in rule.                              │
 ╘════════════════════════════════════════════╧═════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-06-16 12:58:06.983345
+Knockouts Redesign Pipeline ended @ 2022-06-16 14:17:59.832079
 
-Wall-clock execution time:  0:00:15.847582
+Wall-clock execution time:  0:00:25.871464

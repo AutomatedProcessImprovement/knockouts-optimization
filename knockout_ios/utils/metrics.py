@@ -1,3 +1,4 @@
+import logging
 import os
 import pickle
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -171,7 +172,7 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     return counts
 
 
-def do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity):
+def do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, disable_parallelization):
     waste = 0
 
     # consider only events knocked out by the current activity
@@ -223,22 +224,18 @@ def do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity):
                 except TypeError:  # like this we save up 1 call to is_intersection()
                     return 0
 
-            total_overlap = knocked_out.swifter.allow_dask_on_strings(enable=True).progress_bar(False).apply(
-                compute_intersections_with_non_ko_case_event, axis=1, raw=True)
+            total_overlap = knocked_out.apply(compute_intersections_with_non_ko_case_event, axis=1, raw=True)
 
             return total_overlap.sum()
 
-        # keep only columns of non_knocked_out that are numerical
-        overlaps = non_knocked_out.swifter.allow_dask_on_strings(enable=True).progress_bar(False).apply(
-            compute_overlaps,
-            axis=1, raw=True)
+        overlaps = non_knocked_out.apply(compute_overlaps, axis=1, raw=True)
 
         waste += overlaps.sum()
 
     return {"activity": activity, "waste": waste}
 
 
-def calc_waiting_time_waste_parallel(ko_activities: List[str], log_df: pd.DataFrame):
+def calc_waiting_time_waste(ko_activities: List[str], log_df: pd.DataFrame):
     waste = {activity: 0 for activity in ko_activities}
 
     if not (globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
@@ -256,13 +253,26 @@ def calc_waiting_time_waste_parallel(ko_activities: List[str], log_df: pd.DataFr
 
     non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
 
-    with ProcessPoolExecutor() as executor:
-        futures = []
-        for activity in ko_activities:
-            futures.append(executor.submit(do_waiting_time_waste_calc, log_df, non_knocked_out_case_events, activity))
+    disable_parallelization = os.getenv('DISABLE_PARALLELIZATION', False)
 
-        for future in futures:
-            result = future.result()
+    if disable_parallelization:
+        logging.info("Parallelization disabled for waiting time waste calculation")
+
+        for activity in ko_activities:
+            result = do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, True)
             waste[result["activity"]] = result["waste"]
+    else:
+        logging.info("Computing waiting time waste in parallel")
+
+        with ProcessPoolExecutor() as executor:
+            futures = []
+            for activity in ko_activities:
+                futures.append(
+                    executor.submit(do_waiting_time_waste_calc, log_df, non_knocked_out_case_events, activity,
+                                    False))
+
+            for future in futures:
+                result = future.result()
+                waste[result["activity"]] = result["waste"]
 
     return waste

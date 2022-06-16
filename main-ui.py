@@ -1,4 +1,5 @@
 import logging
+import os
 import traceback
 
 import streamlit as st
@@ -20,6 +21,9 @@ plt.rc('xtick', labelsize=SMALL_FONT)  # fontsize of the tick labels
 plt.rc('ytick', labelsize=SMALL_FONT)  # fontsize of the tick labels
 plt.rc('legend', fontsize=SMALL_FONT)  # legend fontsize
 plt.rc('figure', titlesize=SMALL_FONT)  # fontsize of the figure title
+
+# disable parallelization everywhere - not working with streamlit currently
+os.environ['DISABLE_PARALLELIZATION'] = "1"
 
 st.set_page_config(
     page_title="Knockouts Redesign Tool",
