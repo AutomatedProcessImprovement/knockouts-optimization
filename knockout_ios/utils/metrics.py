@@ -101,32 +101,37 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
             }}
 
 
-def calc_knockout_ruleset_support(ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
+def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
                                   available_cases_before_ko: int):
     # Source: https://christophm.github.io/interpretable-ml-book/rules.html#rules
+    # Source: https://github.com/AutomatedProcessImprovement/batch-processing-analysis/blob/main/src/batch_processing_analysis/activation_rules.py
 
     predicted_ko = ruleset_model.predict(log)
-    covered_cases = sum(predicted_ko)
+    log['predicted_ko'] = predicted_ko
+
+    true_positives = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
 
     if available_cases_before_ko == 0:
         return 0
 
-    support = covered_cases / available_cases_before_ko
+    support = true_positives / available_cases_before_ko
 
     return support
 
 
 def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame):
+    # Source: https://github.com/AutomatedProcessImprovement/batch-processing-analysis/blob/main/src/batch_processing_analysis/activation_rules.py
+
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
-    correct_predictions = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
-    total_predictions = sum(predicted_ko)
+    true_positives = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+    predicted_positives = sum(predicted_ko)
 
-    if total_predictions == 0:
+    if predicted_positives == 0:
         return 0
 
-    confidence = correct_predictions / total_predictions
+    confidence = true_positives / predicted_positives
 
     return confidence
 
@@ -170,6 +175,49 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
         counts[activity] = total_duration.sum().total_seconds()
 
     return counts
+
+
+def calc_waiting_time_waste(ko_activities: List[str], log_df: pd.DataFrame):
+    waste = {activity: 0 for activity in ko_activities}
+
+    if not (globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
+        print("The log does not contain resources")
+        return waste
+
+    log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
+    log_df.set_index(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
+
+    for caseid in log_df.index.unique():
+        log_df.loc[caseid, "next_activity_start"] = \
+            (log_df.loc[caseid][globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME]).shift(-1)
+
+    log_df.reset_index(inplace=True)
+
+    non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
+
+    disable_parallelization = os.getenv('DISABLE_PARALLELIZATION', False)
+
+    if disable_parallelization:
+        logging.info("Parallelization disabled for waiting time waste calculation")
+
+        for activity in ko_activities:
+            result = do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, True)
+            waste[result["activity"]] = result["waste"]
+    else:
+        logging.info("Computing waiting time waste in parallel")
+
+        with ProcessPoolExecutor() as executor:
+            futures = []
+            for activity in ko_activities:
+                futures.append(
+                    executor.submit(do_waiting_time_waste_calc, log_df, non_knocked_out_case_events, activity,
+                                    False))
+
+            for future in futures:
+                result = future.result()
+                waste[result["activity"]] = result["waste"]
+
+    return waste
 
 
 def do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, disable_parallelization):
@@ -233,46 +281,3 @@ def do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, di
         waste += overlaps.sum()
 
     return {"activity": activity, "waste": waste}
-
-
-def calc_waiting_time_waste(ko_activities: List[str], log_df: pd.DataFrame):
-    waste = {activity: 0 for activity in ko_activities}
-
-    if not (globalColumnNames.PM4PY_RESOURCE_COLUMN_NAME in log_df.columns):
-        print("The log does not contain resources")
-        return waste
-
-    log_df = log_df.sort_values(by=[globalColumnNames.SIMOD_START_TIMESTAMP_COLUMN_NAME])
-    log_df.set_index(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME, inplace=True)
-
-    for caseid in log_df.index.unique():
-        log_df.loc[caseid, "next_activity_start"] = \
-            (log_df.loc[caseid][globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME]).shift(-1)
-
-    log_df.reset_index(inplace=True)
-
-    non_knocked_out_case_events = log_df[log_df['knockout_activity'] == False]
-
-    disable_parallelization = os.getenv('DISABLE_PARALLELIZATION', False)
-
-    if disable_parallelization:
-        logging.info("Parallelization disabled for waiting time waste calculation")
-
-        for activity in ko_activities:
-            result = do_waiting_time_waste_calc(log_df, non_knocked_out_case_events, activity, True)
-            waste[result["activity"]] = result["waste"]
-    else:
-        logging.info("Computing waiting time waste in parallel")
-
-        with ProcessPoolExecutor() as executor:
-            futures = []
-            for activity in ko_activities:
-                futures.append(
-                    executor.submit(do_waiting_time_waste_calc, log_df, non_knocked_out_case_events, activity,
-                                    False))
-
-            for future in futures:
-                result = future.result()
-                waste[result["activity"]] = result["waste"]
-
-    return waste
