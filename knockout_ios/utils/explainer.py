@@ -237,10 +237,10 @@ def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_
     X = _by_case.drop(columns_to_ignore + ['knocked_out_case'], axis=1, errors='ignore')
     y = _by_case['knocked_out_case']
 
-    support = calc_knockout_ruleset_support(ruleset_model, _by_case,
+    support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
                                             available_cases_before_ko=available_cases_before_ko[activity])
 
-    confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case_only_cases_in_test)
+    confidence = calc_knockout_ruleset_confidence(activity, ruleset_model, _by_case)
 
     metrics = {'support': support,
                'confidence': confidence,
