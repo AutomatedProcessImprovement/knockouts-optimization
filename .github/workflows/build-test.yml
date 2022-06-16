@@ -1,12 +1,14 @@
 # Based on: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Build & Test on Windows and Linux (Latest)
+name: Build & Test on Windows and Linux
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+env:
+  RUNNING_TESTS: 1
 
 jobs:
   build-test-ubuntu:
@@ -39,13 +41,11 @@ jobs:
 
       - name: Pre-flight check (test only pipeline)
         run: |
-          export RUNNING_TESTS=true
           cd knockout_ios
           pytest -m "pipeline" --disable-warnings
 
       - name: Run full test suite (pytest parallel)
         run: |
-          export RUNNING_TESTS=true
           cd knockout_ios
           pytest . -x -n auto --disable-warnings
 
@@ -80,12 +80,10 @@ jobs:
 
       - name: Pre-flight check (test only pipeline)
         run: |
-          SET RUNNING_TESTS=true
           cd knockout_ios
           pytest -m "pipeline" --disable-warnings
 
       - name: Run full test suite (pytest parallel)
         run: |
-          SET RUNNING_TESTS=true
           cd knockout_ios
           pytest . -x -n auto --disable-warnings
