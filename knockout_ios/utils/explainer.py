@@ -1,7 +1,5 @@
 import logging
-import math
 import os
-import traceback
 from concurrent.futures import ProcessPoolExecutor
 
 from copy import deepcopy
@@ -13,51 +11,11 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 import wittgenstein as lw
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score, roc_curve, \
-    balanced_accuracy_score, make_scorer, RocCurveDisplay, auc
-from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, cross_val_score, KFold, \
-    StratifiedKFold, StratifiedGroupKFold
+from sklearn.metrics import precision_score, recall_score, f1_score, RocCurveDisplay, auc
+from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, StratifiedKFold
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
-
-
-def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, balance_classes, algorithm, max_rules,
-                  max_rule_conds, max_total_conds,
-                  k, dl_allowance, n_discretize_bins, prune_size,
-                  grid_search, param_grid, available_cases_before_ko):
-    # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
-    # _by_case = deepcopy(log_df)
-    _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
-    _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
-
-    # Workaround to avoid any confusion with attributes that sometimes have whitespaces and sometimes have _
-    _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
-    columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
-
-    train, test = split_train_test(skip_temporal_holdout, balance_classes, _by_case)
-
-    # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
-    _by_case_only_cases_in_test = test
-
-    # After splitting and/or balancing as requested, drop all columns that are not needed for the analysis
-    test = test.drop(columns=columns_to_ignore, errors='ignore')
-    train = train.drop(columns=columns_to_ignore, errors='ignore')
-
-    ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
-                                                      k, dl_allowance, n_discretize_bins, prune_size,
-                                                      grid_search, activity, train, param_grid)
-
-    # Performance metrics
-    metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
-                                      ruleset_model, available_cases_before_ko, activity,
-                                      _by_case_only_cases_in_test, skip_temporal_holdout)
-
-    return {"activity": activity, "rulesets_data": (
-        ruleset_model,
-        ruleset_params,
-        metrics
-    )}
 
 
 def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_to_ignore=None,
@@ -102,6 +60,44 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                 rulesets[result["activity"]] = result["rulesets_data"]
 
     return rulesets
+
+
+def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, balance_classes, algorithm, max_rules,
+                  max_rule_conds, max_total_conds,
+                  k, dl_allowance, n_discretize_bins, prune_size,
+                  grid_search, param_grid, available_cases_before_ko):
+    # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
+    # _by_case = deepcopy(log_df)
+    _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
+    _by_case["knocked_out_case"] = np.where(_by_case["knockout_activity"] == activity, True, False)
+
+    # Workaround to avoid any confusion with attributes that sometimes have whitespaces and sometimes have _
+    _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
+    columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
+
+    train, test = split_train_test(skip_temporal_holdout, balance_classes, _by_case)
+
+    # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
+    _by_case_only_cases_in_test = test
+
+    # After splitting and/or balancing as requested, drop all columns that are not needed for the analysis
+    test = test.drop(columns=columns_to_ignore, errors='ignore')
+    train = train.drop(columns=columns_to_ignore, errors='ignore')
+
+    ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
+                                                      k, dl_allowance, n_discretize_bins, prune_size,
+                                                      grid_search, activity, train, param_grid)
+
+    # Performance metrics
+    metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
+                                      ruleset_model, available_cases_before_ko, activity,
+                                      _by_case_only_cases_in_test, skip_temporal_holdout)
+
+    return {"activity": activity, "rulesets_data": (
+        ruleset_model,
+        ruleset_params,
+        metrics
+    )}
 
 
 def split_train_test(skip_temporal_holdout: bool, balance_classes: bool, _by_case: pd.DataFrame):
@@ -195,9 +191,6 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
                    skip_temporal_holdout=False):
     dataset = deepcopy(dataset)
 
-    if not quiet:
-        print(f"\nPerforming {algorithm} parameter grid search")
-
     # Dummify categorical features and booleanize class values for sklearn compatibility
     x_train = dataset.drop(['knocked_out_case'], axis=1)
     x_train = pd.get_dummies(x_train, columns=x_train.select_dtypes('object').columns)
@@ -263,12 +256,11 @@ def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_
 
 
 def get_roc_curve_cv(activity, ruleset_model, X, y, cv, skip_temporal_holdout):
-    if os.getenv("RUNNING_TESTS", False):
-        return 0
-
     # Run classifier with cross-validation, plot ROC curves and return average AUC score
-
     # Source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
+
+    if not os.getenv("ENABLE_ROC_PLOTS", False):
+        return 0
 
     if skip_temporal_holdout:
         kf = StratifiedKFold(n_splits=cv)
