@@ -5,7 +5,7 @@ from pandas import Timestamp
 from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.metrics import get_ko_discovery_metrics, find_rejection_rates, calc_available_cases_before_ko, \
-    calc_overlapping_time_ko_and_non_ko, calc_waiting_time_waste_v2
+    calc_overlapping_time_ko_and_non_ko, calc_waiting_time_waste_parallel
 from knockout_ios.utils.platform_check import is_windows
 
 log = [
@@ -283,7 +283,7 @@ def test_waiting_time_waste_v2_easy():
 
     ko_activities = ["ko_1"]
 
-    waste = calc_waiting_time_waste_v2(ko_activities, pd.DataFrame(events))
+    waste = calc_waiting_time_waste_parallel(ko_activities, pd.DataFrame(events))
 
     # at 10:00 work on cases 1 and 2 is started.
     # at 10:05 work on cases 1 and 2 is stopped to work on case 0.

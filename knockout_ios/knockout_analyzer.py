@@ -16,7 +16,7 @@ from knockout_ios.utils.custom_exceptions import LogNotLoadedException, EmptyLog
     EmptyKnockoutActivitiesException, KnockoutRuleDiscoveryException
 from knockout_ios.utils.formatting import seconds_to_hms, out_pretty
 from knockout_ios.utils.metrics import find_rejection_rates, calc_available_cases_before_ko, calc_overprocessing_waste, \
-    calc_processing_waste, calc_waiting_time_waste_v2
+    calc_processing_waste, calc_waiting_time_waste_parallel
 
 from knockout_ios.utils.constants import globalColumnNames
 
@@ -362,8 +362,8 @@ class KnockoutAnalyzer:
                 if self.config.skip_slow_time_waste_metrics:
                     waiting_time_waste = {activity: 0 for activity in self.discoverer.ko_activities}
                 else:
-                    waiting_time_waste = calc_waiting_time_waste_v2(self.discoverer.ko_activities,
-                                                                    self.discoverer.log_df)
+                    waiting_time_waste = calc_waiting_time_waste_parallel(self.discoverer.ko_activities,
+                                                                          self.discoverer.log_df)
 
             filtered = self.discoverer.log_df[self.discoverer.log_df['knocked_out_case'] == False]
             total_non_ko_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
