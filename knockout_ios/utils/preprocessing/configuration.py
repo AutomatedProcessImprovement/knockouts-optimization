@@ -66,6 +66,7 @@ class Configuration:
     balance_classes: Optional[bool] = False
 
     # Redesign options
+    disallowed_permutations: Optional[list[list[str]]] = None
     relocation_variants_min_coverage_percentage: Optional[float] = 0.001
     skip_slow_time_waste_metrics: Optional[bool] = False
 
@@ -131,6 +132,12 @@ def config_data_with_datastructures(data: dict) -> dict:
         if not ("column_names" in read_options):
             read_options["column_names"] = ReadOptions.column_names_default()
         data["read_options"] = ReadOptions(**read_options)
+
+    disallowed_permutations = data.get("disallowed_permutations")
+    if disallowed_permutations:
+        data["disallowed_permutations"] = disallowed_permutations
+    else:
+        data["disallowed_permutations"] = []
 
     return data
 

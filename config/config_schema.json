@@ -193,6 +193,19 @@
     "drop_low_confidence_rules": {
       "type": "boolean",
       "default": false
+    },
+    "disallowed_permutations": {
+      "type": "array",
+      "items": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            }
+          ]
+        }
+      ]
     }
   },
   "required": [
