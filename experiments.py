@@ -13,9 +13,15 @@ def envpermit():
     return adviser
 
 
+def bpi2017():
+    adviser = Pipeline(config_file_name="bpi2017.json", cache_dir="cache/bpi2017").run_pipeline()
+    return adviser
+
+
 if __name__ == "__main__":
     # os.environ['DISABLE_PARALLELIZATION'] = "1"
     os.environ['ENABLE_ROC_PLOTS'] = "1"
 
     envpermit()
     synthetic_example()
+    # bpi2017()

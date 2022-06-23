@@ -136,7 +136,8 @@ def run_analysis_wrapper():
 
             if not (st.session_state["ko_redesign_adviser"] is None):
                 st.markdown("### Knockouts Analysis")
-                st.table(ko_analysis_report)
+                st.markdown(ko_analysis_report.to_markdown(), unsafe_allow_html=True)
+                st.text(" \n")
 
                 for warning in low_confidence_warnings:
                     st.warning(warning)
@@ -157,7 +158,7 @@ def run_analysis_wrapper():
                 st.markdown(ko_redesign_report['relocation'].to_markdown(), unsafe_allow_html=True)
 
                 st.text(" \n")
-                st.markdown("### Rule-change Options (numerical attributes)")
+                st.markdown("### Rule-change Options")
                 # Plot distributions of numerical attributes appearing in each rule,
                 # and overlay the range captured by rules
 
@@ -196,7 +197,7 @@ def run_analysis_wrapper():
                         st.pyplot(fig)
 
                     except:
-                        st.write("No numerical attributes found in the rules of this activity")
+                        st.write("No suggestions available for this activity")
 
         except KnockoutRuleDiscoveryException:
             logging.error(traceback.format_exc())

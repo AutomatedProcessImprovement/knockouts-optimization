@@ -291,6 +291,7 @@ class KnockoutAnalyzer:
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
                                         skip_temporal_holdout=self.config.skip_temporal_holdout,
                                         balance_classes=self.config.balance_classes)
+
         except Exception:
             logging.error(traceback.format_exc())
             raise KnockoutRuleDiscoveryException
@@ -303,13 +304,16 @@ class KnockoutAnalyzer:
         self.calc_ko_efforts(confidence_threshold=confidence_threshold, support_threshold=support_threshold,
                              algorithm=algorithm)
 
-        self.report_df = self.build_report(omit=omit_report)
+        self.report_df = self.build_report()
+        low_confidence_warnings = self.filter_ko_activities_with_low_confidence_rules()
+        if not omit_report:
+            self.print_report()
 
         ko_rule_discovery_stats = {}
         if print_rule_discovery_stats:
             ko_rule_discovery_stats = self.get_ko_rulesets_stats(algorithm=algorithm)
 
-        return self.report_df, self, ko_rule_discovery_stats
+        return self.report_df, self, ko_rule_discovery_stats, low_confidence_warnings
 
     def get_ko_rulesets_stats(self, algorithm):
 
@@ -406,11 +410,12 @@ class KnockoutAnalyzer:
             self.report_df.sort_values(by=[globalColumnNames.REPORT_COLUMN_KNOCKOUT_CHECK], inplace=True,
                                        ignore_index=True)
 
-        if not omit:
+        return self.report_df
+
+    def print_report(self):
+        if not (self.report_df is None):
             self.report_df.to_csv(self.report_file_name, index=False)
             print(tabulate(self.report_df, headers='keys', showindex="false", tablefmt="fancy_grid"))
-
-        return self.report_df
 
     def filter_ko_activities_with_low_confidence_rules(self):
         # Identify and optionally filter out ko activities with rules below confidence threshold
