@@ -60,6 +60,15 @@ Then you can choose whether to:
      bash start.sh
   ```
 
+- Launch from CLI:
+  ```bash
+     # Windows:
+     python main.py config/synthetic_example.json
+  
+     # Linux: 
+     python3 main.py config/synthetic_example.json
+  ```
+
 - Or programmatically:
 
   ```python

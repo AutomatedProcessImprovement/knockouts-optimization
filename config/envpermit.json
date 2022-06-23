@@ -10,6 +10,18 @@
     "T06 Determine necessity of stop advice",
     "T10 Determine necessity to stop indication"
   ],
+  "disallowed_permutations": [
+    [
+      "T10 Determine necessity to stop indication",
+      "T02 Check confirmation of receipt",
+      "T06 Determine necessity of stop advice"
+    ],
+    [
+      "T10 Determine necessity to stop indication",
+      "T06 Determine necessity of stop advice",
+      "T02 Check confirmation of receipt"
+    ]
+  ],
   "attributes_to_ignore": [
     "concept:instance",
     "user"
