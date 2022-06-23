@@ -133,7 +133,7 @@ class KnockoutAnalyzer:
 
     def calc_ko_efforts(self, support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP"):
 
-        if algorithm == "RIPPER":
+        if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
             rulesets = self.RIPPER_rulesets
         else:
             rulesets = self.IREP_rulesets
@@ -275,7 +275,7 @@ class KnockoutAnalyzer:
             print(f"\nDiscovering rulesets of each K.O. activity with {algorithm}")
 
         if grid_search & (param_grid is None):
-            if algorithm == "RIPPER":
+            if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
                 param_grid = {"prune_size": [0.5, 0.8, 0.9], "k": [2], "dl_allowance": [1, 2, 4, 8],
                               "n_discretize_bins": [10, 20]}
             elif algorithm == "IREP":
@@ -296,7 +296,7 @@ class KnockoutAnalyzer:
             logging.error(traceback.format_exc())
             raise KnockoutRuleDiscoveryException
 
-        if algorithm == "RIPPER":
+        if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
             self.RIPPER_rulesets = rulesets
         elif algorithm == "IREP":
             self.IREP_rulesets = rulesets
@@ -318,7 +318,7 @@ class KnockoutAnalyzer:
     def get_ko_rulesets_stats(self, algorithm):
 
         rulesets = None
-        if algorithm == "RIPPER":
+        if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
             rulesets = self.RIPPER_rulesets
         elif algorithm == "IREP":
             rulesets = self.IREP_rulesets
@@ -350,7 +350,7 @@ class KnockoutAnalyzer:
             if self.ruleset_algorithm is None:
                 return
 
-            if self.ruleset_algorithm == "RIPPER":
+            if (self.ruleset_algorithm == "RIPPER") or (self.ruleset_algorithm == "CATBOOST-RIPPER"):
                 rulesets = self.RIPPER_rulesets
             else:
                 rulesets = self.IREP_rulesets
@@ -422,7 +422,7 @@ class KnockoutAnalyzer:
         warnings = []
 
         rulesets = None
-        if self.ruleset_algorithm == "RIPPER":
+        if (self.ruleset_algorithm == "RIPPER") or (self.ruleset_algorithm == "CATBOOST-RIPPER"):
             rulesets = self.RIPPER_rulesets
         elif self.ruleset_algorithm == "IREP":
             rulesets = self.IREP_rulesets

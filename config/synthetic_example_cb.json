@@ -1,0 +1,51 @@
+{
+  "$schema": "config_schema.json",
+  "log_path": "data/inputs/synthetic_example_enriched.xes",
+  "output": "data/outputs",
+  "redesign_results_file_path": "data/outputs/synthetic_example_cb.txt",
+  "cache_dir": "cache/synthetic_example_enriched",
+  "start_activity": "Credit application received",
+  "post_knockout_activities": [
+    "Notify rejection"
+  ],
+  "rule_discovery_algorithm": "CATBOOST-RIPPER",
+  "skip_temporal_holdout": false,
+  "confidence_threshold": 0.5,
+  "support_threshold": 0.1,
+  "max_rules": 3,
+  "max_rule_conds": 1,
+  "k": 2,
+  "n_discretize_bins": 10,
+  "dl_allowance": 1,
+  "prune_size": 0.8,
+  "always_force_recompute": false,
+  "print_rule_discovery_stats": true,
+  "read_options": {
+    "one_timestamp": false
+  },
+  "relocation_variants_min_coverage_percentage": 0.001,
+  "skip_slow_time_waste_metrics": true,
+  "grid_search": false,
+  "param_grid": {
+    "prune_size": [
+      0.1,
+      0.2,
+      0.4
+    ],
+    "k": [
+      2,
+      4
+    ],
+    "dl_allowance": [
+      1,
+      6,
+      12,
+      24
+    ],
+    "n_discretize_bins": [
+      5,
+      10,
+      20
+    ]
+  }
+}

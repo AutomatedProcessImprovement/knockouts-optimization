@@ -171,7 +171,7 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
 
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
-    elif analyzer.ruleset_algorithm == "RIPPER":
+    elif (analyzer.ruleset_algorithm == "RIPPER") or (analyzer.ruleset_algorithm == "CATBOOST-RIPPER"):
         rule_discovery_dict = analyzer.RIPPER_rulesets
     else:
         raise ValueError("Unknown ruleset algorithm")
@@ -368,7 +368,7 @@ def evaluate_knockout_rule_change_io(analyzer: KnockoutAnalyzer, confidence=0.95
     """
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
-    elif analyzer.ruleset_algorithm == "RIPPER":
+    elif (analyzer.ruleset_algorithm == "RIPPER") or (analyzer.ruleset_algorithm == "CATBOOST-RIPPER"):
         rule_discovery_dict = analyzer.RIPPER_rulesets
     else:
         raise ValueError("Unknown ruleset algorithm")

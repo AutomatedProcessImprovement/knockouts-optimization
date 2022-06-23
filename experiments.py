@@ -4,7 +4,8 @@ from knockout_ios.pipeline_wrapper import Pipeline
 
 
 def synthetic_example():
-    adviser = Pipeline(config_file_name="synthetic_example.json", cache_dir="cache/synthetic_example").run_pipeline()
+    adviser = Pipeline(config_file_name="synthetic_example.json",
+                       cache_dir="cache/synthetic_example").run_pipeline()
     return adviser
 
 
@@ -19,9 +20,9 @@ def bpi2017():
 
 
 if __name__ == "__main__":
-    # os.environ['DISABLE_PARALLELIZATION'] = "1"
+    os.environ['DISABLE_PARALLELIZATION'] = "1"
     os.environ['ENABLE_ROC_PLOTS'] = "1"
 
-    envpermit()
+    # envpermit()
     synthetic_example()
     # bpi2017()

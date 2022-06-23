@@ -1,10 +1,22 @@
-Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Mean Duration,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
-W_Call incomplete files,2660,8.44 %,5.41 %,"[[EventOrigin=Application] V
-[LoanGoal=Notspeficied]]",18707.37,"1 days, 4:07:52","2792 days, 18:15:21","123 days, 3:45:07",0:00:00,0:00:00
-W_Validate application,10912,34.63 %,18.78 %,"[[EventOrigin=Application ^ LoanGoal=Existingloantakeover] V
-[EventOrigin=Application ^ RequestedAmount=1950.0-5000.0] V
+Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (CATBOOST-RIPPER),Effort per rejection,Mean Duration,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+W_Call incomplete files,2660,8.44 %,5.41 %,"[[EventOrigin=Application ^ Selected=false ^ LoanGoal=Homeimprovement] V
+[EventOrigin=Application ^ Selected=false ^ RequestedAmount=>38500.0] V
+[EventOrigin=Application ^ NumberOfTerms=113.2-120.0 ^ RequestedAmount=8500.0-10000.0] V
+[EventOrigin=Application ^ NumberOfTerms=120.0-126.0 ^ Accepted=false] V
+[EventOrigin=Application ^ MonthlyCost=175.32-200.6 ^ RequestedAmount=10000.0-15000.0] V
+[EventOrigin=Application ^ NumberOfTerms=113.2-120.0 ^ FirstWithdrawalAmount=>21000.0 ^ Accepted=false] V
+[EventOrigin=Application ^ FirstWithdrawalAmount=467.07-3402.06 ^ NumberOfTerms=56.0-60.0] V
+[EventOrigin=Application ^ FirstWithdrawalAmount=5000.0-7963.2 ^ RequestedAmount=8500.0-10000.0] V
+[EventOrigin=Application ^ FirstWithdrawalAmount=<467.07 ^ OfferedAmount=14000.0-15000.0 ^ Accepted=false]]",18707.37,"1 days, 4:07:52","2792 days, 18:15:21","123 days, 3:45:07",0:00:00,0:00:00
+W_Validate application,10912,34.63 %,18.78 %,"[[EventOrigin=Application ^ Selected=true ^ LoanGoal=Existingloantakeover] V
+[EventOrigin=Application ^ Selected=true ^ LoanGoal=Car ^ MonthlyCost=<100.0] V
+[EventOrigin=Application ^ Selected=true ^ NumberOfTerms=56.0-60.0 ^ RequestedAmount=<5000.0] V
+[EventOrigin=Application ^ NumberOfTerms=37.0-56.0 ^ LoanGoal=Other ^ seeexplanation] V
+[EventOrigin=Application ^ NumberOfTerms=37.0-56.0] V
+[EventOrigin=Application ^ FirstWithdrawalAmount=<467.07 ^ LoanGoal=Homeimprovement] V
+[EventOrigin=Application ^ NumberOfTerms=<37.0] V
+[EventOrigin=Application ^ OfferedAmount=23000.0-29000.0] V
+[EventOrigin=Application ^ FirstWithdrawalAmount=15000.0-21000.0] V
 [EventOrigin=Application] V
-[Action=Deleted ^ OfferedAmount=<6300.0] V
-[Action=Deleted ^ NumberOfTerms=65.0-72.0] V
-[Action=Deleted ^ FirstWithdrawalAmount=>31294.56] V
-[Action=Deleted ^ FirstWithdrawalAmount=<16.8]]",443.13,2:18:40,"35452 days, 7:55:38","219 days, 11:41:11",0:00:00,0:00:00
+[Action=Deleted ^ NumberOfTerms=37.0-56.0 ^ OfferedAmount=10000.0-14000.0] V
+[Action=Deleted ^ MonthlyCost=249.04-280.01 ^ RequestedAmount=10000.0-15000.0]]",443.13,2:18:40,"35452 days, 7:55:38","219 days, 11:41:11",0:00:00,0:00:00

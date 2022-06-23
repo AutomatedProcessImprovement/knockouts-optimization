@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-06-23 15:11:59.518179
+Knockouts Redesign Pipeline started @ 2022-06-23 19:41:43.644582
 
 Input parameters:
 
@@ -78,6 +78,17 @@ RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': Non
  'rule_count': 2,
  'support': 0.19266666666666668}
 
+"Check Risk"
+RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'condition_count': 3,
+ 'confidence': 0.7993348115299335,
+ 'f1_score': 0.8695652173913044,
+ 'precision': 0.7692307692307693,
+ 'recall': 1.0,
+ 'roc_auc_score': 0,
+ 'rule_count': 3,
+ 'support': 0.3010438413361169}
+
 "Check Monthly Income"
 RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
 {'condition_count': 3,
@@ -100,17 +111,6 @@ RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': Non
  'rule_count': 2,
  'support': 0.7320574162679426}
 
-"Check Risk"
-RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'k': 2, 'dl_allowance': 1, 'n_discretize_bins': 10, 'prune_size': 0.8}
-{'condition_count': 3,
- 'confidence': 0.7993348115299335,
- 'f1_score': 0.8695652173913044,
- 'precision': 0.7692307692307693,
- 'recall': 1.0,
- 'roc_auc_score': 0,
- 'rule_count': 3,
- 'support': 0.3010438413361169}
-
 ** Redesign options **
 
 
@@ -121,8 +121,8 @@ RIPPER parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': Non
 ╞══════════════════════╪═════════════════════════════════════════════════════════════╡
 │ Assess application   │ 'External Risk Score' available after activity 'Check Risk' │
 ├──────────────────────┼─────────────────────────────────────────────────────────────┤
-│ Check Liability      │ 'Total Debt' available after activity 'Start'               │
-│                      │ 'Owns Vehicle' available after activity 'Start'             │
+│ Check Liability      │ 'Owns Vehicle' available after activity 'Start'             │
+│                      │ 'Total Debt' available after activity 'Start'               │
 ├──────────────────────┼─────────────────────────────────────────────────────────────┤
 │ Check Monthly Income │ 'Monthly Income' available after activity 'Start'           │
 ├──────────────────────┼─────────────────────────────────────────────────────────────┤
@@ -185,6 +185,6 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 │                      │ - Loan Ammount: 10003.42 - 40181.17                                                             │
 ╘══════════════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-06-23 15:13:05.262087
+Knockouts Redesign Pipeline ended @ 2022-06-23 19:42:38.582227
 
-Wall-clock execution time:  0:01:05.741968
+Wall-clock execution time:  0:00:54.935356

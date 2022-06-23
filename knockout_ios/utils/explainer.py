@@ -3,16 +3,19 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 
 from copy import deepcopy
+from typing import Union
 
 import numpy as np
 import pandas as pd
 import shutup
+from catboost import CatBoostClassifier
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 import wittgenstein as lw
 from sklearn.metrics import precision_score, recall_score, f1_score, RocCurveDisplay, auc
 from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, StratifiedKFold
+from wittgenstein.interpret import interpret_model
 
 from knockout_ios.utils.constants import globalColumnNames
 from knockout_ios.utils.metrics import calc_knockout_ruleset_support, calc_knockout_ruleset_confidence
@@ -84,14 +87,21 @@ def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, 
     test = test.drop(columns=columns_to_ignore, errors='ignore')
     train = train.drop(columns=columns_to_ignore, errors='ignore')
 
-    ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
-                                                      k, dl_allowance, n_discretize_bins, prune_size,
-                                                      grid_search, activity, train, param_grid)
+    if algorithm == 'CATBOOST-RIPPER':
+        ruleset_model, ruleset_params, cb_classifier = get_ruleset_from_catboost(max_rules, max_rule_conds,
+                                                                                 max_total_conds, k,
+                                                                                 dl_allowance,
+                                                                                 n_discretize_bins, prune_size, train)
+    else:
+        cb_classifier = None
+        ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
+                                                          k, dl_allowance, n_discretize_bins, prune_size,
+                                                          grid_search, activity, train, param_grid)
 
     # Performance metrics
     metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
                                       ruleset_model, available_cases_before_ko, activity,
-                                      _by_case_only_cases_in_test, skip_temporal_holdout)
+                                      _by_case_only_cases_in_test, skip_temporal_holdout, cb_classifier)
 
     return {"activity": activity, "rulesets_data": (
         ruleset_model,
@@ -187,6 +197,40 @@ def fit_ruleset_model(algorithm: str, max_rules: int, max_rule_conds: int, max_t
     return ruleset_model, ruleset_params
 
 
+def get_ruleset_from_catboost(max_rules, max_rule_conds, max_total_conds, k, dl_allowance, n_discretize_bins,
+                              prune_size, train):
+    """
+    Prototype of interpretable model extraction: CatBoost classifier then Ruleset
+    - https://github.com/imoscovitz/wittgenstein#interpreter-models
+    - https://catboost.ai/en/docs/concepts/python-usages-examples
+    """
+
+    ruleset_params = {"max_rules": max_rules}
+    interpreter = lw.RIPPER(**ruleset_params)
+
+    # Fit a 'complex' model - CatBoostClassifier
+    X_train = train.drop(['knocked_out_case'], axis=1)
+    y_train = train['knocked_out_case']
+
+    model = CatBoostClassifier(iterations=10, learning_rate=1, depth=6, loss_function='Logloss')
+
+    categorical_features_indexes = [X_train.columns.get_loc(col) for col in X_train.columns if
+                                    X_train[col].dtype == "object"]
+    model.fit(X_train, y_train, cat_features=categorical_features_indexes)
+
+    # interpret with wittgenstein and get a ruleset
+    def predict_fn(data, _):
+        res = model.predict(data, prediction_type='Class')
+        # map elements of res to boolean
+        res = [x == 'True' for x in res]
+        return res
+
+    interpret_model(model=model, X=X_train, interpreter=interpreter, model_predict_function=predict_fn)
+    ruleset_model = interpreter
+
+    return ruleset_model, ruleset_params, model
+
+
 def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=True, param_grid=None,
                    skip_temporal_holdout=False):
     dataset = deepcopy(dataset)
@@ -229,13 +273,17 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
 
 def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_to_ignore: list[str],
                             ruleset_model: lw.RIPPER, available_cases_before_ko: dict, activity: str,
-                            _by_case_only_cases_in_test: pd.DataFrame, skip_temporal_holdout: bool):
+                            _by_case_only_cases_in_test: pd.DataFrame, skip_temporal_holdout: bool, cb_classifier=None):
     # Performance metrics
     x_test = test.drop(['knocked_out_case'], axis=1)
     y_test = test['knocked_out_case']
 
     X = _by_case.drop(columns_to_ignore + ['knocked_out_case'], axis=1, errors='ignore')
     y = _by_case['knocked_out_case']
+
+    if not (cb_classifier is None):
+        get_roc_curve_cv(activity, cb_classifier, X, y, cv=5,
+                         skip_temporal_holdout=skip_temporal_holdout)
 
     support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
                                             available_cases_before_ko=available_cases_before_ko[activity])
@@ -255,7 +303,7 @@ def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_
     return metrics
 
 
-def get_roc_curve_cv(activity, ruleset_model, X, y, cv, skip_temporal_holdout):
+def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifier], X, y, cv, skip_temporal_holdout):
     # Run classifier with cross-validation, plot ROC curves and return average AUC score
     # Source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
 
@@ -273,11 +321,26 @@ def get_roc_curve_cv(activity, ruleset_model, X, y, cv, skip_temporal_holdout):
 
     fig, ax = plt.subplots()
     for i, (train, test) in enumerate(kf.split(X, y)):
+        title_note = ""
+
         X_train, X_test = X.iloc[train], X.iloc[test]
         y_train, y_test = y.iloc[train], y.iloc[test]
 
-        ruleset_model.fit(X_train, y_train)
-        y_pred = ruleset_model.predict(X_test)
+        if type(model) is CatBoostClassifier:
+            title_note = "CatBoost "
+            try:
+                categorical_features_indexes = [X_train.columns.get_loc(col) for col in X_train.columns if
+                                                X_train[col].dtype == 'object']
+                model.fit(X_train, y_train, cat_features=categorical_features_indexes)
+
+                y_pred = model.predict(X_test, prediction_type="Class")
+                y_pred = [x == 'True' for x in y_pred]
+            except:
+                continue
+        else:
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+
         viz = RocCurveDisplay.from_predictions(
             y_test,
             y_pred,
@@ -325,7 +388,7 @@ def get_roc_curve_cv(activity, ruleset_model, X, y, cv, skip_temporal_holdout):
     ax.set(
         xlim=[-0.05, 1.05],
         ylim=[-0.05, 1.05],
-        title=f"ROC curve for '{activity}'",
+        title=f"{title_note}ROC curve for '{activity}'",
     )
     ax.legend(loc="lower right")
     plt.show()
