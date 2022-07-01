@@ -75,7 +75,6 @@ def test_relocation_BPI():
                                                  dependencies)
 
     optimal_ko_order = reordering["optimal_ko_order"]
-    sorted_efforts = reordering["sorted_efforts"]
 
     current_order = ["Start",
                      'A_Create Application',

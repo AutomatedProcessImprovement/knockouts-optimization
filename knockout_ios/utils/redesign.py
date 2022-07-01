@@ -1,3 +1,4 @@
+import itertools
 import os
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
@@ -15,6 +16,8 @@ from tqdm import tqdm
 
 from knockout_ios.knockout_analyzer import KnockoutAnalyzer
 from knockout_ios.utils.constants import globalColumnNames
+from knockout_ios.utils.custom_exceptions import ImpossibleActivityOrderingConstraintsException
+from knockout_ios.utils.preprocessing.configuration import Configuration
 
 
 def chained_eventually_follows(log, activities):
@@ -350,10 +353,72 @@ def evaluate_knockout_relocation_io(analyzer: KnockoutAnalyzer, dependencies: di
     return proposed_relocations, variants
 
 
+def evaluate_knockout_reordering_io_v2(analyzer: KnockoutAnalyzer,
+                                       dependencies: dict[str, List[tuple[str, str]]] = None
+                                       ) -> dict:
+    '''
+    # TODO
+      v2: support user to specify disallowed permutations.
+      - idea:
+        - compute all possible ko act permutations
+        - filter out the unfeasible ones (dependencies & disallowed)
+        - select the permutation with lowest total effort:
+          sum(index*1/ko[effort] for ko in enumerate(ko_permutation))
+    '''
+
+    ko_activities = analyzer.discoverer.ko_activities
+    disallowed_permutations = [tuple(x) for x in analyzer.config.disallowed_permutations]
+
+    # get all possible permutations of ko activities
+    ko_permutations = list(itertools.permutations(ko_activities))
+
+    # filter out the disallowed permutations
+    ko_permutations = [x for x in ko_permutations if x not in disallowed_permutations]
+
+    # identify the activity sequences that violate dependencies
+    frags = []
+    for activity in dependencies.keys():
+        deps = [(activity, dep[1]) for dep in dependencies[activity]]
+        frags.extend(deps)
+
+    # identify the permutations that contain violating sequences
+    invalid = []
+    for frag in frags:
+        filtered = [x for x in ko_permutations if (frag[0] in x) and (frag[1] in x)]
+        invalid.extend(list(filter(lambda p: p.index(frag[0]) < p.index(frag[1]), filtered)))
+
+    # filter out the invalid permutations
+    ko_permutations = [x for x in ko_permutations if x not in invalid]
+
+    if len(ko_permutations) == 0:
+        raise ImpossibleActivityOrderingConstraintsException
+
+    # select the permutation with lowest total effort:
+    permutations_with_efforts = []
+    for permutation in ko_permutations:
+        total_effort = 0
+        for i, ko in enumerate(permutation):
+            total_effort += (i + 1) * analyzer.ko_stats[ko][analyzer.ruleset_algorithm]["effort"]
+        permutations_with_efforts.append((permutation, total_effort))
+
+    # Pick the permutation yielding the smallest total effort
+    permutations_with_efforts.sort(key=lambda x: x[1], reverse=True)
+    optimal_order_names = permutations_with_efforts[0][0]
+
+    # Determine how many cases respect this order in the log
+    filtered = analyzer.discoverer.log_df[analyzer.discoverer.log_df['knocked_out_case'] == False]
+    total_cases = filtered.groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME]).ngroups
+    cases_respecting_order = chained_eventually_follows(filtered, optimal_order_names) \
+        .groupby([globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME])
+
+    return {"optimal_ko_order": list(optimal_order_names),
+            "cases_respecting_order": cases_respecting_order.ngroups,
+            "total_cases": total_cases}
+
+
 def evaluate_knockout_reordering_io(analyzer: KnockoutAnalyzer,
                                     dependencies: dict[str, List[tuple[str, str]]] = None) -> dict:
     '''
-    - Returns the observed ko-checks ordering (AS-IS)
     - Returns optimal ordering by KO effort
     - If a dependencies dictionary is provided, it will take it into account for the optimal ordering
     '''
