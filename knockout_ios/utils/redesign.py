@@ -218,7 +218,7 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
                 result = future.result()
                 dependencies[result["activity"]] = result["dependencies"]
 
-        return dependencies
+    return dependencies
 
 
 def do_find_ko_activity_dependencies(ko_activity, log, rule_discovery_dict) -> dict[str, List[tuple[str, str]]]:

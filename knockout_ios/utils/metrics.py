@@ -120,7 +120,8 @@ def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetC
 
 
 def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame):
-    # Source: https://github.com/AutomatedProcessImprovement/batch-processing-analysis/blob/main/src/batch_processing_analysis/activation_rules.py
+    # Source: Batch processing inefficiencies paper
+    # https://github.com/AutomatedProcessImprovement/batch-processing-analysis/blob/main/src/batch_processing_analysis/activation_rules.py
 
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
@@ -154,6 +155,8 @@ def calc_processing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     # does not take into account idle time due to resource timetables
     for activity in ko_activities:
         filtered_df = log_df[log_df['knockout_activity'] == activity]
+        # keep only activities different from the one that knocked out the case
+        filtered_df = filtered_df[filtered_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME] != activity]
         total_duration = filtered_df[globalColumnNames.DURATION_COLUMN_NAME].sum()
         counts[activity] = total_duration
 
@@ -164,8 +167,11 @@ def calc_overprocessing_waste(ko_activities: List[str], log_df: pd.DataFrame):
     counts = {}
 
     # Basic Cycle time calculation: end time of last activity of a case - start time of first activity of a case
+    # Not counting the activity that knocked out the case
     for activity in ko_activities:
         filtered_df = log_df[log_df['knockout_activity'] == activity]
+        # keep only activities different from the one that knocked out the case
+        filtered_df = filtered_df[filtered_df[globalColumnNames.PM4PY_ACTIVITY_COLUMN_NAME] != activity]
         aggr = filtered_df.groupby(globalColumnNames.PM4PY_CASE_ID_COLUMN_NAME).agg(
             {globalColumnNames.PM4PY_START_TIMESTAMP_COLUMN_NAME: 'min',
              globalColumnNames.PM4PY_END_TIMESTAMP_COLUMN_NAME: 'max'})
