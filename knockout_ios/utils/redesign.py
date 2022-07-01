@@ -1,4 +1,6 @@
+import os
 from collections import Counter
+from concurrent.futures import ProcessPoolExecutor
 from copy import deepcopy
 from typing import List
 
@@ -166,8 +168,8 @@ def find_producers(attribute: str, log: pd.DataFrame):
 
 def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[tuple[str, str]]]:
     """
-    - Returns dependencies between log ko_activities and attributes required by knockout checks
-    """
+       - Returns dependencies between log ko_activities and attributes required by knockout checks
+       """
 
     if analyzer.ruleset_algorithm == "IREP":
         rule_discovery_dict = analyzer.IREP_rulesets
@@ -183,25 +185,62 @@ def find_ko_activity_dependencies(analyzer: KnockoutAnalyzer) -> dict[str, List[
     log.set_index(globalColumnNames.SIMOD_LOG_READER_CASE_ID_COLUMN_NAME, inplace=True)
     log = log.rename_axis('case_id_idx')
 
-    for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies"):
-        ruleset = rule_discovery_dict[ko_activity][0]
+    disable_parallelization = os.getenv('DISABLE_PARALLELIZATION', False)
 
-        if len(ruleset.ruleset_) == 0:
-            continue
+    if disable_parallelization:
+        for ko_activity in tqdm(rule_discovery_dict.keys(), desc="Searching KO activity dependencies (sequential)"):
+            ruleset = rule_discovery_dict[ko_activity][0]
 
-        required_attributes = get_attribute_names_from_ruleset(ruleset)
+            if len(ruleset.ruleset_) == 0:
+                continue
 
-        for attribute in required_attributes:
-            # Find after which activity the attribute is available in the log
-            # (a list is returned; we then consider the most frequent activity as the producer)
-            producers = find_producers(attribute, log[log["knockout_activity"] == ko_activity])
+            required_attributes = get_attribute_names_from_ruleset(ruleset)
 
-            if len(producers) > 0:
-                # get most frequent producer activity
-                producers = Counter(producers).most_common(1)[0][0]
-                if producers == ko_activity:
-                    continue
-                dependencies[ko_activity].append((attribute, producers))
+            for attribute in required_attributes:
+                # Find after which activity the attribute is available in the log
+                # (a list is returned; we then consider the most frequent activity as the producer)
+                producers = find_producers(attribute, log[log["knockout_activity"] == ko_activity])
+
+                if len(producers) > 0:
+                    # get most frequent producer activity
+                    producers = Counter(producers).most_common(1)[0][0]
+                    if producers == ko_activity:
+                        continue
+                    dependencies[ko_activity].append((attribute, producers))
+    else:
+        with ProcessPoolExecutor() as executor:
+            futures = []
+            for ko_activity in rule_discovery_dict.keys():
+                futures.append(
+                    executor.submit(do_find_ko_activity_dependencies, ko_activity, log, rule_discovery_dict))
+
+            for future in tqdm(futures, desc="Searching KO activity dependencies (parallel)"):
+                result = future.result()
+                dependencies[result["activity"]] = result["dependencies"]
+
+        return dependencies
+
+
+def do_find_ko_activity_dependencies(ko_activity, log, rule_discovery_dict) -> dict[str, List[tuple[str, str]]]:
+    dependencies = {"activity": ko_activity, "dependencies": []}
+    ruleset = rule_discovery_dict[ko_activity][0]
+
+    if len(ruleset.ruleset_) == 0:
+        return dependencies
+
+    required_attributes = get_attribute_names_from_ruleset(ruleset)
+
+    for attribute in required_attributes:
+        # Find after which activity the attribute is available in the log
+        # (a list is returned; we then consider the most frequent activity as the producer)
+        producers = find_producers(attribute, log[log["knockout_activity"] == ko_activity])
+
+        if len(producers) > 0:
+            # get most frequent producer activity
+            producers = Counter(producers).most_common(1)[0][0]
+            if producers == ko_activity:
+                continue
+            dependencies["dependencies"].append((attribute, producers))
 
     return dependencies
 

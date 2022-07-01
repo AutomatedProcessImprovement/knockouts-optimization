@@ -37,28 +37,37 @@ NOT IN CURRENT SCOPE:
 
 class KnockoutRedesignAdviser(object):
     def __init__(self, knockout_analyzer: KnockoutAnalyzer, quiet=False, attribute_range_confidence_interval=0.99):
+        self.variants = None
+        self.raw_rulesets = None
+        self.dependencies = None
         self.knockout_analyzer = knockout_analyzer
         self.quiet = quiet
         self.attribute_range_confidence_interval = attribute_range_confidence_interval
         self.redesign_options = {}
 
     def compute_redesign_options(self):
-        dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
+        self.dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
 
         self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
-                                                                              dependencies)
+                                                                              self.dependencies)
 
-        self.redesign_options["relocation"], variants = evaluate_knockout_relocation_io(self.knockout_analyzer,
-                                                                                        dependencies,
-                                                                                        optimal_ko_order=
-                                                                                        self.redesign_options[
-                                                                                            "reordering"][
-                                                                                            "optimal_ko_order"],
-                                                                                        start_activity_constraint=
-                                                                                        self.knockout_analyzer.start_activity)
+        self.redesign_options["relocation"], self.variants = evaluate_knockout_relocation_io(self.knockout_analyzer,
+                                                                                             self.dependencies,
+                                                                                             optimal_ko_order=
+                                                                                             self.redesign_options[
+                                                                                                 "reordering"][
+                                                                                                 "optimal_ko_order"],
+                                                                                             start_activity_constraint=
+                                                                                             self.knockout_analyzer.start_activity)
 
-        self.redesign_options["rule_change"], raw_rulesets = evaluate_knockout_rule_change_io(self.knockout_analyzer,
-                                                                                              self.attribute_range_confidence_interval)
+        self.redesign_options["rule_change"], self.raw_rulesets = evaluate_knockout_rule_change_io(
+            self.knockout_analyzer,
+            self.attribute_range_confidence_interval)
+
+        reports = self.print_report()
+        return self.redesign_options, reports
+
+    def print_report(self):
         reports = {}
         print(f"\n** Redesign options **\n")
 
@@ -67,7 +76,7 @@ class KnockoutRedesignAdviser(object):
         if print_dependencies:
             print("\n> Dependencies of KO activities\n")
             entries = []
-            attribute_dependencies_dict = dependencies
+            attribute_dependencies_dict = self.dependencies
             for activity in attribute_dependencies_dict.keys():
                 if not (len(attribute_dependencies_dict[activity]) > 0):
                     entries.append(
@@ -108,8 +117,8 @@ class KnockoutRedesignAdviser(object):
             entries = []
             for item in self.redesign_options["relocation"].items():
                 entries.append(
-                    {"Case count": variants[item[0]],
-                     "Cases Covered": f"{round(100 * (variants[item[0]] / total_cases), ndigits=1)} %",
+                    {"Case count": self.variants[item[0]],
+                     "Cases Covered": f"{round(100 * (self.variants[item[0]] / total_cases), ndigits=1)} %",
                      "As-is / To-be": " -> ".join(item[0]) + '\n'
                                       + get_edits_string(" -> ".join(item[0]),
                                                          " -> ".join(item[1]))})
@@ -127,8 +136,8 @@ class KnockoutRedesignAdviser(object):
 
             rule_attribute_ranges_dict = self.redesign_options["rule_change"]
             for activity in rule_attribute_ranges_dict.keys():
-                confidence_intervals_string = f"{raw_rulesets[activity]}"
-                if not (len(raw_rulesets[activity]) > 0):
+                confidence_intervals_string = f"{self.raw_rulesets[activity]}"
+                if not (len(self.raw_rulesets[activity]) > 0):
                     continue
 
                 if len(rule_attribute_ranges_dict[activity]) > 0:
@@ -148,7 +157,7 @@ class KnockoutRedesignAdviser(object):
             reports["rule_change"] = df
             print(tabulate(df, headers='keys', showindex="false", tablefmt="fancy_grid"))
 
-        return self.redesign_options, reports
+        return reports
 
 
 if __name__ == "__main__":

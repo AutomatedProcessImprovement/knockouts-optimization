@@ -161,14 +161,11 @@ class KnockoutAnalyzer:
                 # Effort per rejection = Average PT / Rejection rate
                 effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold) and (
-                    metrics['confidence'] > 0):
-                # Effort per rejection = (Average PT / Rejection rate) * Confidence
+            if (metrics['confidence'] >= confidence_threshold) and (metrics['confidence'] > 0):
+                # Effort per rejection = (Average PT / Rejection rate) * (1/Confidence)
                 effort = effort / metrics['confidence']
 
-            # confidence and support are dependent on the rule discovery algorithm used
-            self.ko_stats[key][algorithm] = {'effort': 0}
-            self.ko_stats[key][algorithm]['effort'] = effort
+            self.ko_stats[key][algorithm] = {'effort': effort}
 
     def calc_ko_discovery_metrics(self, expected_kos):
         self.ko_discovery_metrics = self.discoverer.get_discovery_metrics(expected_kos)

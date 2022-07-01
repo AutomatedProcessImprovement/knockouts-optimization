@@ -78,7 +78,7 @@ Then you can choose whether to:
   ko_redesign_adviser = Pipeline(config_file_name="synthetic_example.json").run_pipeline()
 
   ```
-  In both cases, if using the default settings, output will be written to `.csv` and `txt` files in
+  In all these cases, if using the default settings, output will be written to `.csv` and `txt` files in
   the `data/outputs` folder.
 
 ## Running tests

@@ -13,6 +13,8 @@ from knockout_ios.utils.custom_exceptions import KnockoutsDiscoveryException, In
     KnockoutRuleDiscoveryException
 from knockout_ios.utils.ui import get_rectangle_from_rule
 
+DEBUGGING = False
+
 SMALL_FONT = 6
 plt.rc('font', size=SMALL_FONT)  # controls default text sizes
 plt.rc('axes', titlesize=SMALL_FONT)  # fontsize of the axes title
@@ -62,9 +64,12 @@ def load_log(config_dir, config_file_name, cache_dir):
 
     pipeline = Pipeline(config_dir=config_dir,
                         config_file_name=config_file_name,
-                        cache_dir=cache_dir)
+                        cache_dir=cache_dir,
+                        skip_cache_dump=True)
     try:
         pipeline.read_log_and_config()
+        # Disable cache usage in UI mode - used only for quicker debugging
+        pipeline.config.always_force_recompute = (not DEBUGGING)
 
         log_activities = pipeline.log_df[globalColumnNames.SIMOD_LOG_READER_ACTIVITY_COLUMN_NAME].unique()
         log_attributes = pipeline.log_df.columns.values.tolist()
