@@ -10,7 +10,7 @@ from knockout_ios.utils.constants import globalColumnNames
 
 from knockout_ios.utils.redesign import evaluate_knockout_relocation_io, \
     evaluate_knockout_rule_change_io, evaluate_knockout_reordering_io, find_ko_activity_dependencies, \
-    evaluate_knockout_reordering_io_v2
+    evaluate_knockout_reordering_io
 
 '''
 KO redesign strategies
@@ -49,8 +49,8 @@ class KnockoutRedesignAdviser(object):
     def compute_redesign_options(self):
         self.dependencies = find_ko_activity_dependencies(self.knockout_analyzer)
 
-        self.redesign_options["reordering"] = evaluate_knockout_reordering_io_v2(self.knockout_analyzer,
-                                                                                 self.dependencies)
+        self.redesign_options["reordering"] = evaluate_knockout_reordering_io(self.knockout_analyzer,
+                                                                              self.dependencies)
 
         self.redesign_options["relocation"], self.variants = evaluate_knockout_relocation_io(self.knockout_analyzer,
                                                                                              self.dependencies,

@@ -10,19 +10,19 @@ def synthetic_example():
 
 
 def envpermit():
-    adviser = Pipeline(config_file_name="envpermit.json", cache_dir="cache/envpermit").run_pipeline()
+    adviser = Pipeline(config_file_name="envpermit_cb.json", cache_dir="cache/envpermit_cb").run_pipeline()
     return adviser
 
 
 def bpi2017():
-    adviser = Pipeline(config_file_name="bpi2017.json", cache_dir="cache/bpi2017").run_pipeline()
+    adviser = Pipeline(config_file_name="bpi2017_cb.json", cache_dir="cache/bpi2017_cb").run_pipeline()
     return adviser
 
 
 if __name__ == "__main__":
-    # os.environ['DISABLE_PARALLELIZATION'] = "1"
-    # os.environ['ENABLE_ROC_PLOTS'] = "1"
+    os.environ['DISABLE_PARALLELIZATION'] = "1"
+    os.environ['ENABLE_ROC_PLOTS'] = "1"
 
-    # envpermit()
-    synthetic_example()
+    envpermit()
+    # synthetic_example()
     # bpi2017()
