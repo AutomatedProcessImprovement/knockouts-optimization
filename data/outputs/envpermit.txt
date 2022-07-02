@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-07-01 16:44:07.872162
+Knockouts Redesign Pipeline started @ 2022-07-02 20:35:28.299691
 
 Input parameters:
 
@@ -60,20 +60,19 @@ Input parameters:
 
 
 
-Warning: "T02 Check confirmation of receipt" knock-out rule confidence is below threshold (0.333 < 0.5)
+Warning: "T02 Check confirmation of receipt" knock-out rule confidence is below threshold (0.043 < 0.5)
 
-Warning: "T06 Determine necessity of stop advice" knock-out rule confidence is below threshold (0.087 < 0.5)
+Warning: "T06 Determine necessity of stop advice" knock-out rule confidence is below threshold (0.167 < 0.5)
 ╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤════════════════════════════════════╤════════════════════════╕
 │ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (RIPPER)            │   Effort per rejection │
 ╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪════════════════════════════════════╪════════════════════════╡
-│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[(case)_responsible=Resource21]]  │                   2.46 │
+│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[(case)_responsible=Resource35] V │                   2.46 │
+│                                            │                   │                  │                  │ [(case)_responsible=Resource21]]   │                        │
 ├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼────────────────────────────────────┼────────────────────────┤
-│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01] V │                   0.82 │
-│                                            │                   │                  │                  │ [(case)_responsible=Resource03] V  │                        │
-│                                            │                   │                  │                  │ [(case)_responsible=Resource02]]   │                        │
+│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource03] V │                   0.82 │
+│                                            │                   │                  │                  │ [(case)_responsible=Resource01]]   │                        │
 ├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼────────────────────────────────────┼────────────────────────┤
 │ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[(case)_responsible=Resource11] V │                   0.02 │
-│                                            │                   │                  │                  │ [(case)_responsible=Resource06] V  │                        │
 │                                            │                   │                  │                  │ [(case)_responsible=Resource04] V  │                        │
 │                                            │                   │                  │                  │ [(case)_responsible=Resource20]]   │                        │
 ╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧════════════════════════════════════╧════════════════════════╛
@@ -81,37 +80,37 @@ Warning: "T06 Determine necessity of stop advice" knock-out rule confidence is b
 RIPPER
 
 "T10 Determine necessity to stop indication"
-RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
-{'condition_count': 4,
- 'confidence': 0.9372937293729373,
- 'f1_score': 0.06382978723404256,
- 'precision': 0.75,
- 'recall': 0.03333333333333333,
- 'roc_auc_score': 0,
- 'rule_count': 4,
- 'support': 0.23666666666666666}
+RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 6, 'dl_allowance': 32, 'n_discretize_bins': 20, 'prune_size': 0.001}
+{'condition_count': 5,
+ 'confidence': 0.9381107491856677,
+ 'f1_score': 0.08247422680412372,
+ 'precision': 1.0,
+ 'recall': 0.043010752688172046,
+ 'roc_auc_score': 0.48541521394881054,
+ 'rule_count': 5,
+ 'support': 0.24}
 
 "T02 Check confirmation of receipt"
 RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 2, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.0001}
 {'condition_count': 1,
- 'confidence': 0.3333333333333333,
+ 'confidence': 0.043478260869565216,
  'f1_score': 0.0,
  'precision': 0.0,
  'recall': 0.0,
- 'roc_auc_score': 0,
+ 'roc_auc_score': 0.4966253443526171,
  'rule_count': 1,
  'support': 0.0008143322475570033}
 
 "T06 Determine necessity of stop advice"
 RIPPER parameters:  {'max_rules': None, 'max_rule_conds': None, 'max_total_conds': None, 'k': 4, 'dl_allowance': 16, 'n_discretize_bins': 20, 'prune_size': 0.2}
-{'condition_count': 3,
- 'confidence': 0.08695652173913043,
+{'condition_count': 2,
+ 'confidence': 0.16666666666666666,
  'f1_score': 0.0,
  'precision': 0.0,
  'recall': 0.0,
- 'roc_auc_score': 0,
- 'rule_count': 3,
- 'support': 0.004905968928863451}
+ 'roc_auc_score': 0.6435225201697261,
+ 'rule_count': 2,
+ 'support': 0.004088307440719542}
 
 ** Redesign options **
 
@@ -160,19 +159,19 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 
 > Knock-out rule value ranges
 
-╒════════════════════════════════════════════╤═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
-│ Knockout Check                             │ Observation                                                                                                                             │
-╞════════════════════════════════════════════╪═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
-│ T02 Check confirmation of receipt          │ [[(case)_responsible=Resource21]]                                                                                                       │
-│                                            │ No numerical attributes found in rule.                                                                                                  │
-├────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ T06 Determine necessity of stop advice     │ [[(case)_responsible=Resource01] V [(case)_responsible=Resource03] V [(case)_responsible=Resource02]]                                   │
-│                                            │ No numerical attributes found in rule.                                                                                                  │
-├────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ T10 Determine necessity to stop indication │ [[(case)_responsible=Resource11] V [(case)_responsible=Resource06] V [(case)_responsible=Resource04] V [(case)_responsible=Resource20]] │
-│                                            │ No numerical attributes found in rule.                                                                                                  │
-╘════════════════════════════════════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+╒════════════════════════════════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Knockout Check                             │ Observation                                                                                           │
+╞════════════════════════════════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ T02 Check confirmation of receipt          │ [[(case)_responsible=Resource35] V [(case)_responsible=Resource21]]                                   │
+│                                            │ No numerical attributes found in rule.                                                                │
+├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ T06 Determine necessity of stop advice     │ [[(case)_responsible=Resource03] V [(case)_responsible=Resource01]]                                   │
+│                                            │ No numerical attributes found in rule.                                                                │
+├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ T10 Determine necessity to stop indication │ [[(case)_responsible=Resource11] V [(case)_responsible=Resource04] V [(case)_responsible=Resource20]] │
+│                                            │ No numerical attributes found in rule.                                                                │
+╘════════════════════════════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-07-01 16:44:32.709976
+Knockouts Redesign Pipeline ended @ 2022-07-02 20:35:46.886865
 
-Wall-clock execution time:  0:00:24.836765
+Wall-clock execution time:  0:00:18.586605

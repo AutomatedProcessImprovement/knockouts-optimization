@@ -3,17 +3,19 @@ import os
 from concurrent.futures import ProcessPoolExecutor
 
 from copy import deepcopy
+from math import log
 from typing import Union
 
 import numpy as np
 import pandas as pd
 import shutup
-from catboost import CatBoostClassifier
+from catboost import CatBoostClassifier, Pool, cv
+from catboost.utils import get_roc_curve, eval_metric
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
 import wittgenstein as lw
-from sklearn.metrics import precision_score, recall_score, f1_score, RocCurveDisplay, auc
+from sklearn.metrics import precision_score, recall_score, f1_score, RocCurveDisplay, auc, roc_auc_score
 from sklearn.model_selection import train_test_split, GridSearchCV, TimeSeriesSplit, StratifiedKFold
 from wittgenstein.interpret import interpret_model
 
@@ -78,7 +80,24 @@ def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, 
     _by_case.columns = [c.replace(' ', '_') for c in _by_case.columns]
     columns_to_ignore = [c.replace(' ', '_') for c in columns_to_ignore]
 
-    train, test = split_train_test(skip_temporal_holdout, balance_classes, _by_case)
+    try:
+        train, test = split_train_test(skip_temporal_holdout, balance_classes, _by_case)
+    except ValueError:
+        # Impossible to split & stratify when dataset is too small
+        blank_clf = lw.RIPPER()
+        blank_clf.init_ruleset("[]", class_feat="", pos_class=0)
+        return {"activity": activity, "rulesets_data": (
+            blank_clf,
+            {},
+            {'support': 0,
+             'confidence': 0,
+             'condition_count': 0,
+             'rule_count': 0,
+             'precision': 0,
+             'recall': 0,
+             'f1_score': 0,
+             'roc_auc_score': 0}
+        )}
 
     # Subset of log with all columns to be used in confidence & support metrics & avoid information leak
     _by_case_only_cases_in_test = test
@@ -88,10 +107,12 @@ def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, 
     train = train.drop(columns=columns_to_ignore, errors='ignore')
 
     if algorithm == 'CATBOOST-RIPPER':
-        ruleset_model, ruleset_params, cb_classifier = get_ruleset_from_catboost(max_rules, max_rule_conds,
-                                                                                 max_total_conds, k,
-                                                                                 dl_allowance,
-                                                                                 n_discretize_bins, prune_size, train)
+        ruleset_model, ruleset_params, cb_classifier, \
+        catboost_feature_importances, catboost_auc_score = get_ruleset_from_catboost(
+            max_rules, max_rule_conds,
+            max_total_conds, k,
+            dl_allowance,
+            n_discretize_bins, prune_size, train, test, _by_case, columns_to_ignore, activity)
     else:
         cb_classifier = None
         ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
@@ -101,7 +122,11 @@ def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, 
     # Performance metrics
     metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
                                       ruleset_model, available_cases_before_ko, activity,
-                                      _by_case_only_cases_in_test, skip_temporal_holdout, cb_classifier)
+                                      _by_case_only_cases_in_test, skip_temporal_holdout)
+
+    if not (cb_classifier is None):
+        metrics['catboost_auc_score'] = catboost_auc_score
+        metrics['catboost_feature_importances'] = catboost_feature_importances
 
     return {"activity": activity, "rulesets_data": (
         ruleset_model,
@@ -117,7 +142,7 @@ def split_train_test(skip_temporal_holdout: bool, balance_classes: bool, _by_cas
     if skip_temporal_holdout:
 
         # Split with the same proportion as Illya, 20% for final metrics calculation
-        _by_case, test = train_test_split(_by_case, test_size=.2)
+        _by_case, test = train_test_split(_by_case, test_size=.2, stratify=_by_case["knocked_out_case"])
 
         if balance_classes:
             # with the remaining 80%, balance ko'd/non ko'd cases (as in Illya's paper)
@@ -198,7 +223,7 @@ def fit_ruleset_model(algorithm: str, max_rules: int, max_rule_conds: int, max_t
 
 
 def get_ruleset_from_catboost(max_rules, max_rule_conds, max_total_conds, k, dl_allowance, n_discretize_bins,
-                              prune_size, train):
+                              prune_size, train, test, full_dataset, columns_to_ignore, activity):
     """
     Prototype of interpretable model extraction: CatBoost classifier then Ruleset
     - https://github.com/imoscovitz/wittgenstein#interpreter-models
@@ -211,24 +236,35 @@ def get_ruleset_from_catboost(max_rules, max_rule_conds, max_total_conds, k, dl_
     # Fit a 'complex' model - CatBoostClassifier
     X_train = train.drop(['knocked_out_case'], axis=1)
     y_train = train['knocked_out_case']
-
-    model = CatBoostClassifier(iterations=10, learning_rate=1, depth=6, loss_function='Logloss')
-
+    X_test = test.drop(['knocked_out_case'], axis=1)
+    y_test = test['knocked_out_case']
     categorical_features_indexes = [X_train.columns.get_loc(col) for col in X_train.columns if
                                     X_train[col].dtype == "object"]
-    model.fit(X_train, y_train, cat_features=categorical_features_indexes)
+    test_pool = Pool(X_test, y_test, cat_features=categorical_features_indexes, feature_names=list(X_test.columns))
+
+    model = CatBoostClassifier(iterations=10, depth=16, loss_function='Logloss', eval_metric="AUC")
+    model.fit(X_train, y_train, cat_features=categorical_features_indexes,
+              use_best_model=True, eval_set=test_pool)
+
+    # Get Catboost model metrics
+    catboost_auc_score = get_catboost_roc_curve_cv(model, X_test, y_test, categorical_features_indexes, activity)
 
     # interpret with wittgenstein and get a ruleset
     def predict_fn(data, _):
         res = model.predict(data, prediction_type='Class')
-        # map elements of res to boolean
         res = [x == 'True' for x in res]
         return res
 
     interpret_model(model=model, X=X_train, interpreter=interpreter, model_predict_function=predict_fn)
     ruleset_model = interpreter
 
-    return ruleset_model, ruleset_params, model
+    catboost_feature_importances = list(
+        model.get_feature_importance(prettified=True).itertuples(index=False, name=None))
+
+    ruleset_params['catboost'] = model.get_params()
+    ruleset_params['catboost_total_trees'] = model.tree_count_
+
+    return ruleset_model, ruleset_params, model, catboost_feature_importances, catboost_auc_score
 
 
 def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=True, param_grid=None,
@@ -273,17 +309,13 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
 
 def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_to_ignore: list[str],
                             ruleset_model: lw.RIPPER, available_cases_before_ko: dict, activity: str,
-                            _by_case_only_cases_in_test: pd.DataFrame, skip_temporal_holdout: bool, cb_classifier=None):
+                            _by_case_only_cases_in_test: pd.DataFrame, skip_temporal_holdout: bool):
     # Performance metrics
     x_test = test.drop(['knocked_out_case'], axis=1)
     y_test = test['knocked_out_case']
 
     X = _by_case.drop(columns_to_ignore + ['knocked_out_case'], axis=1, errors='ignore')
     y = _by_case['knocked_out_case']
-
-    if not (cb_classifier is None):
-        get_roc_curve_cv(activity, cb_classifier, X, y, cv=5,
-                         skip_temporal_holdout=skip_temporal_holdout)
 
     support = calc_knockout_ruleset_support(activity, ruleset_model, _by_case,
                                             available_cases_before_ko=available_cases_before_ko[activity])
@@ -321,25 +353,11 @@ def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifi
 
     fig, ax = plt.subplots()
     for i, (train, test) in enumerate(kf.split(X, y)):
-        title_note = ""
-
         X_train, X_test = X.iloc[train], X.iloc[test]
         y_train, y_test = y.iloc[train], y.iloc[test]
 
-        if type(model) is CatBoostClassifier:
-            title_note = "CatBoost "
-            try:
-                categorical_features_indexes = [X_train.columns.get_loc(col) for col in X_train.columns if
-                                                X_train[col].dtype == 'object']
-                model.fit(X_train, y_train, cat_features=categorical_features_indexes)
-
-                y_pred = model.predict(X_test, prediction_type="Class")
-                y_pred = [x == 'True' for x in y_pred]
-            except:
-                continue
-        else:
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
 
         viz = RocCurveDisplay.from_predictions(
             y_test,
@@ -354,7 +372,7 @@ def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifi
         tprs.append(interp_tpr)
         auc_value = viz.roc_auc
         if np.isnan(auc_value):
-            auc_value = 0.5
+            auc_value = 0
         aucs.append(auc_value)
 
     ax.plot([0, 1], [0, 1], linestyle="--", lw=2, color="r", label="Random classifier", alpha=0.8)
@@ -388,9 +406,43 @@ def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifi
     ax.set(
         xlim=[-0.05, 1.05],
         ylim=[-0.05, 1.05],
-        title=f"{title_note}ROC curve for '{activity}'",
+        title=f"ROC curve for '{activity}'",
     )
     ax.legend(loc="lower right")
     plt.show()
 
     return np.mean(mean_auc)
+
+
+def get_catboost_roc_curve_cv(model, X, y, categorical_features_indexes, activity):
+    try:
+        # auc = model.best_score_['validation']['AUC']
+        auc = roc_auc_score(y, model.predict_proba(X)[:, 1])
+    except:
+        # count how many elements of y are true
+        true_count = sum(y)
+        raise Exception(f"{true_count} positive example(s) for \'{activity}\' in test set")
+
+    if not os.getenv("ENABLE_ROC_PLOTS", False):
+        return auc
+
+    (fpr, tpr, _) = get_roc_curve(model,
+                                  Pool(X, y, cat_features=categorical_features_indexes, feature_names=list(X.columns)))
+
+    ax = plt.gca()
+    ax.plot(fpr, tpr, color="b",
+            lw=2,
+            alpha=0.8,
+            label="ROC (AUC = %0.2f)" % auc)
+    ax.plot([0, 1], [0, 1], linestyle="--", lw=2, color="r", label="Random classifier", alpha=0.8)
+
+    ax.set(
+        xlim=[-0.05, 1.05],
+        ylim=[-0.05, 1.05],
+        title=f"Catboost ROC curve for '{activity}'",
+    )
+    ax.legend(loc="lower right")
+
+    plt.show()
+
+    return auc
