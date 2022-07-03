@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from concurrent.futures import ProcessPoolExecutor
 
 from copy import deepcopy
@@ -12,6 +13,7 @@ import shutup
 from catboost import CatBoostClassifier, Pool, cv
 from catboost.utils import get_roc_curve, eval_metric
 from matplotlib import pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from tqdm import tqdm
 
 import wittgenstein as lw
@@ -29,6 +31,7 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                      dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None,
                      skip_temporal_holdout=False,
                      balance_classes=False,
+                     output_dir="."
                      ):
     if columns_to_ignore is None:
         columns_to_ignore = []
@@ -44,7 +47,7 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                                    balance_classes, algorithm, max_rules,
                                    max_rule_conds, max_total_conds,
                                    k, dl_allowance, n_discretize_bins, prune_size,
-                                   grid_search, param_grid, available_cases_before_ko)
+                                   grid_search, param_grid, available_cases_before_ko, output_dir)
 
             rulesets[result["activity"]] = result["rulesets_data"]
 
@@ -70,7 +73,7 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
 def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, balance_classes, algorithm, max_rules,
                   max_rule_conds, max_total_conds,
                   k, dl_allowance, n_discretize_bins, prune_size,
-                  grid_search, param_grid, available_cases_before_ko):
+                  grid_search, param_grid, available_cases_before_ko, output_dir):
     # Bucketing approach: Keep all cases, apply mask to those not knocked out by current activity
     # _by_case = deepcopy(log_df)
     _by_case["knockout_activity"] = np.where(_by_case["knockout_activity"] == activity, activity, False)
@@ -112,7 +115,7 @@ def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, 
             max_rules, max_rule_conds,
             max_total_conds, k,
             dl_allowance,
-            n_discretize_bins, prune_size, train, test, _by_case, columns_to_ignore, activity)
+            n_discretize_bins, prune_size, train, test, _by_case, columns_to_ignore, activity, output_dir)
     else:
         cb_classifier = None
         ruleset_model, ruleset_params = fit_ruleset_model(algorithm, max_rules, max_rule_conds, max_total_conds,
@@ -122,7 +125,7 @@ def do_find_rules(_by_case, activity, columns_to_ignore, skip_temporal_holdout, 
     # Performance metrics
     metrics = get_performance_metrics(test, _by_case, columns_to_ignore,
                                       ruleset_model, available_cases_before_ko, activity,
-                                      _by_case_only_cases_in_test, skip_temporal_holdout)
+                                      _by_case_only_cases_in_test, skip_temporal_holdout, output_dir)
 
     if not (cb_classifier is None):
         metrics['catboost_auc_score'] = catboost_auc_score
@@ -223,7 +226,7 @@ def fit_ruleset_model(algorithm: str, max_rules: int, max_rule_conds: int, max_t
 
 
 def get_ruleset_from_catboost(max_rules, max_rule_conds, max_total_conds, k, dl_allowance, n_discretize_bins,
-                              prune_size, train, test, full_dataset, columns_to_ignore, activity):
+                              prune_size, train, test, full_dataset, columns_to_ignore, activity, output_dir):
     """
     Prototype of interpretable model extraction: CatBoost classifier then Ruleset
     - https://github.com/imoscovitz/wittgenstein#interpreter-models
@@ -247,7 +250,8 @@ def get_ruleset_from_catboost(max_rules, max_rule_conds, max_total_conds, k, dl_
               use_best_model=True, eval_set=test_pool)
 
     # Get Catboost model metrics
-    catboost_auc_score = get_catboost_roc_curve_cv(model, X_test, y_test, categorical_features_indexes, activity)
+    catboost_auc_score = get_catboost_roc_curve_cv(model, X_test, y_test, categorical_features_indexes, activity,
+                                                   output_dir)
 
     # interpret with wittgenstein and get a ruleset
     def predict_fn(data, _):
@@ -309,7 +313,7 @@ def do_grid_search(ruleset_model, dataset, activity, algorithm="RIPPER", quiet=T
 
 def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_to_ignore: list[str],
                             ruleset_model: lw.RIPPER, available_cases_before_ko: dict, activity: str,
-                            _by_case_only_cases_in_test: pd.DataFrame, skip_temporal_holdout: bool):
+                            _by_case_only_cases_in_test: pd.DataFrame, skip_temporal_holdout: bool, output_dir: str):
     # Performance metrics
     x_test = test.drop(['knocked_out_case'], axis=1)
     y_test = test['knocked_out_case']
@@ -330,12 +334,13 @@ def get_performance_metrics(test: pd.DataFrame, _by_case: pd.DataFrame, columns_
                'recall': ruleset_model.score(x_test, y_test, recall_score),
                'f1_score': ruleset_model.score(x_test, y_test, f1_score),
                'roc_auc_score': get_roc_curve_cv(activity, ruleset_model, X, y, cv=5,
-                                                 skip_temporal_holdout=skip_temporal_holdout)}
+                                                 skip_temporal_holdout=skip_temporal_holdout, output_dir=output_dir)}
 
     return metrics
 
 
-def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifier], X, y, cv, skip_temporal_holdout):
+def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifier], X, y, cv, skip_temporal_holdout,
+                     output_dir):
     # Run classifier with cross-validation, plot ROC curves and return average AUC score
     # Source: https://scikit-learn.org/stable/auto_examples/model_selection/plot_roc_crossval.html
 
@@ -409,17 +414,18 @@ def get_roc_curve_cv(activity, model: Union[lw.RIPPER, lw.IREP, CatBoostClassifi
         title=f"ROC curve for '{activity}'",
     )
     ax.legend(loc="lower right")
+    plt.savefig(f'{output_dir}/{activity.replace(" ", "_")}_{int(time.time())}.png')
+
     plt.show()
 
     return np.mean(mean_auc)
 
 
-def get_catboost_roc_curve_cv(model, X, y, categorical_features_indexes, activity):
+def get_catboost_roc_curve_cv(model, X, y, categorical_features_indexes, activity, output_dir):
     try:
         # auc = model.best_score_['validation']['AUC']
         auc = roc_auc_score(y, model.predict_proba(X)[:, 1])
     except:
-        # count how many elements of y are true
         true_count = sum(y)
         raise Exception(f"{true_count} positive example(s) for \'{activity}\' in test set")
 
@@ -443,6 +449,7 @@ def get_catboost_roc_curve_cv(model, X, y, categorical_features_indexes, activit
     )
     ax.legend(loc="lower right")
 
+    plt.savefig(f'{output_dir}/{activity.replace(" ", "_")}_CB_{int(time.time())}.png')
     plt.show()
 
     return auc

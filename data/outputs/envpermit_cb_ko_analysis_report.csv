@@ -1,6 +1,11 @@
 Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (CATBOOST-RIPPER),Effort per rejection
-T02 Check confirmation of receipt,1228,99.84 %,0.41 %,"[[org:group=EMPTY] V
-[org:group=Group4]]",2.46
-T06 Determine necessity of stop advice,1223,99.43 %,1.23 %,"[[(case)_responsible=Resource01 ^ org:group=Group1] V
-[(case)_responsible=Resource03 ^ org:group=Group1]]",0.82
-T10 Determine necessity to stop indication,1200,97.56 %,66.25 %,[[org:group=Group1]],0.02
+T02 Check confirmation of receipt,1228,99.84 %,0.41 %,"[[org:group=Group4] V
+[org:group=EMPTY ^ (case)_group=Group2] V
+[org:group=EMPTY]]",2.46
+T06 Determine necessity of stop advice,1223,99.43 %,1.23 %,"[[(case)_responsible=Resource03 ^ (case)_channel=e-mail] V
+[(case)_responsible=Resource01 ^ org:group=Group1]]",0.82
+T10 Determine necessity to stop indication,1200,97.56 %,66.25 %,"[[org:group=Group1 ^ (case)_responsible=Resource11] V
+[org:group=Group1 ^ (case)_group=Group5 ^ (case)_responsible=Resource06] V
+[org:group=Group1 ^ (case)_group=Group5] V
+[org:group=Group1 ^ (case)_responsible=Resource20] V
+[org:group=Group1]]",0.02

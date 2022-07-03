@@ -287,7 +287,8 @@ class KnockoutAnalyzer:
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
                                         skip_temporal_holdout=self.config.skip_temporal_holdout,
-                                        balance_classes=self.config.balance_classes)
+                                        balance_classes=self.config.balance_classes,
+                                        output_dir=self.config.output)
 
         except Exception:
             logging.error(traceback.format_exc())

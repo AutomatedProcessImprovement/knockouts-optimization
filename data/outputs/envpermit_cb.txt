@@ -1,4 +1,4 @@
-Knockouts Redesign Pipeline started @ 2022-07-02 20:34:06.409012
+Knockouts Redesign Pipeline started @ 2022-07-03 11:47:26.969929
 
 Input parameters:
 
@@ -57,67 +57,72 @@ Input parameters:
 
 
 
-Warning: "T02 Check confirmation of receipt" knock-out rule confidence is below threshold (0.231 < 0.5)
+Warning: "T02 Check confirmation of receipt" knock-out rule confidence is below threshold (0.286 < 0.5)
 
 Warning: "T06 Determine necessity of stop advice" knock-out rule confidence is below threshold (0 < 0.5)
-╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═══════════════════════════════════════════════════════╤════════════════════════╕
-│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (CATBOOST-RIPPER)                      │   Effort per rejection │
-╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═══════════════════════════════════════════════════════╪════════════════════════╡
-│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=EMPTY] V                                  │                   2.46 │
-│                                            │                   │                  │                  │ [org:group=Group4]]                                   │                        │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────┼────────────────────────┤
-│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource01 ^ org:group=Group1] V │                   0.82 │
-│                                            │                   │                  │                  │ [(case)_responsible=Resource03 ^ org:group=Group1]]   │                        │
-├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼───────────────────────────────────────────────────────┼────────────────────────┤
-│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1]]                                  │                   0.02 │
-╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═══════════════════════════════════════════════════════╧════════════════════════╛
+╒════════════════════════════════════════════╤═══════════════════╤══════════════════╤══════════════════╤════════════════════════════════════════════════════════════════════════════╤════════════════════════╕
+│ Knockout Check                             │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (CATBOOST-RIPPER)                                           │   Effort per rejection │
+╞════════════════════════════════════════════╪═══════════════════╪══════════════════╪══════════════════╪════════════════════════════════════════════════════════════════════════════╪════════════════════════╡
+│ T02 Check confirmation of receipt          │              1228 │ 99.84 %          │ 0.41 %           │ [[org:group=Group4] V                                                      │                   2.46 │
+│                                            │                   │                  │                  │ [org:group=EMPTY ^ (case)_group=Group2] V                                  │                        │
+│                                            │                   │                  │                  │ [org:group=EMPTY]]                                                         │                        │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼────────────────────────────────────────────────────────────────────────────┼────────────────────────┤
+│ T06 Determine necessity of stop advice     │              1223 │ 99.43 %          │ 1.23 %           │ [[(case)_responsible=Resource03 ^ (case)_channel=e-mail] V                 │                   0.82 │
+│                                            │                   │                  │                  │ [(case)_responsible=Resource01 ^ org:group=Group1]]                        │                        │
+├────────────────────────────────────────────┼───────────────────┼──────────────────┼──────────────────┼────────────────────────────────────────────────────────────────────────────┼────────────────────────┤
+│ T10 Determine necessity to stop indication │              1200 │ 97.56 %          │ 66.25 %          │ [[org:group=Group1 ^ (case)_responsible=Resource11] V                      │                   0.02 │
+│                                            │                   │                  │                  │ [org:group=Group1 ^ (case)_group=Group5 ^ (case)_responsible=Resource06] V │                        │
+│                                            │                   │                  │                  │ [org:group=Group1 ^ (case)_group=Group5] V                                 │                        │
+│                                            │                   │                  │                  │ [org:group=Group1 ^ (case)_responsible=Resource20] V                       │                        │
+│                                            │                   │                  │                  │ [org:group=Group1]]                                                        │                        │
+╘════════════════════════════════════════════╧═══════════════════╧══════════════════╧══════════════════╧════════════════════════════════════════════════════════════════════════════╧════════════════════════╛
 
 CATBOOST-RIPPER
 
 "T02 Check confirmation of receipt"
-CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 'depth': 16, 'loss_function': 'Logloss', 'eval_metric': 'AUC'}, 'catboost_total_trees': 3}
-{'catboost_auc_score': 0.9819819819819819,
- 'catboost_feature_importances': [('org:group', 100.0),
+CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 'depth': 16, 'loss_function': 'Logloss', 'eval_metric': 'AUC'}, 'catboost_total_trees': 9}
+{'catboost_auc_score': 0.9864864864864865,
+ 'catboost_feature_importances': [('org:group', 99.7420580349233),
+                                  ('(case)_responsible', 0.25794196507668615),
                                   ('user', 0.0),
                                   ('(case)_group', 0.0),
                                   ('(case)_channel', 0.0),
-                                  ('(case)_responsible', 0.0),
                                   ('(case)_department', 0.0)],
- 'condition_count': 1,
- 'confidence': 0.23076923076923078,
- 'f1_score': 0.4,
- 'precision': 0.25,
+ 'condition_count': 2,
+ 'confidence': 0.2857142857142857,
+ 'f1_score': 0.6666666666666666,
+ 'precision': 0.5,
  'recall': 1.0,
  'roc_auc_score': 0.4977499487507827,
- 'rule_count': 1,
- 'support': 0.0024429967426710096}
+ 'rule_count': 2,
+ 'support': 0.003257328990228013}
 
 "T10 Determine necessity to stop indication"
-CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 'depth': 16, 'loss_function': 'Logloss', 'eval_metric': 'AUC'}, 'catboost_total_trees': 1}
-{'catboost_auc_score': 0.9473684210526316,
- 'catboost_feature_importances': [('org:group', 100.0),
+CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 'depth': 16, 'loss_function': 'Logloss', 'eval_metric': 'AUC'}, 'catboost_total_trees': 8}
+{'catboost_auc_score': 0.9980192416525184,
+ 'catboost_feature_importances': [('org:group', 89.05119250865305),
+                                  ('(case)_channel', 5.7386155173367035),
+                                  ('(case)_group', 5.21019197401024),
                                   ('user', 0.0),
-                                  ('(case)_group', 0.0),
-                                  ('(case)_channel', 0.0),
                                   ('(case)_responsible', 0.0),
                                   ('(case)_department', 0.0)],
  'condition_count': 1,
  'confidence': 0.9829787234042553,
- 'f1_score': 0.3684210526315789,
- 'precision': 1.0,
- 'recall': 0.22580645161290322,
+ 'f1_score': 0.25925925925925924,
+ 'precision': 0.9333333333333333,
+ 'recall': 0.15053763440860216,
  'roc_auc_score': 0.5717454173012562,
  'rule_count': 1,
  'support': 0.385}
 
 "T06 Determine necessity of stop advice"
-CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 'depth': 16, 'loss_function': 'Logloss', 'eval_metric': 'AUC'}, 'catboost_total_trees': 4}
-{'catboost_auc_score': 0.9504504504504505,
- 'catboost_feature_importances': [('(case)_group', 66.88473381314617),
-                                  ('(case)_responsible', 20.953686012775886),
-                                  ('(case)_channel', 12.161580174077956),
+CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 'depth': 16, 'loss_function': 'Logloss', 'eval_metric': 'AUC'}, 'catboost_total_trees': 9}
+{'catboost_auc_score': 0.9324324324324325,
+ 'catboost_feature_importances': [('(case)_group', 79.81953543116806),
+                                  ('org:group', 8.41994524403859),
+                                  ('(case)_channel', 7.9558789131124845),
+                                  ('(case)_responsible', 3.804640411680865),
                                   ('user', 0.0),
-                                  ('org:group', 0.0),
                                   ('(case)_department', 0.0)],
  'condition_count': 0,
  'confidence': 0,
@@ -136,12 +141,16 @@ CATBOOST-RIPPER parameters:  {'max_rules': None, 'catboost': {'iterations': 10, 
 ╒════════════════════════════════════════════╤═══════════════════════════════════════════════════════════════════════════════════╕
 │ Knockout Check                             │ Dependencies                                                                      │
 ╞════════════════════════════════════════════╪═══════════════════════════════════════════════════════════════════════════════════╡
-│ T02 Check confirmation of receipt          │ 'org:group' available after activity 'T06 Determine necessity of stop advice'     │
+│ T02 Check confirmation of receipt          │ '(case) group' available after activity 'Start'                                   │
+│                                            │ 'org:group' available after activity 'T06 Determine necessity of stop advice'     │
 ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
-│ T06 Determine necessity of stop advice     │ '(case) responsible' available after activity 'Start'                             │
+│ T06 Determine necessity of stop advice     │ '(case) channel' available after activity 'Start'                                 │
+│                                            │ '(case) responsible' available after activity 'Start'                             │
 │                                            │ 'org:group' available after activity 'T05 Print and send confirmation of receipt' │
 ├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────┤
-│ T10 Determine necessity to stop indication │ 'org:group' available after activity 'T05 Print and send confirmation of receipt' │
+│ T10 Determine necessity to stop indication │ '(case) group' available after activity 'Start'                                   │
+│                                            │ '(case) responsible' available after activity 'Start'                             │
+│                                            │ 'org:group' available after activity 'T05 Print and send confirmation of receipt' │
 ╘════════════════════════════════════════════╧═══════════════════════════════════════════════════════════════════════════════════╛
 
 
@@ -176,19 +185,19 @@ Optimal Order of Knock-out checks (taking into account attribute dependencies):
 
 > Knock-out rule value ranges
 
-╒════════════════════════════════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════════════════╕
-│ Knockout Check                             │ Observation                                                                                           │
-╞════════════════════════════════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════════════╡
-│ T02 Check confirmation of receipt          │ [[org:group=EMPTY] V [org:group=Group4]]                                                              │
-│                                            │ No numerical attributes found in rule.                                                                │
-├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ T06 Determine necessity of stop advice     │ [[(case)_responsible=Resource01^org:group=Group1] V [(case)_responsible=Resource03^org:group=Group1]] │
-│                                            │ No numerical attributes found in rule.                                                                │
-├────────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ T10 Determine necessity to stop indication │ [[org:group=Group1]]                                                                                  │
-│                                            │ No numerical attributes found in rule.                                                                │
-╘════════════════════════════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════════════╛
+╒════════════════════════════════════════════╤════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Knockout Check                             │ Observation                                                                                                                                                                                                                                │
+╞════════════════════════════════════════════╪════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│ T02 Check confirmation of receipt          │ [[org:group=Group4] V [org:group=EMPTY^(case)_group=Group2] V [org:group=EMPTY]]                                                                                                                                                           │
+│                                            │ No numerical attributes found in rule.                                                                                                                                                                                                     │
+├────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ T06 Determine necessity of stop advice     │ [[(case)_responsible=Resource03^(case)_channel=e-mail] V [(case)_responsible=Resource01^org:group=Group1]]                                                                                                                                 │
+│                                            │ No numerical attributes found in rule.                                                                                                                                                                                                     │
+├────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ T10 Determine necessity to stop indication │ [[org:group=Group1^(case)_responsible=Resource11] V [org:group=Group1^(case)_group=Group5^(case)_responsible=Resource06] V [org:group=Group1^(case)_group=Group5] V [org:group=Group1^(case)_responsible=Resource20] V [org:group=Group1]] │
+│                                            │ No numerical attributes found in rule.                                                                                                                                                                                                     │
+╘════════════════════════════════════════════╧════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
 
-Knockouts Redesign Pipeline ended @ 2022-07-02 20:34:17.723050
+Knockouts Redesign Pipeline ended @ 2022-07-03 11:47:39.108923
 
-Wall-clock execution time:  0:00:11.312870
+Wall-clock execution time:  0:00:12.138531
