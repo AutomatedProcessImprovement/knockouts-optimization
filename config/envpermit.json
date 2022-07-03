@@ -24,6 +24,8 @@
   ],
   "attributes_to_ignore": [
     "concept:instance",
+    "org:group",
+    "(case) group",
     "user"
   ],
   "rule_discovery_algorithm": "RIPPER",

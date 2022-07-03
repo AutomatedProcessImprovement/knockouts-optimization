@@ -1,6 +1,6 @@
 # Based on: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Build & Test on Windows and Linux
+name: CI
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
     branches: [ main ]
 env:
   RUNNING_TESTS: 1
+  DISABLE_PARALLELIZATION: 1
 
 jobs:
   build-test-ubuntu:

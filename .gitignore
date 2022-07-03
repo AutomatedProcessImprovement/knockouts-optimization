@@ -7,3 +7,4 @@ venv/
 **/cache/**
 knockout_ios/test/inputs/BPI*
 data/inputs/BPI*
+*.png

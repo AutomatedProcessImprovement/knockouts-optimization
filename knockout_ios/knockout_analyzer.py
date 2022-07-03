@@ -133,7 +133,7 @@ class KnockoutAnalyzer:
 
     def calc_ko_efforts(self, support_threshold=0.5, confidence_threshold=0.5, algorithm="IREP"):
 
-        if algorithm == "RIPPER":
+        if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
             rulesets = self.RIPPER_rulesets
         else:
             rulesets = self.IREP_rulesets
@@ -161,14 +161,11 @@ class KnockoutAnalyzer:
                 # Effort per rejection = Average PT / Rejection rate
                 effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if (metrics['confidence'] >= confidence_threshold) and (metrics['support'] >= support_threshold) and (
-                    metrics['confidence'] > 0):
-                # Effort per rejection = (Average PT / Rejection rate) * Confidence
+            if (metrics['confidence'] >= confidence_threshold) and (metrics['confidence'] > 0):
+                # Effort per rejection = (Average PT / Rejection rate) * (1/Confidence)
                 effort = effort / metrics['confidence']
 
-            # confidence and support are dependent on the rule discovery algorithm used
-            self.ko_stats[key][algorithm] = {'effort': 0}
-            self.ko_stats[key][algorithm]['effort'] = effort
+            self.ko_stats[key][algorithm] = {'effort': effort}
 
     def calc_ko_discovery_metrics(self, expected_kos):
         self.ko_discovery_metrics = self.discoverer.get_discovery_metrics(expected_kos)
@@ -275,7 +272,7 @@ class KnockoutAnalyzer:
             print(f"\nDiscovering rulesets of each K.O. activity with {algorithm}")
 
         if grid_search & (param_grid is None):
-            if algorithm == "RIPPER":
+            if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
                 param_grid = {"prune_size": [0.5, 0.8, 0.9], "k": [2], "dl_allowance": [1, 2, 4, 8],
                               "n_discretize_bins": [10, 20]}
             elif algorithm == "IREP":
@@ -290,13 +287,14 @@ class KnockoutAnalyzer:
                                         n_discretize_bins=n_discretize_bins, dl_allowance=dl_allowance,
                                         prune_size=prune_size, grid_search=grid_search, param_grid=param_grid,
                                         skip_temporal_holdout=self.config.skip_temporal_holdout,
-                                        balance_classes=self.config.balance_classes)
+                                        balance_classes=self.config.balance_classes,
+                                        output_dir=self.config.output)
 
         except Exception:
             logging.error(traceback.format_exc())
             raise KnockoutRuleDiscoveryException
 
-        if algorithm == "RIPPER":
+        if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
             self.RIPPER_rulesets = rulesets
         elif algorithm == "IREP":
             self.IREP_rulesets = rulesets
@@ -318,7 +316,7 @@ class KnockoutAnalyzer:
     def get_ko_rulesets_stats(self, algorithm):
 
         rulesets = None
-        if algorithm == "RIPPER":
+        if (algorithm == "RIPPER") or (algorithm == "CATBOOST-RIPPER"):
             rulesets = self.RIPPER_rulesets
         elif algorithm == "IREP":
             rulesets = self.IREP_rulesets
@@ -350,7 +348,7 @@ class KnockoutAnalyzer:
             if self.ruleset_algorithm is None:
                 return
 
-            if self.ruleset_algorithm == "RIPPER":
+            if (self.ruleset_algorithm == "RIPPER") or (self.ruleset_algorithm == "CATBOOST-RIPPER"):
                 rulesets = self.RIPPER_rulesets
             else:
                 rulesets = self.IREP_rulesets
@@ -422,7 +420,7 @@ class KnockoutAnalyzer:
         warnings = []
 
         rulesets = None
-        if self.ruleset_algorithm == "RIPPER":
+        if (self.ruleset_algorithm == "RIPPER") or (self.ruleset_algorithm == "CATBOOST-RIPPER"):
             rulesets = self.RIPPER_rulesets
         elif self.ruleset_algorithm == "IREP":
             rulesets = self.IREP_rulesets

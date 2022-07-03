@@ -32,3 +32,7 @@ class KnockoutRuleDiscoveryException(Exception):
 
 class NoResourcesInLogException(Exception):
     pass
+
+
+class ImpossibleActivityOrderingConstraintsException(Exception):
+    pass
