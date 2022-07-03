@@ -9,6 +9,7 @@ on:
     branches: [ main ]
 env:
   RUNNING_TESTS: 1
+  DISABLE_PARALLELIZATION: 1
 
 jobs:
   build-test-ubuntu:

@@ -11,9 +11,8 @@ import numpy as np
 import pandas as pd
 import shutup
 from catboost import CatBoostClassifier, Pool, cv
-from catboost.utils import get_roc_curve, eval_metric
+from catboost.utils import get_roc_curve
 from matplotlib import pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 from tqdm import tqdm
 
 import wittgenstein as lw
@@ -31,8 +30,11 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                      dl_allowance=2, prune_size=0.8, grid_search=True, param_grid=None,
                      skip_temporal_holdout=False,
                      balance_classes=False,
-                     output_dir="."
+                     output_dir=None
                      ):
+    if output_dir is None:
+        output_dir = "."
+
     if columns_to_ignore is None:
         columns_to_ignore = []
 
@@ -61,7 +63,7 @@ def find_ko_rulesets(log_df, ko_activities, available_cases_before_ko, columns_t
                                     balance_classes, algorithm, max_rules,
                                     max_rule_conds, max_total_conds,
                                     k, dl_allowance, n_discretize_bins, prune_size,
-                                    grid_search, param_grid, available_cases_before_ko))
+                                    grid_search, param_grid, available_cases_before_ko, output_dir))
 
             for future in tqdm(futures, desc='Finding rules of Knockout Activities (parallel)'):
                 result = future.result()
