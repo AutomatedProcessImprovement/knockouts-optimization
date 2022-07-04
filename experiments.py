@@ -2,8 +2,10 @@ import os
 
 from knockout_ios.pipeline_wrapper import Pipeline
 
-# SUFFIX = ""
-SUFFIX = "_cb"
+SUFFIX = ""
+
+
+# SUFFIX = "_cb"
 
 
 def synthetic_example():

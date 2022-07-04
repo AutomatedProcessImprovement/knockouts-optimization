@@ -1,0 +1,192 @@
+Knockouts Redesign Pipeline started @ 2022-07-04 19:18:52.425322
+
+Input parameters:
+
+{'always_force_recompute': True,
+ 'attributes_to_ignore': None,
+ 'balance_classes': False,
+ 'cache_dir': 'cache/synthetic_example_enriched',
+ 'confidence_threshold': 0.5,
+ 'config_dir': None,
+ 'config_file_name': None,
+ 'config_path': None,
+ 'custom_log_preprocessing_function': None,
+ 'disallowed_permutations': [],
+ 'dl_allowance': 1,
+ 'drop_low_confidence_rules': False,
+ 'end_activity': 'End',
+ 'exclude_from_ko_activities': None,
+ 'grid_search': False,
+ 'ignore_log_parsing_cache': False,
+ 'k': 2,
+ 'known_ko_activities': [],
+ 'ko_count_threshold': None,
+ 'log_path': WindowsPath('data/inputs/synthetic_example_enriched.xes'),
+ 'max_rule_conds': 1,
+ 'max_rules': 3,
+ 'n_discretize_bins': 10,
+ 'output': WindowsPath('data/outputs'),
+ 'param_grid': {'dl_allowance': [1, 6, 12, 24],
+                'k': [2, 4],
+                'n_discretize_bins': [5, 10, 20],
+                'prune_size': [0.1, 0.2, 0.4]},
+ 'post_knockout_activities': ['Notify rejection'],
+ 'print_rule_discovery_stats': True,
+ 'prune_size': 0.8,
+ 'read_options': {'column_names': {'Activity': 'task',
+                                   'Case ID': 'caseid',
+                                   'Resource': 'user',
+                                   'lifecycle:transition': 'event_type'},
+                  'filter_d_attrib': True,
+                  'one_timestamp': False,
+                  'timestamp_format': '%Y-%m-%dT%H:%M:%S.%f'},
+ 'redesign_results_file_path': 'data/outputs/synthetic_example.txt',
+ 'relocation_variants_min_coverage_percentage': 0.001,
+ 'rule_discovery_algorithm': 'IREP',
+ 'skip_slow_time_waste_metrics': True,
+ 'skip_temporal_holdout': False,
+ 'start_activity': 'Credit application received',
+ 'success_activities': [],
+ 'support_threshold': 0.1}
+
+
+╒══════════════════════╤═══════════════════╤══════════════════╤══════════════════╤═════════════════════════════════════╤════════════════════════╤═════════════════╤══════════════════════════════╤════════════════════╤════════════════════════════╤═══════════════════════════╕
+│ Knockout Check       │   Total frequency │ Case frequency   │ Rejection rate   │ Rejection rule (IREP)               │   Effort per rejection │ Mean Duration   │ Total Overprocessing Waste   │ Total PT Waste     │ Total Waiting Time Waste   │ Mean Waiting Time Waste   │
+╞══════════════════════╪═══════════════════╪══════════════════╪══════════════════╪═════════════════════════════════════╪════════════════════════╪═════════════════╪══════════════════════════════╪════════════════════╪════════════════════════════╪═══════════════════════════╡
+│ Assess application   │               836 │ 27.87 %          │ 80.02 %          │ [[External_Risk_Score=>0.64] V      │                  50.2  │ 1:06:57         │ 178 days, 0:35:20            │ 139 days, 6:45:45  │ 0:00:00                    │ 0:00:00                   │
+│                      │                   │                  │                  │ [External_Risk_Score=0.36-0.64]]    │                        │                 │                              │                    │                            │                           │
+├──────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────┼────────────────────────┼─────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ Check Liability      │              3000 │ 100.0 %          │ 20.17 %          │ [[Total_Debt=>5219.85] V            │                 202.83 │ 1:08:10         │ 55 days, 18:56:48            │ 33 days, 15:40:30  │ 0:00:00                    │ 0:00:00                   │
+│                      │                   │                  │                  │ [Owns_Vehicle=FALSE]]               │                        │                 │                              │                    │                            │                           │
+├──────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────┼────────────────────────┼─────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ Check Monthly Income │              1674 │ 55.8 %           │ 50.06 %          │ [[Monthly_Income=<564.21] V         │                  46.17 │ 0:35:56         │ 139 days, 4:24:45            │ 114 days, 18:13:13 │ 0:00:00                    │ 0:00:00                   │
+│                      │                   │                  │                  │ [Monthly_Income=564.21-830.79] V    │                        │                 │                              │                    │                            │                           │
+│                      │                   │                  │                  │ [Monthly_Income=830.79-1020.15]]    │                        │                 │                              │                    │                            │                           │
+├──────────────────────┼───────────────────┼──────────────────┼──────────────────┼─────────────────────────────────────┼────────────────────────┼─────────────────┼──────────────────────────────┼────────────────────┼────────────────────────────┼───────────────────────────┤
+│ Check Risk           │              2395 │ 79.83 %          │ 30.1 %           │ [[Loan_Ammount=11647.32-16709.71] V │                 136.54 │ 1:08:30         │ 143 days, 1:12:24            │ 93 days, 4:40:17   │ 0:00:00                    │ 0:00:00                   │
+│                      │                   │                  │                  │ [Loan_Ammount=>16709.71]]           │                        │                 │                              │                    │                            │                           │
+╘══════════════════════╧═══════════════════╧══════════════════╧══════════════════╧═════════════════════════════════════╧════════════════════════╧═════════════════╧══════════════════════════════╧════════════════════╧════════════════════════════╧═══════════════════════════╛
+
+IREP
+
+"Check Liability"
+IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'condition_count': 2,
+ 'confidence': 1.0,
+ 'f1_score': 0.9787234042553191,
+ 'precision': 1.0,
+ 'recall': 0.9583333333333334,
+ 'roc_auc_score': 0.9878983437064245,
+ 'rule_count': 2,
+ 'support': 0.19266666666666668}
+
+"Assess application"
+IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'condition_count': 2,
+ 'confidence': 1.0,
+ 'f1_score': 0.9739776951672863,
+ 'precision': 1.0,
+ 'recall': 0.9492753623188406,
+ 'roc_auc_score': 0.96653848046157,
+ 'rule_count': 2,
+ 'support': 0.7320574162679426}
+
+"Check Risk"
+IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'condition_count': 2,
+ 'confidence': 1.0,
+ 'f1_score': 0.935361216730038,
+ 'precision': 1.0,
+ 'recall': 0.8785714285714286,
+ 'roc_auc_score': 0.9499134697554505,
+ 'rule_count': 2,
+ 'support': 0.25177453027139873}
+
+"Check Monthly Income"
+IREP parameters:  {'max_rules': 3, 'max_rule_conds': 1, 'max_total_conds': None, 'n_discretize_bins': 10, 'prune_size': 0.8}
+{'condition_count': 3,
+ 'confidence': 0.933184855233853,
+ 'f1_score': 0.9681159420289855,
+ 'precision': 0.943502824858757,
+ 'recall': 0.9940476190476191,
+ 'roc_auc_score': 0.9807989501889683,
+ 'rule_count': 3,
+ 'support': 0.5364396654719236}
+
+** Redesign options **
+
+
+> Dependencies of KO activities
+
+╒══════════════════════╤═════════════════════════════════════════════════════════════╕
+│ Knockout Check       │ Dependencies                                                │
+╞══════════════════════╪═════════════════════════════════════════════════════════════╡
+│ Assess application   │ 'External Risk Score' available after activity 'Check Risk' │
+├──────────────────────┼─────────────────────────────────────────────────────────────┤
+│ Check Liability      │ 'Total Debt' available after activity 'Start'               │
+│                      │ 'Owns Vehicle' available after activity 'Start'             │
+├──────────────────────┼─────────────────────────────────────────────────────────────┤
+│ Check Monthly Income │ 'Monthly Income' available after activity 'Start'           │
+├──────────────────────┼─────────────────────────────────────────────────────────────┤
+│ Check Risk           │ 'Loan Ammount' available after activity 'Start'             │
+╘══════════════════════╧═════════════════════════════════════════════════════════════╛
+
+
+> Knock-out Re-ordering
+
+Optimal Order of Knock-out checks (taking into account attribute dependencies):
+1. Check Monthly Income
+2. Check Risk
+3. Assess application
+4. Check Liability
+
+0/167 non-knocked-out case(s) follow it.
+
+
+> Knock-out Re-location
+
+╒══════════════╤═════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│   Case count │ Cases Covered   │ As-is / To-be                                                                                                                                                                                                                                                                         │
+╞══════════════╪═════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│          838 │ 27.9 %          │ Start -> Credit application received -> Check Liability -> Check Risk -> Check Monthly Income -> Notify rejection -> Credit application processed -> End                                                                                                                              │
+│              │                 │ Start -> Credit application received -> Check <span style="color:Green;">Month</span>ly<span style="color:Green;"> Income</span> -> Check Risk -> Check <span style="color:Green;">Liabili</span>ty -> Notify rejection -> Credit application processed -> End                        │
+├──────────────┼─────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│          721 │ 24.0 %          │ Start -> Credit application received -> Check Liability -> Check Risk -> Notify rejection -> Credit application processed -> End                                                                                                                                                      │
+│              │                 │ Start -> Credit application received -> Check <span style="color:Green;">R</span>i<span style="color:Green;">sk</span> -> Check <span style="color:Green;">L</span>i<span style="color:Green;">ability</span> -> Notify rejection -> Credit application processed -> End              │
+├──────────────┼─────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│          669 │ 22.3 %          │ Start -> Credit application received -> Check Liability -> Check Risk -> Check Monthly Income -> Assess application -> Notify rejection -> Credit application processed -> End                                                                                                        │
+│              │                 │ Start -> Credit application received -> Check <span style="color:Green;">Month</span>ly<span style="color:Green;"> Income</span> -> Check Risk -> Assess application<span style="color:Green;"> -> Check Liability</span> -> Notify rejection -> Credit application processed -> End  │
+├──────────────┼─────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│          605 │ 20.2 %          │ Start -> Credit application received -> Check Liability -> Notify rejection -> Credit application processed -> End                                                                                                                                                                    │
+│              │                 │ Start -> Credit application received -> Check Liability -> Notify rejection -> Credit application processed -> End                                                                                                                                                                    │
+├──────────────┼─────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│          167 │ 5.6 %           │ Start -> Credit application received -> Check Liability -> Check Risk -> Check Monthly Income -> Assess application -> Make credit offer -> Credit application processed -> End                                                                                                       │
+│              │                 │ Start -> Credit application received -> Check <span style="color:Green;">Month</span>ly<span style="color:Green;"> Income</span> -> Check Risk -> Assess application<span style="color:Green;"> -> Check Liability</span> -> Make credit offer -> Credit application processed -> End │
+╘══════════════╧═════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╛
+
+
+> Knock-out rule value ranges
+
+╒══════════════════════╤═══════════════════════════════════════════════════════════════════════════════════════════════╕
+│ Knockout Check       │ Observation                                                                                   │
+╞══════════════════════╪═══════════════════════════════════════════════════════════════════════════════════════════════╡
+│ Assess application   │ [[External_Risk_Score=>0.64] V [External_Risk_Score=0.36-0.64]]                               │
+│                      │ Value ranges of knocked-out cases:                                                            │
+│                      │ - External Risk Score: 0.30 - 1.00                                                            │
+├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Check Liability      │ [[Total_Debt=>5219.85] V [Owns_Vehicle=FALSE]]                                                │
+│                      │ Value ranges of knocked-out cases:                                                            │
+│                      │ - Total Debt: 192.61 - 10719.54                                                               │
+├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Check Monthly Income │ [[Monthly_Income=<564.21] V [Monthly_Income=564.21-830.79] V [Monthly_Income=830.79-1020.15]] │
+│                      │ Value ranges of knocked-out cases:                                                            │
+│                      │ - Monthly Income: 3.52 - 998.69                                                               │
+├──────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Check Risk           │ [[Loan_Ammount=11647.32-16709.71] V [Loan_Ammount=>16709.71]]                                 │
+│                      │ Value ranges of knocked-out cases:                                                            │
+│                      │ - Loan Ammount: 10003.42 - 40181.17                                                           │
+╘══════════════════════╧═══════════════════════════════════════════════════════════════════════════════════════════════╛
+
+Knockouts Redesign Pipeline ended @ 2022-07-04 19:19:13.183429
+
+Wall-clock execution time:  0:00:20.757593
