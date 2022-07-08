@@ -1,0 +1,10 @@
+Knockout Check,Total frequency,Case frequency,Rejection rate,Rejection rule (RIPPER),Effort per rejection,Mean Duration,Total Overprocessing Waste,Total PT Waste,Total Waiting Time Waste,Mean Waiting Time Waste
+W_Call incomplete files,2660,8.44 %,5.41 %,"[[EventOrigin=Application] V
+[LoanGoal=Notspeficied]]",132860.48,"1 days, 4:07:52","2792 days, 18:15:21","46 days, 12:53:06",0:00:00,0:00:00
+W_Validate application,10912,34.63 %,18.78 %,"[[EventOrigin=Application ^ Accepted=true ^ LoanGoal=Existingloantakeover] V
+[EventOrigin=Application] V
+[Action=Deleted ^ OfferedAmount=<6500.0] V
+[Action=Deleted ^ OfferedAmount=10000.0-12000.0] V
+[Action=Deleted ^ NumberOfTerms=67.0-72.0] V
+[Action=Deleted ^ FirstWithdrawalAmount=>31000.0] V
+[Action=Deleted ^ LoanGoal=Existingloantakeover]]",921.06,2:18:40,"35452 days, 7:55:38","57 days, 7:47:27",0:00:00,0:00:00

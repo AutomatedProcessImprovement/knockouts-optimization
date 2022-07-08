@@ -1,14 +1,10 @@
 import logging
 import os
-import pickle
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor
 from typing import List
 
-import numpy as np
 import pandas as pd
 from datetimerange import DateTimeRange
-from numba import njit
 from numpy import nan
 from wittgenstein.abstract_ruleset_classifier import AbstractRulesetClassifier
 
@@ -103,13 +99,14 @@ def get_ko_discovery_metrics(activities, expected_kos, computed_kos):
 
 def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame,
                                   available_cases_before_ko: int):
+    # Support: The percentage of instances to which the condition of a rule applies
     # Source: https://christophm.github.io/interpretable-ml-book/rules.html#rules
-    # Source: https://github.com/AutomatedProcessImprovement/batch-processing-analysis/blob/main/src/batch_processing_analysis/activation_rules.py
 
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
-    true_positives = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
+    # Find for how many cases, the knock-out condition holds (it doesn't matter whether the prediction is correct)
+    true_positives = log[log['predicted_ko']].shape[0]
 
     if available_cases_before_ko == 0:
         return 0
@@ -120,12 +117,13 @@ def calc_knockout_ruleset_support(activity: str, ruleset_model: AbstractRulesetC
 
 
 def calc_knockout_ruleset_confidence(activity: str, ruleset_model: AbstractRulesetClassifier, log: pd.DataFrame):
-    # Source: Batch processing inefficiencies paper
-    # https://github.com/AutomatedProcessImprovement/batch-processing-analysis/blob/main/src/batch_processing_analysis/activation_rules.py
+    # Confidence: how accurate the rule is in predicting the correct class for the instances to which the condition of the rule applies
+    # Source: https://christophm.github.io/interpretable-ml-book/rules.html#rules
 
     predicted_ko = ruleset_model.predict(log)
     log['predicted_ko'] = predicted_ko
 
+    # Find for how many cases, the knock-out condition holds and the prediction matches the ground truth
     true_positives = log[(log['predicted_ko']) & (log['knockout_activity'] == activity)].shape[0]
     predicted_positives = sum(predicted_ko)
 

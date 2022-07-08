@@ -161,10 +161,6 @@ class KnockoutAnalyzer:
                 # Effort per rejection = Average PT / Rejection rate
                 effort = soj_time[key] / (100 * self.ko_stats[key]['rejection_rate'])
 
-            if (metrics['confidence'] >= confidence_threshold) and (metrics['confidence'] > 0):
-                # Effort per rejection = (Average PT / Rejection rate) * (1/Confidence)
-                effort = effort / metrics['confidence']
-
             self.ko_stats[key][algorithm] = {'effort': effort}
 
     def calc_ko_discovery_metrics(self, expected_kos):
