@@ -1,6 +1,6 @@
 appnope==0.1.2
 asttokens==2.0.5
-atomicwrites==1.4.0
+atomicwrites==1.4.1
 attrs==21.4.0
 backcall==0.2.0
 black==22.1.0
