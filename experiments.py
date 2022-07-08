@@ -26,9 +26,9 @@ def bpi2017():
 
 
 if __name__ == "__main__":
-    os.environ['DISABLE_PARALLELIZATION'] = "1"
+    # os.environ['DISABLE_PARALLELIZATION'] = "1"
     os.environ['ENABLE_ROC_PLOTS'] = "1"
 
     envpermit()
-    # synthetic_example()
+    synthetic_example()
     # bpi2017()
