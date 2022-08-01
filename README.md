@@ -6,7 +6,7 @@ Implementation of a data-driven approach for discovering improvement opportuniti
 
 The tool comes with a browser-based UI (powered by [Streamlit](https://streamlit.io/)), but it can also be invoked via CLI or imported as a module in Python scripts.
 
-<img src="https://user-images.githubusercontent.com/40581019/182252516-36b2fbe2-7d61-4502-b1f4-0c760d669d8f.PNG" width="90%">
+<img src="https://user-images.githubusercontent.com/40581019/182252516-36b2fbe2-7d61-4502-b1f4-0c760d669d8f.PNG" width="100%">
 
 
 ## Set-up
