@@ -2,11 +2,16 @@
 
 [![CI](https://github.com/AutomatedProcessImprovement/knockouts-redesign/actions/workflows/build-test.yml/badge.svg?branch=main)](https://github.com/AutomatedProcessImprovement/knockouts-redesign/actions/workflows/build-test.yml)
 
-This project is about discovering improvement opportunities in Knock-out checks performed within Business Processes.
+Implementation of a data-driven approach for discovering improvement opportunities related to the execution of knock-out checks within business processes.
+
+The tool comes with a browser-based UI (powered by [Streamlit](https://streamlit.io/)), but it can also be invoked via CLI or imported as a module in Python scripts.
+
+<img src="https://user-images.githubusercontent.com/40581019/182252516-36b2fbe2-7d61-4502-b1f4-0c760d669d8f.PNG" width="70%">
+
 
 ## Set-up
 
-### Using a `setup` script
+### Option A: Using a `setup` script
 
 - Setup scripts are provided for Windows & Linux, which perform the steps described in the "Manual steps"
   section.
@@ -22,7 +27,7 @@ This project is about discovering improvement opportunities in Knock-out checks 
   bash setup.sh
    ```
 
-### Manual steps
+### Option B: Manual steps
 
 - Clone the repo
 - [Create a virtual environment with venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment)
@@ -59,6 +64,7 @@ Then you can choose whether to:
      # Linux: 
      bash start.sh
   ```
+
 
 - Launch from CLI:
   ```bash
